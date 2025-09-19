@@ -1,0 +1,6 @@
+packages:
+  - "app"
+  - "landing"
+  - "server"
+  - "shared"
+  - "scripts"
