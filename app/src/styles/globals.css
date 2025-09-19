@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-slate-950 text-slate-50 antialiased;
+}
+
+main {
+  @apply min-h-screen flex flex-col items-center justify-center p-8 gap-6;
+}
