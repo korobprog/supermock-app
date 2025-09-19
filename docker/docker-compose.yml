@@ -1,0 +1,54 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: supermock
+      POSTGRES_USER: supermock
+      POSTGRES_PASSWORD: supermock
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.server
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DATABASE_URL: postgresql://supermock:supermock@postgres:5432/supermock
+      REDIS_URL: redis://redis:6379
+      SERVER_PORT: 4000
+      SERVER_HOST: 0.0.0.0
+    ports:
+      - '4000:4000'
+
+  landing:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.landing
+    environment:
+      NODE_ENV: production
+    ports:
+      - '3000:3000'
+
+  desktop:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.app
+    environment:
+      NODE_ENV: production
+    ports:
+      - '3100:3000'
+
+volumes:
+  postgres_data:

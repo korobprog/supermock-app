@@ -1,0 +1,24 @@
+{
+  "name": "supermock-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@8.15.4",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.15.0"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "format": "pnpm -r format",
+    "type-check": "pnpm -r type-check",
+    "test": "pnpm -r test",
+    "test:unit": "pnpm -r --filter ./server test:unit",
+    "test:integration": "pnpm -r --filter ./server test:integration",
+    "test:e2e": "pnpm -r --filter ./app test:e2e",
+    "db:migrate": "pnpm --filter ./server db:migrate",
+    "db:seed": "pnpm --filter ./server db:seed",
+    "db:reset": "pnpm --filter ./server db:reset"
+  }
+}
