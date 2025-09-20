@@ -18,6 +18,11 @@ const features = [
     href: '/trainer'
   },
   {
+    title: 'Slot dashboard',
+    description: 'Browse slots with tabs, filters, participant details and notification preferences in one view.',
+    href: '/slots'
+  },
+  {
     title: 'Interviewer dashboard',
     description: 'Manage availability, upcoming sessions and interview summaries in one place.',
     href: '/interviewer'
