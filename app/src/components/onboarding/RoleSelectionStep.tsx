@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
+import OnboardingProgress from './OnboardingProgress';
 import { fetchMatchOverview } from '@/lib/api';
 import { useUserProfile } from '@/store/useUserProfile';
 
@@ -84,15 +85,7 @@ export default function RoleSelectionStep() {
             выгодный сценарий прямо сейчас.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs uppercase tracking-wide text-slate-500">Progress</span>
-          <div className="flex items-center gap-1">
-            <span className="h-2 w-8 rounded-full bg-secondary" />
-            <span className="h-2 w-8 rounded-full bg-secondary" />
-            <span className="h-2 w-8 rounded-full bg-slate-700" />
-            <span className="h-2 w-8 rounded-full bg-secondary" />
-          </div>
-        </div>
+        <OnboardingProgress currentStep={4} totalSteps={4} />
       </header>
 
       <div className="mt-8 grid gap-5 md:grid-cols-2">
@@ -106,11 +99,18 @@ export default function RoleSelectionStep() {
               <p className="text-xs font-semibold uppercase tracking-wide text-secondary/80">Для практики</p>
               <h2 className="mt-1 text-2xl font-semibold">Стать кандидатом</h2>
             </div>
-            {profile.role === 'CANDIDATE' && (
-              <span className="rounded-full border border-secondary/80 bg-secondary/20 px-3 py-1 text-xs font-semibold text-secondary">
-                Вы выбрали
-              </span>
-            )}
+            <div className="flex flex-col items-end gap-2">
+              {recommendation.role === 'CANDIDATE' && (
+                <span className="rounded-full border border-amber-400/50 bg-amber-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-amber-200">
+                  Выгодно сейчас
+                </span>
+              )}
+              {profile.role === 'CANDIDATE' && (
+                <span className="rounded-full border border-secondary/80 bg-secondary/20 px-3 py-1 text-xs font-semibold text-secondary">
+                  Вы выбрали
+                </span>
+              )}
+            </div>
           </div>
           <p className="text-sm text-slate-300">
             Получайте собеседования по выбранной профессии и языку. После каждой сессии - структурированный разбор от
@@ -142,11 +142,18 @@ export default function RoleSelectionStep() {
               <p className="text-xs font-semibold uppercase tracking-wide text-secondary/80">Для экспертов</p>
               <h2 className="mt-1 text-2xl font-semibold">Стать интервьюером</h2>
             </div>
-            {profile.role === 'INTERVIEWER' && (
-              <span className="rounded-full border border-secondary/80 bg-secondary/20 px-3 py-1 text-xs font-semibold text-secondary">
-                Вы выбрали
-              </span>
-            )}
+            <div className="flex flex-col items-end gap-2">
+              {recommendation.role === 'INTERVIEWER' && (
+                <span className="rounded-full border border-amber-400/50 bg-amber-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-amber-200">
+                  Выгодно сейчас
+                </span>
+              )}
+              {profile.role === 'INTERVIEWER' && (
+                <span className="rounded-full border border-secondary/80 bg-secondary/20 px-3 py-1 text-xs font-semibold text-secondary">
+                  Вы выбрали
+                </span>
+              )}
+            </div>
           </div>
           <p className="text-sm text-slate-300">
             Делитесь опытом, ведите до 5 сессий в день и получайте вознаграждение. Система подбирает кандидатов по
