@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 
 import { useUserProfile } from '@/store/useUserProfile';
+
+import OnboardingProgress from './OnboardingProgress';
 import type { SupportedLanguage } from '../../../../shared/src/types/user.js';
 
 const LANGUAGE_TO_INTL_LOCALE: Record<SupportedLanguage, string> = {
@@ -159,14 +161,7 @@ export default function TimezoneStep() {
             availability and notifications accurate.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs uppercase tracking-wide text-slate-500">Progress</span>
-          <div className="flex items-center gap-1">
-            <span className="h-2 w-8 rounded-full bg-secondary" />
-            <span className="h-2 w-8 rounded-full bg-secondary" />
-            <span className="h-2 w-8 rounded-full bg-slate-700" />
-          </div>
-        </div>
+        <OnboardingProgress currentStep={2} totalSteps={4} />
       </header>
 
       <div className="mt-8 space-y-6">

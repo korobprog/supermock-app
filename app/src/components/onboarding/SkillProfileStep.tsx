@@ -9,6 +9,8 @@ import {
 import { useSaveOnboardingDraft } from '@/hooks/useOnboardingDraft';
 import { useUserProfile } from '@/store/useUserProfile';
 
+import OnboardingProgress from './OnboardingProgress';
+
 const CATEGORY_TITLES: Record<ProfessionCategory, string> = {
   'core-engineering': 'Основные роли разработки',
   'specialized-engineering': 'Специализированные инженерные роли',
@@ -137,14 +139,7 @@ export default function SkillProfileStep() {
             technologies you are most confident in today.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs uppercase tracking-wide text-slate-500">Progress</span>
-          <div className="flex items-center gap-1">
-            <span className="h-2 w-8 rounded-full bg-secondary" />
-            <span className="h-2 w-8 rounded-full bg-secondary" />
-            <span className="h-2 w-8 rounded-full bg-secondary" />
-          </div>
-        </div>
+        <OnboardingProgress currentStep={3} totalSteps={4} />
       </header>
 
       <div className="mt-8 space-y-10">

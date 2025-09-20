@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchMatchOverview } from '@/lib/api';
 import { useUserProfile } from '@/store/useUserProfile';
 
+import OnboardingProgress from './OnboardingProgress';
+
 const SESSION_REWARD_USD = 65;
 
 function formatUsd(amount: number) {
@@ -84,15 +86,7 @@ export default function RoleSelectionStep() {
             выгодный сценарий прямо сейчас.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs uppercase tracking-wide text-slate-500">Progress</span>
-          <div className="flex items-center gap-1">
-            <span className="h-2 w-8 rounded-full bg-secondary" />
-            <span className="h-2 w-8 rounded-full bg-secondary" />
-            <span className="h-2 w-8 rounded-full bg-slate-700" />
-            <span className="h-2 w-8 rounded-full bg-secondary" />
-          </div>
-        </div>
+        <OnboardingProgress currentStep={4} totalSteps={4} />
       </header>
 
       <div className="mt-8 grid gap-5 md:grid-cols-2">
