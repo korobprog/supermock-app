@@ -7,7 +7,7 @@ describe('buildConfig', () => {
     const config = buildConfig({});
     expect(config.port).toBe(4000);
     expect(config.host).toBe('0.0.0.0');
-    expect(config.corsOrigins).toEqual([]);
+    expect(config.corsOrigins).toEqual(['http://localhost:3000', 'http://localhost:3001']);
     expect(config.logLevel).toBe('info');
   });
 

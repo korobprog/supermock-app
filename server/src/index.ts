@@ -6,6 +6,7 @@ import { buildConfig } from './modules/config.js';
 import { registerCoreRoutes } from './routes/core.route.js';
 import { registerHealthRoute } from './routes/health.route.js';
 import { registerMatchingRoutes } from './routes/matching.route.js';
+import { registerPaymentRoutes } from './routes/payments.route.js';
 
 const config = buildConfig();
 
@@ -26,6 +27,7 @@ async function bootstrap() {
   registerCoreRoutes(app);
   registerHealthRoute(app);
   registerMatchingRoutes(app);
+  registerPaymentRoutes(app);
 
   try {
     await app.listen({ port: config.port, host: config.host });
