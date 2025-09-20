@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
@@ -24,6 +25,7 @@ import type {
   MatchRequestWithResultDto,
   CompletedSessionDto
 } from '../../../shared/src/types/matching.js';
+import { PROFESSION_OPTIONS } from '@/data/professions';
 
 const SESSION_FORMAT_OPTIONS: { value: CreateMatchRequestPayload['sessionFormat']; label: string }[] = [
   { value: 'CODING', label: 'Coding interview' },
@@ -39,8 +41,27 @@ function parseList(value: string) {
     .filter(Boolean);
 }
 
+function toArray(value: string | string[] | undefined) {
+  if (!value) {
+    return [];
+  }
+
+  return Array.isArray(value) ? value : [value];
+}
+
+const PROFESSION_TITLES = new Map(PROFESSION_OPTIONS.map((option) => [option.id, option.title]));
+
 export default function InterviewMatchingPage() {
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const {
+    language: intentLanguage,
+    profession: intentProfession,
+    tools: intentTools,
+    onlyFree: intentOnlyFree,
+    onlyWithParticipants: intentOnlyWithParticipants,
+    tab: intentTab
+  } = router.query;
   const [selectedCandidateId, setSelectedCandidateId] = useState<string>('');
   const [targetRole, setTargetRole] = useState('');
   const [focusAreasInput, setFocusAreasInput] = useState('');
@@ -58,6 +79,7 @@ export default function InterviewMatchingPage() {
   const [strengthsInput, setStrengthsInput] = useState('');
   const [improvementsInput, setImprovementsInput] = useState('');
   const [rating, setRating] = useState(4);
+  const [slotIntentApplied, setSlotIntentApplied] = useState(false);
 
   const overviewQuery = useQuery({ queryKey: ['matching', 'overview'], queryFn: fetchMatchOverview });
   const candidatesQuery = useQuery({ queryKey: ['matching', 'candidates'], queryFn: fetchCandidateSummaries });
@@ -71,17 +93,75 @@ export default function InterviewMatchingPage() {
     if (!selectedCandidateId && candidatesQuery.data?.length) {
       const firstCandidate = candidatesQuery.data[0];
       setSelectedCandidateId(firstCandidate.id);
-      setTargetRole(firstCandidate.preferredRoles[0] ?? '');
-      setFocusAreasInput(firstCandidate.preferredRoles.join(', '));
-      setLanguagesInput(firstCandidate.preferredLanguages.join(', '));
+      if (!targetRole) {
+        setTargetRole(firstCandidate.preferredRoles[0] ?? '');
+      }
+      if (!focusAreasInput) {
+        setFocusAreasInput(firstCandidate.preferredRoles.join(', '));
+      }
+      if (!languagesInput) {
+        setLanguagesInput(firstCandidate.preferredLanguages.join(', '));
+      }
     }
-  }, [candidatesQuery.data, selectedCandidateId]);
+  }, [candidatesQuery.data, focusAreasInput, languagesInput, selectedCandidateId, targetRole]);
 
   useEffect(() => {
     if (!selectedInterviewerId && interviewersQuery.data?.length) {
       setSelectedInterviewerId(interviewersQuery.data[0].id);
     }
   }, [interviewersQuery.data, selectedInterviewerId]);
+
+  useEffect(() => {
+    if (!router.isReady || slotIntentApplied) {
+      return;
+    }
+
+    if (typeof intentProfession === 'string' && !targetRole) {
+      const professionTitle = PROFESSION_TITLES.get(intentProfession) ?? intentProfession;
+      setTargetRole(professionTitle);
+    }
+
+    const toolValues = toArray(intentTools);
+    if (toolValues.length > 0 && !focusAreasInput) {
+      setFocusAreasInput(toolValues.join(', '));
+    }
+
+    if (typeof intentLanguage === 'string' && !languagesInput) {
+      setLanguagesInput(intentLanguage);
+    }
+
+    if (!notes) {
+      const notesParts: string[] = [];
+      if (intentOnlyFree === 'true') {
+        notesParts.push('Нужны свободные места');
+      }
+      if (intentOnlyWithParticipants === 'true') {
+        notesParts.push('Важно наличие других участников');
+      }
+      if (typeof intentTab === 'string') {
+        notesParts.push(`Исходный таб: ${intentTab}`);
+      }
+
+      if (notesParts.length > 0) {
+        setNotes(notesParts.join('. '));
+      }
+    }
+
+    setSlotIntentApplied(true);
+  }, [
+    focusAreasInput,
+    intentLanguage,
+    intentOnlyFree,
+    intentOnlyWithParticipants,
+    intentProfession,
+    intentTab,
+    intentTools,
+    languagesInput,
+    notes,
+    router.isReady,
+    slotIntentApplied,
+    targetRole
+  ]);
 
   const createRequestMutation = useMutation({
     mutationFn: (payload: CreateMatchRequestPayload) => createMatchRequest(payload),

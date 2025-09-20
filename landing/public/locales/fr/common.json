@@ -1,0 +1,614 @@
+{
+  "common": {
+    "title": "Super Mock - Plateforme d'Entretiens IA",
+    "description": "Préparez-vous à votre entretien en 6 langues avec analyse IA et intervieweurs réels.",
+    "testSection": "Section de Test de Langue",
+    "testDescription": "Ceci est une section de test pour vérifier que l'internationalisation fonctionne correctement."
+  },
+  "seo": {
+    "title": "Super Mock - Plateforme IA de Préparation aux Entretiens en 6 Langues | Intervieweurs Réels",
+    "description": "Préparez-vous à votre entretien en 6 langues avec Super Mock. Analyse IA, intervieweurs réels, 10+ professions. Retour personnalisé et amélioration des compétences.",
+    "keywords": "entretien, entretien simulé, IA, intelligence artificielle, préparation emploi, carrière, anglais, russe, allemand, français, espagnol, chinois, programmation, marketing, ventes, RH",
+    "ogTitle": "Super Mock - Plateforme IA de Préparation aux Entretiens en 6 Langues",
+    "ogDescription": "Préparez-vous à votre entretien en 6 langues avec Super Mock. Analyse IA, intervieweurs réels, 10+ professions.",
+    "twitterTitle": "Super Mock - Plateforme IA de Préparation aux Entretiens en 6 Langues",
+    "twitterDescription": "Préparez-vous à votre entretien en 6 langues avec Super Mock. Analyse IA, intervieweurs réels, 10+ professions."
+  },
+  "navigation": {
+    "home": "Accueil",
+    "features": "Fonctionnalités",
+    "learningProcess": "Processus",
+    "professions": "Professions",
+    "languages": "Langues",
+    "pricing": "Tarifs",
+    "instructions": "Aide",
+    "support": "Support",
+    "about": "À propos",
+    "login": "Se connecter"
+  },
+  "hero": {
+    "title": "Préparez-vous à votre",
+    "titleHighlight": "entretien",
+    "titleSuffix": "en 6 langues",
+    "subtitle": "Super Mock — Plateforme IA pour les entretiens avec un appariement unique de candidats et d'intervieweurs",
+    "startLearning": "🚀 Commencer l'apprentissage",
+    "openApp": "💻 Ouvrir l'application",
+    "help": "Aide"
+  },
+  "stats": {
+    "professions": "Professions<br />Techniques 💼",
+    "languages": "Langues 🌍",
+    "interviews": "Entretiens 📊",
+    "success": "Taux de réussite 🎯"
+  },
+  "features": {
+    "title": "Fonctionnalités de la",
+    "titleHighlight": "plateforme",
+    "subtitle": "Technologies modernes pour une préparation efficace aux entretiens",
+    "webrtc": {
+      "title": "Appels vidéo WebRTC",
+      "description": "Communication de haute qualité en temps réel"
+    },
+    "coding": {
+      "title": "Programmation en temps réel",
+      "description": "Écriture collaborative de code"
+    },
+    "chat": {
+      "title": "Chat intervieweur ↔ candidat",
+      "description": "Communication instantanée"
+    },
+    "ai": {
+      "title": "Analyse IA",
+      "description": "Évaluation intelligente des compétences"
+    },
+    "feedback": {
+      "title": "Retour personnalisé",
+      "description": "Recommandations détaillées"
+    },
+    "learning": {
+      "title": "Apprentissage interactif",
+      "description": "Gamification du processus"
+    }
+  },
+  "languages": {
+    "title": "Langues",
+    "titleHighlight": "supportées",
+    "subtitle": "Passez des entretiens dans votre langue maternelle",
+    "english": "English",
+    "englishDesc": "Langue anglaise",
+    "russian": "Russian",
+    "russianDesc": "Langue russe",
+    "spanish": "Spanish",
+    "spanishDesc": "Langue espagnole",
+    "french": "French",
+    "frenchDesc": "Langue française",
+    "german": "German",
+    "germanDesc": "Langue allemande",
+    "chinese": "Chinese",
+    "chineseDesc": "Langue chinoise",
+    "benefits": {
+      "global": {
+        "title": "Accès Global",
+        "description": "Préparation aux entretiens dans 6 langues principales du monde"
+      },
+      "colleagues": {
+        "title": "Vos collègues avec votre stack et langue",
+        "description": "Choisissez le moment de la journée"
+      },
+      "communication": {
+        "title": "Communication Naturelle",
+        "description": "Communication confortable dans votre langue maternelle sans barrières linguistiques"
+      }
+    },
+    "cta": {
+      "title": "Choisissez une",
+      "titleHighlight": "langue",
+      "titleSuffix": "et commencez à apprendre",
+      "subtitle": "Préparez-vous à un entretien dans l'une des 6 langues supportées",
+      "startLearning": "Commencer à Apprendre",
+      "learningProcess": "Processus d'Apprentissage"
+    }
+  },
+  "learningProcess": {
+    "hero": {
+      "title": "Processus",
+      "titleHighlight": "d'apprentissage",
+      "subtitle": "Plan étape par étape pour se préparer aux entretiens techniques en utilisant les technologies IA",
+      "startLearning": "Commencer l'apprentissage"
+    },
+    "processSteps": {
+      "step1": {
+        "title": "Sélection de la langue",
+        "description": "Entretiens en 6 langues",
+        "details": "Choisissez une langue pour passer des entretiens parmi 6 langues disponibles"
+      },
+      "step2": {
+        "title": "Sélection de la profession",
+        "description": "10+ directions techniques",
+        "details": "Déterminez la spécialisation technique pour la préparation"
+      },
+      "step3": {
+        "title": "Outils et technologies",
+        "description": "Stack technologique de la profession",
+        "details": "Étudiez les outils et technologies nécessaires pour la profession choisie"
+      },
+      "step4": {
+        "title": "Entretien simulé",
+        "description": "Simulation réaliste",
+        "details": "Passez des entretiens réalistes avec de vrais participants"
+      },
+      "step5": {
+        "title": "Obtenir un retour",
+        "description": "Retour détaillé",
+        "details": "Obtenez une analyse détaillée de vos réponses et comportement"
+      },
+      "step6": {
+        "title": "Analyse IA et planification",
+        "description": "Recommandations personnalisées",
+        "details": "L'IA analyse les résultats et crée un plan de développement"
+      },
+      "step7": {
+        "title": "Apprentissage dans les applications",
+        "description": "Tâches pratiques",
+        "details": "Complétez des tâches pratiques pour renforcer les compétences"
+      },
+      "step8": {
+        "title": "Répétition du cycle",
+        "description": "Développement continu",
+        "details": "Revenez au début pour une amélioration constante"
+      }
+    },
+    "languagesSection": {
+      "title": "Langues",
+      "titleHighlight": "supportées",
+      "subtitle": "Passez des entretiens dans votre langue maternelle"
+    },
+    "professionsSection": {
+      "title": "Professions",
+      "titleHighlight": "techniques",
+      "subtitle": "Préparation aux entretiens dans tous les domaines IT"
+    },
+    "plansSection": {
+      "title": "Processus d'apprentissage par forfaits",
+      "subtitle": "Différents niveaux d'accès aux fonctionnalités d'apprentissage selon le forfait choisi",
+      "free": {
+        "title": "Gratuit",
+        "description": "Capacités de base",
+        "features": {
+          "mockInterviews": {
+            "title": "Entretiens simulés",
+            "description": "Simulations d'entretiens de base"
+          },
+          "basicFeedback": {
+            "title": "Retour de base",
+            "description": "Retour simple"
+          }
+        },
+        "select": "Choisir Gratuit"
+      },
+      "basic": {
+        "title": "Basique",
+        "description": "Analyse étendue",
+        "features": {
+          "mockInterviews": {
+            "title": "Entretiens simulés",
+            "description": "Simulations étendues"
+          },
+          "aiAssistant": {
+            "title": "Assistant IA",
+            "description": "Support IA pendant les entretiens"
+          },
+          "aiAnalysis": {
+            "title": "Analyse IA et planification",
+            "description": "Recommandations personnalisées"
+          },
+          "advancedAnalytics": {
+            "title": "Analytique avancée",
+            "description": "Statistiques détaillées des progrès"
+          }
+        },
+        "select": "Choisir Basique"
+      },
+      "pro": {
+        "title": "Pro",
+        "description": "Cycle d'apprentissage complet",
+        "features": {
+          "allBasicFeatures": {
+            "title": "Toutes les fonctionnalités Basique",
+            "description": "Accès complet à l'analytique"
+          },
+          "appLearning": {
+            "title": "Apprentissage dans les applications",
+            "description": "Tâches pratiques"
+          },
+          "cycleRepetition": {
+            "title": "Répétition du cycle",
+            "description": "Développement continu"
+          },
+          "prioritySupport": {
+            "title": "Support prioritaire",
+            "description": "Fonctionnalités exclusives"
+          }
+        },
+        "select": "Choisir Pro"
+      }
+    },
+    "cta": {
+      "title": "Prêt à",
+      "titleHighlight": "commencer",
+      "titleSuffix": "l'apprentissage ?",
+      "subtitle": "Rejoignez des milliers de développeurs qui ont déjà amélioré leurs compétences avec Super Mock",
+      "startLearning": "Commencer l'apprentissage",
+      "comparePlans": "Comparer les forfaits"
+    }
+  },
+  "pricing": {
+    "title": "Choisissez votre",
+    "titleHighlight": "forfait",
+    "subtitle": "🎯 Forfaits flexibles pour une préparation efficace aux entretiens",
+    "betaNotice": {
+      "title": "La plateforme est actuellement en version Beta",
+      "description": "Par conséquent, les prix sont maximument abordables pour tous. Après la sortie de la version complète, les tarifs seront plus élevés, donc c'est maintenant le moment le plus rentable de se connecter !"
+    },
+    "learnMore": "💰 Plus d'informations sur les tarifs",
+    "included": "✅ Ce qui est inclus :",
+    "excluded": "❌ Ce qui n'est pas inclus :",
+    "proDiscount": "Prix favorable (40% d'économie)",
+    "free": {
+      "title": "Gratuit",
+      "price": "$1",
+      "period": "USD par mois",
+      "feature1": "Entretiens simulés illimités",
+      "feature2": "Période de validité : 1 mois",
+      "feature3": "Fonctionnalités de base de la plateforme",
+      "select": "Choisir le forfait"
+    },
+    "basic": {
+      "title": "Basique",
+      "price": "$9.99",
+      "period": "USD par mois",
+      "feature1": "Entretiens simulés",
+      "feature2": "Assistant IA",
+      "feature3": "Période de validité : 1 mois",
+      "feature4": "Analytique avancée",
+      "select": "Choisir le forfait"
+    },
+    "pro": {
+      "title": "Pro",
+      "price": "$20",
+      "period": "USD pour 3 mois",
+      "popular": "Populaire",
+      "feature1": "Toutes les fonctionnalités Basique",
+      "feature2": "Apprentissage dans les applications",
+      "feature3": "Répétition du cycle",
+      "feature4": "Support prioritaire",
+      "feature5": "Fonctionnalités exclusives",
+      "feature6": "Période de validité : 3 mois",
+      "select": "Choisir le forfait"
+    }
+  },
+  "social": {
+    "title": "Nous sommes là quand c'est difficile",
+    "subtitle": "SuperMock n'est pas seulement une question de carrière et d'entretiens. C'est une question de personnes.",
+    "description": "Nous savons à quel point cela peut être difficile pour ceux qui se trouvent dans des situations de vie difficiles. Par conséquent :",
+    "donationsPrefix": "10% de tous les paiements",
+    "donations": "sont dirigés vers l'aide à ceux qui en ont particulièrement besoin.",
+    "accessibilityPrefix": "Les personnes handicapées et les familles à faible revenu",
+    "accessibility": "peuvent étudier sur notre plateforme gratuitement.",
+    "conclusion": "Parce que chacun mérite une chance pour un avenir avec espoir et amour ❤️"
+  },
+  "pricingFaq": {
+    "title": "Questions Fréquemment Posées",
+    "howToChoose": {
+      "question": "Comment choisir un plan ?",
+      "answer": "Commencez par le plan Free pour vous familiariser avec la plateforme, puis passez à Basic ou Pro selon vos besoins."
+    },
+    "cancelSubscription": {
+      "question": "Puis-je annuler mon abonnement ?",
+      "answer": "Oui, vous pouvez annuler votre abonnement à tout moment. La période payée restera active jusqu'à la fin de la période de validité."
+    },
+    "trialPeriod": {
+      "question": "Y a-t-il une période d'essai ?",
+      "answer": "Le plan Free vous permet de tester les fonctionnalités de base de la plateforme gratuitement."
+    },
+    "paymentMethods": {
+      "question": "Quelles méthodes de paiement sont disponibles ?",
+      "answer": "Nous acceptons les paiements en USD via divers systèmes de paiement."
+    }
+  },
+  "pricingCta": {
+    "title": "Prêt à",
+    "titleHighlight": "commencer",
+    "titleSuffix": "l'apprentissage ?",
+    "subtitle": "Choisissez le bon plan et commencez à vous préparer pour votre entretien dès aujourd'hui",
+    "startLearning": "Commencer l'Apprentissage",
+    "learningProcess": "Processus d'Apprentissage"
+  },
+  "about": {
+    "title": "À propos de",
+    "titleHighlight": "Super Mock",
+    "description1": "Super Mock est une plateforme IA innovante qui révolutionne le processus de préparation aux entretiens techniques. Nous combinons des technologies d'intelligence artificielle de pointe avec un support multilingue pour créer une expérience d'apprentissage personnalisée.",
+    "description2": "Notre plateforme aide les candidats à améliorer leurs compétences en programmation, communication et résolution de problèmes grâce à des simulations réalistes d'entretiens avec analyse IA et retour en temps réel.",
+    "learnMore": "En savoir plus",
+    "page": {
+      "badge": "À propos de nous",
+      "name": "Korobkov Maxim Viktorovich",
+      "subtitle": "Créateur de SuperMock — une plateforme innovante pour la préparation aux entretiens utilisant l'intelligence artificielle",
+      "contact": "Contacter",
+      "projectTitle": "À propos du projet",
+      "projectSubtitle": "Plateforme unique pour l'apprentissage personnalisé des professions IT",
+      "principles": "Principes principaux :",
+      "principlesText": "Beaucoup de cours IT ne sont pas vivants, ils ne sont pas individuels. Chaque personne est spéciale et tous sont différents, il n'y a pas de personnes identiques, ce qui signifie que le principe dans l'apprentissage doit être spécial et personnel pour chacun.",
+      "readMore": "Lire plus...",
+      "hideDetails": "Masquer les détails",
+      "authorIntro": "Mon nom est Korobkov Maxim Viktorovich et je suis un développeur avec 20 ans d'expérience, j'ai commencé avec des systèmes de trading automatisés sur les bourses financières, je conçois actuellement des systèmes pour les besoins des entreprises.",
+      "problemDescription": "Je reçois beaucoup d'idées dans la vie des problèmes que je rencontre, et en tant que développeur j'essaie de les résoudre. Le temps est la chose la plus précieuse dans notre vie, j'ai fait face au problème que beaucoup de temps est dépensé pour l'apprentissage. J'ai étudié dans quatre entreprises, cette expérience m'est connue, elles essaient toutes de résoudre des problèmes, mais beaucoup de leurs étudiants partent insatisfaits.",
+      "solutionTitle": "Solution au problème dans l'approche :",
+      "solutionText": "La chose la plus importante vers laquelle nous allons est l'objectif, mais pendant que nous y allons nous oublions déjà ce que nous avons traversé ou appris. Est-ce que cela vous est familier ? Je pense que oui, tout le monde connaît cela... Alors quelle est la solution ? Ne nous contentons pas d'enseigner à mémoriser, mais vivons aussi, plongeons-nous dans le bon sens de comprendre ce mot :)",
+      "experienceDescription": "Imaginez même si vous êtes déjà un professionnel et avez accompli quelque chose en IT. Vous êtes un junior et brûlez d'entrer en IT et gagner beaucoup d'argent à distance en buvant du jus sur le rivage de la mer, en travaillant sur un MacBook... Mais, il y a un \"MAIS\" — les employeurs ne prennent pas même s'il y a une réponse, dans leur société réussie, vous ne correspondez pas, le live coding a échoué ou vous avez répondu incorrectement, peu de projets pas d'expérience commerciale.",
+      "ideaTitle": "Voici venue l'idée :",
+      "ideaText": "Créer un service où tout est en un endroit et il y a votre mentor personnel — un vrai ami même si c'est l'IA ! Imaginez, vous avez appris quelques bases sur la plateforme, et puis le mentor vous dit : \"Êtes-vous prêt, allons à un entretien simulé, passez-le je vais regarder le feedback et à partir de là je vais vous guider, combler les lacunes dans vos connaissances\".",
+      "learningDescription": "Vous passez des entretiens, vous vous habituez à la communication et parlez avec confiance avec l'intervieweur, pas comme avant avec une voix tremblante ou en priant que la connexion disparaisse et sortir de cet enfer :) En général, l'apprentissage se fait avec joie parce qu'il est fait pour vous et configuré pour vous.",
+      "conclusion": "C'est le système que j'ai développé spécifiquement pour vous. Passez des entretiens en communiquant avec des collègues, payez un montant raisonnable pour l'apprentissage en signe de gratitude pour soutenir le projet.",
+      "featuresTitle": "Fonctionnalités clés",
+      "featuresSubtitle": "Ce qui fait de SuperMock une plateforme unique",
+      "feature1": "Mentor IA personnel pour chaque utilisateur",
+      "feature2": "Entretiens simulés avec des scénarios réalistes",
+      "feature3": "Apprentissage adaptatif basé sur vos lacunes",
+      "feature4": "Développement à la fois des compétences techniques et soft skills",
+      "skillsTitle": "Compétences et technologies",
+      "skillsSubtitle": "Spécialisation dans l'IA et le développement web",
+      "skill1": {
+        "name": "IA/ML",
+        "description": "Apprentissage automatique, réseaux de neurones, traitement du langage naturel"
+      },
+      "skill2": {
+        "name": "Développement Web",
+        "description": "Développement Frontend et Backend, frameworks modernes"
+      },
+      "skill3": {
+        "name": "Coaching d'Entretiens",
+        "description": "Préparation aux entretiens, développement des soft skills"
+      },
+      "skill4": {
+        "name": "Gestion de Produit",
+        "description": "Gestion de produit, analytique, stratégie de développement"
+      },
+      "collaborationTitle": "Prêt pour la collaboration",
+      "collaborationSubtitle": "ouvert aux nouveaux projets et opportunités professionnelles.",
+      "email": "Email",
+      "linkedin": "LinkedIn",
+      "github": "GitHub",
+      "telegram": "Telegram"
+    }
+  },
+  "professions": {
+    "hero": {
+      "title": "Professions",
+      "titleHighlight": "Techniques",
+      "subtitle": "Préparez-vous aux entretiens dans tous les domaines informatiques"
+    },
+    "professionsList": {
+      "frontend": {
+        "name": "Frontend",
+        "description": "Développement d'interfaces utilisateur"
+      },
+      "backend": {
+        "name": "Backend",
+        "description": "Développement côté serveur et API"
+      },
+      "fullstack": {
+        "name": "Fullstack",
+        "description": "Développement full-stack"
+      },
+      "mobile": {
+        "name": "Mobile",
+        "description": "Développement mobile"
+      },
+      "devops": {
+        "name": "DevOps",
+        "description": "Infrastructure et automatisation"
+      },
+      "qa": {
+        "name": "QA",
+        "description": "Tests et assurance qualité"
+      },
+      "uxui": {
+        "name": "UX/UI",
+        "description": "Conception d'expérience utilisateur"
+      },
+      "dataAnalyst": {
+        "name": "Analyste de Données",
+        "description": "Analyse de données"
+      },
+      "dataScientist": {
+        "name": "Scientifique des Données",
+        "description": "Science des données et ML"
+      },
+      "productManager": {
+        "name": "Chef de Produit",
+        "description": "Gestion de produit"
+      }
+    },
+    "stats": {
+      "professions": "Professions<br />Techniques 💼",
+      "languages": "Langues 🌍",
+      "interviews": "Entretiens 📊",
+      "success": "Taux de Réussite 🎯"
+    },
+    "cta": {
+      "title": "Choisissez une",
+      "titleHighlight": "profession",
+      "titleSuffix": "et commencez à vous préparer",
+      "subtitle": "Préparez-vous à un entretien dans n'importe quelle spécialité technique",
+      "startLearning": "Commencer l'Apprentissage",
+      "learningProcess": "Processus d'Apprentissage"
+    }
+  },
+  "instructions": {
+    "hero": {
+      "title": "Aide SuperMock",
+      "subtitle": "Guide étape par étape pour utiliser la plateforme de pratique d'entretiens",
+      "startLearning": "Commencer l'apprentissage",
+      "haveQuestions": "Vous avez des questions ?"
+    },
+    "steps": {
+      "title": "Guide",
+      "titleHighlight": "étape par étape",
+      "subtitle": "Suivez ces étapes simples pour commencer à pratiquer les entretiens",
+      "step1": {
+        "title": "Cliquez sur le bouton SuperMock",
+        "description": "Commencer l'apprentissage",
+        "details": "Allez à la page principale et cliquez sur le bouton 'Commencer l'apprentissage' pour entrer dans le système"
+      },
+      "step2": {
+        "title": "Choisissez une profession",
+        "description": "Spécifiez le domaine dans lequel vous voulez pratiquer",
+        "details": "Choisissez parmi la liste des professions disponibles celle qui correspond à vos objectifs d'apprentissage"
+      },
+      "step3": {
+        "title": "Choisissez un rôle",
+        "description": "Candidat ou intervieweur",
+        "details": "Décidez du rôle : voulez-vous pratiquer en tant que candidat ou en tant qu'intervieweur"
+      },
+      "step4": {
+        "title": "Trouvez un entretien",
+        "description": "Le système trouvera un partenaire approprié",
+        "details": "Notre système trouvera automatiquement un partenaire approprié pour que vous puissiez pratiquer"
+      },
+      "step5": {
+        "title": "Conduisez l'entretien",
+        "description": "Utilisez l'appel vidéo intégré",
+        "details": "Conduisez un entretien complet en utilisant l'appel vidéo intégré"
+      },
+      "step6": {
+        "title": "Laissez un retour",
+        "description": "Évaluez votre partenaire et recevez une note",
+        "details": "Après l'entretien, laissez un retour constructif et recevez une note de votre partenaire"
+      }
+    },
+    "tips": {
+      "title": "💡",
+      "titleHighlight": "Conseils",
+      "subtitle": "Recommandations utiles pour une pratique efficace",
+      "tip1": {
+        "title": "Soyez poli et professionnel",
+        "description": "Respectez l'étiquette professionnelle et traitez votre partenaire avec respect"
+      },
+      "tip2": {
+        "title": "Laissez un retour constructif",
+        "description": "Aidez votre partenaire à améliorer ses compétences en fournissant des recommandations utiles"
+      },
+      "tip3": {
+        "title": "Pratiquez régulièrement",
+        "description": "Pour de meilleurs résultats, consacrez du temps à la pratique sur une base régulière"
+      }
+    },
+    "cta": {
+      "title": "Vous avez des",
+      "titleHighlight": "questions",
+      "titleSuffix": " ?",
+      "subtitle": "Écrivez-nous ! 📧 Nous sommes toujours prêts à aider",
+      "contactUs": "Nous contacter",
+      "startPractice": "Commencer la pratique"
+    }
+  },
+  "support": {
+    "hero": {
+      "title": "Support",
+      "subtitle": "💜 Nous croyons que chacun mérite l'opportunité de grandir et de se développer"
+    },
+    "supportOptions": {
+      "freeLearning": {
+        "title": "Apprentissage Gratuit",
+        "description": "Pour les personnes handicapées et les familles à faible revenu",
+        "features": {
+          "feature1": "Accès complet à la plateforme",
+          "feature2": "Toutes les fonctionnalités et capacités",
+          "feature3": "Support personnel"
+        }
+      },
+      "discounts": {
+        "title": "Remises et Avantages",
+        "description": "Pour ceux qui se trouvent dans des situations de vie difficiles",
+        "features": {
+          "feature1": "Remises individuelles jusqu'à 50%",
+          "feature2": "Conditions de paiement flexibles",
+          "feature3": "Examen de chaque cas"
+        }
+      }
+    },
+    "howItWorks": {
+      "title": "Comment obtenir du support ?",
+      "subtitle": "Nous examinerons votre situation et proposerons la solution optimale",
+      "steps": {
+        "step1": {
+          "title": "Écrivez-nous",
+          "description": "Décrivez votre situation dans Telegram"
+        },
+        "step2": {
+          "title": "Nous étudierons",
+          "description": "Nous examinerons votre demande dans les 24 heures"
+        },
+        "step3": {
+          "title": "Obtenez de l'aide",
+          "description": "Nous proposerons une option de support appropriée"
+        }
+      }
+    },
+    "cta": {
+      "title": "Prêts à vous",
+      "titleHighlight": "aider",
+      "titleSuffix": "",
+      "subtitle": "Écrivez-nous dans Telegram, et nous examinerons définitivement votre situation. Chaque cas est unique, et nous trouverons un moyen de vous aider.",
+      "buttonText": "Écrire à Telegram",
+      "responseTime": "💜 Nous répondrons dans les 24 heures"
+    },
+    "socialImpact": {
+      "title": "Notre Impact Social",
+      "stats": {
+        "donations": {
+          "value": "10%",
+          "description": "De tous les paiements va à l'aide aux nécessiteux"
+        },
+        "peopleHelped": {
+          "value": "100+",
+          "description": "Personnes ont reçu un accès gratuit à l'apprentissage"
+        },
+        "responseTime": {
+          "value": "24h",
+          "description": "Temps de réponse moyen aux demandes de support"
+        }
+      }
+    }
+  },
+  "notFound": {
+    "title": "Page non trouvée",
+    "description": "La page que vous recherchez n'existe pas ou a été déplacée.",
+    "goHome": "Aller à la page d'accueil",
+    "explore": "Explorer notre plateforme",
+    "help": "Besoin d'aide ? Contactez notre équipe de support.",
+    "contactSupport": "Contacter le support"
+  },
+  "footer": {
+    "description": "Plateforme IA pour la préparation aux entretiens techniques avec support pour 6 langues et retour personnalisé.",
+    "product": "Produit",
+    "support": "Support",
+    "payment": "Paiement",
+    "features": "Fonctionnalités",
+    "professions": "Professions",
+    "languages": "Langues",
+    "pricing": "Tarifs",
+    "help": "Aide",
+    "documentation": "Documentation",
+    "supportLink": "Support",
+    "faq": "FAQ",
+    "about": "À propos",
+    "privacyPolicy": "Politique de Confidentialité",
+    "termsOfService": "Conditions d'Utilisation",
+    "github": "GitHub",
+
+    "linkedin": "LinkedIn",
+    "copyright": "© 2025 Super Mock. Tous droits réservés."
+  }
+}

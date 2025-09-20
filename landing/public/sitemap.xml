@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <!-- Russian (Main) -->
+  <url>
+    <loc>https://supermock.ru/</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://supermock.ru/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://supermock.ru/en"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://supermock.ru/de"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://supermock.ru/fr"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://supermock.ru/es"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://supermock.ru/zh"/>
+  </url>
+  
+  <!-- English -->
+  <url>
+    <loc>https://supermock.ru/en/</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://supermock.ru/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://supermock.ru/en/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://supermock.ru/de/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://supermock.ru/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://supermock.ru/es/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://supermock.ru/zh/"/>
+  </url>
+  
+  <!-- German -->
+  <url>
+    <loc>https://supermock.ru/de/</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://supermock.ru/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://supermock.ru/en/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://supermock.ru/de/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://supermock.ru/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://supermock.ru/es/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://supermock.ru/zh/"/>
+  </url>
+  
+  <!-- French -->
+  <url>
+    <loc>https://supermock.ru/fr/</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://supermock.ru/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://supermock.ru/en/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://supermock.ru/de/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://supermock.ru/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://supermock.ru/es/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://supermock.ru/zh/"/>
+  </url>
+  
+  <!-- Spanish -->
+  <url>
+    <loc>https://supermock.ru/es/</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://supermock.ru/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://supermock.ru/en/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://supermock.ru/de/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://supermock.ru/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://supermock.ru/es/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://supermock.ru/zh/"/>
+  </url>
+  
+  <!-- Chinese -->
+  <url>
+    <loc>https://supermock.ru/zh/</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://supermock.ru/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://supermock.ru/en/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://supermock.ru/de/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://supermock.ru/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://supermock.ru/es/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://supermock.ru/zh/"/>
+  </url>
+  
+  <url>
+    <loc>https://supermock.ru/about</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://supermock.ru/features</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://supermock.ru/professions</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://supermock.ru/pricing</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://supermock.ru/faq</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://supermock.ru/support</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://supermock.ru/privacy-policy</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  
+  <url>
+    <loc>https://supermock.ru/terms-of-service</loc>
+    <lastmod>2025-01-01</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  
+</urlset>

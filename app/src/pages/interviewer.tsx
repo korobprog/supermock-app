@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
@@ -19,13 +20,33 @@ import type {
 
 const DEFAULT_INTERVIEWER_EMAIL = 'interviewer@supermock.io';
 
+function normalizeLanguageLabel(label: string) {
+  return label.replace(/^[^\p{L}]+/u, '').trim();
+}
+
+function toArray(value: string | string[] | undefined) {
+  if (!value) {
+    return [];
+  }
+
+  return Array.isArray(value) ? value : [value];
+}
+
 export default function InterviewerDashboardPage() {
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const {
+    language: intentLanguage,
+    tools: intentTools,
+    onlyFree: intentOnlyFree,
+    tab: intentTab
+  } = router.query;
   const [selectedInterviewerId, setSelectedInterviewerId] = useState('');
   const [startInput, setStartInput] = useState('');
   const [endInput, setEndInput] = useState('');
   const [isRecurring, setIsRecurring] = useState(false);
   const [sessionLimit, setSessionLimit] = useState(10);
+  const [slotIntentApplied, setSlotIntentApplied] = useState(false);
 
   const interviewersQuery = useQuery({
     queryKey: ['interviewers'],
@@ -84,6 +105,59 @@ export default function InterviewerDashboardPage() {
   const currentInterviewer: InterviewerSummaryDto | undefined = useMemo(() => {
     return interviewersQuery.data?.find((person) => person.id === selectedInterviewerId);
   }, [interviewersQuery.data, selectedInterviewerId]);
+
+  useEffect(() => {
+    if (!router.isReady || slotIntentApplied) {
+      return;
+    }
+
+    if (typeof intentOnlyFree === 'string') {
+      setIsRecurring(intentOnlyFree === 'true');
+    }
+
+    if (typeof intentTab === 'string') {
+      if (intentTab === 'completed') {
+        setSessionLimit(20);
+      } else if (intentTab === 'live') {
+        setSessionLimit(5);
+      }
+    }
+
+    setSlotIntentApplied(true);
+  }, [intentOnlyFree, intentTab, router.isReady, slotIntentApplied]);
+
+  useEffect(() => {
+    if (!router.isReady || selectedInterviewerId || !interviewersQuery.data?.length) {
+      return;
+    }
+
+    const normalizedLanguage =
+      typeof intentLanguage === 'string' ? normalizeLanguageLabel(intentLanguage).toLowerCase() : undefined;
+    const normalizedTools = toArray(intentTools).map((tool) => tool.toLowerCase());
+
+    const matchingInterviewer = interviewersQuery.data.find((person) => {
+      const languageMatch =
+        normalizedLanguage &&
+        person.languages.some((language) => language.toLowerCase().includes(normalizedLanguage));
+      const toolsMatch =
+        normalizedTools.length > 0 &&
+        normalizedTools.every((tool) =>
+          person.specializations.some((specialization) => specialization.toLowerCase().includes(tool))
+        );
+
+      return languageMatch || toolsMatch;
+    });
+
+    if (matchingInterviewer) {
+      setSelectedInterviewerId(matchingInterviewer.id);
+      return;
+    }
+
+    const fallback = interviewersQuery.data[0];
+    if (fallback) {
+      setSelectedInterviewerId(fallback.id);
+    }
+  }, [intentLanguage, intentTools, interviewersQuery.data, router.isReady, selectedInterviewerId]);
 
   return (
     <>

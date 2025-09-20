@@ -1,16 +1,28 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import Head from 'next/head';
 import {
+  ArrowPathIcon,
   ArrowUpRightIcon,
   BellAlertIcon,
+  BoltIcon,
   CalendarDaysIcon,
   ChatBubbleLeftRightIcon,
   CheckCircleIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ClipboardDocumentCheckIcon,
   ClockIcon,
+  CommandLineIcon,
+  FlagIcon,
   LifebuoyIcon,
   MapPinIcon,
+  MoonIcon,
   PaperAirplaneIcon,
+  PauseIcon,
+  PlayIcon,
   ShieldExclamationIcon,
+  SparklesIcon,
+  SunIcon,
   WifiIcon
 } from '@heroicons/react/24/outline';
 
@@ -47,6 +59,154 @@ type SafetyActionState = {
   submittedAt: Date;
   status: 'pending' | 'acknowledged';
   acknowledgedAt?: Date;
+};
+
+type DifficultyLevel = 'easy' | 'medium' | 'hard';
+
+type AIQuestion = {
+  id: string;
+  prompt: string;
+  category: string;
+  difficulty: DifficultyLevel;
+  followUps: string[];
+};
+
+type TimerAlert = {
+  id: string;
+  milestone: number;
+  message: string;
+  createdAt: Date;
+};
+
+const SESSION_LENGTH_MINUTES = 60;
+const WARNING_MINUTES = [30, 10, 5, 1] as const;
+
+const QUESTION_BANK: ReadonlyArray<Omit<AIQuestion, 'id'>> = [
+  {
+    prompt: 'Спроектируй сервис уведомлений, который доставляет 5 млн сообщений в сутки с учётом ретраев и дедупликации.',
+    category: 'System Design',
+    difficulty: 'hard',
+    followUps: [
+      'Как масштабировать хранение предпочтений пользователей?',
+      'Что делать при деградации внешнего провайдера?',
+      'Как протестировать обработку 5xx от шлюзов?'
+    ]
+  },
+  {
+    prompt: 'Расскажи о случае, когда приходилось убеждать команду в техническом решении без формальной власти.',
+    category: 'Behavioral',
+    difficulty: 'medium',
+    followUps: [
+      'Какие метрики использовались для оценки решения?',
+      'Какой была реакция команды изначально?',
+      'Что бы ты сделал иначе сейчас?'
+    ]
+  },
+  {
+    prompt: 'Оптимизируй работу React-компонента списка из 10k элементов, где меняются фильтры и сортировка.',
+    category: 'Frontend Architecture',
+    difficulty: 'medium',
+    followUps: [
+      'Когда стоит использовать виртуализацию?',
+      'Как замерить влияние изменений?',
+      'Что делать с сложными ячейками?'
+    ]
+  },
+  {
+    prompt: 'Реши задачу: дан массив событий (start, end). Найди максимум пересечений во времени.',
+    category: 'Algorithms',
+    difficulty: 'easy',
+    followUps: [
+      'Какой будет сложность решения?',
+      'Можно ли сделать решение потокобезопасным?',
+      'Как проверить корректность?'
+    ]
+  },
+  {
+    prompt: 'Опиши стратегию rollout-а фичи с A/B, фичефлагами и откатом для платформы с миллионной аудиторией.',
+    category: 'Delivery & Reliability',
+    difficulty: 'hard',
+    followUps: [
+      'Какие риски фиксируешь в runbook?',
+      'Как выбрать метрики, сигнализирующие об откате?',
+      'Что автоматизируешь в CI/CD?'
+    ]
+  }
+];
+
+const COMPETENCY_AREAS = [
+  {
+    id: 'communication',
+    label: 'Коммуникация',
+    description: 'Чёткость формулировок, активное слушание, структурность ответов.'
+  },
+  {
+    id: 'problem-solving',
+    label: 'Решение задач',
+    description: 'Декомпозиция, выбор подхода, способность оценивать компромиссы.'
+  },
+  {
+    id: 'system-design',
+    label: 'System design',
+    description: 'Архитектурное мышление, нестандартные сценарии, учёт ограничений.'
+  },
+  {
+    id: 'culture-add',
+    label: 'Culture add',
+    description: 'Влияние на команду, зрелость, proactivity и работа с обратной связью.'
+  }
+] as const;
+
+const HOTKEY_HINTS = [
+  { combo: '⌘ + Shift + T', description: 'Переключить тему доски' },
+  { combo: 'Shift + Space', description: 'Поставить таймер на паузу' },
+  { combo: '⌘ + L', description: 'Сфокусироваться на заметках интервьюера' }
+];
+
+const BOARD_VIEWS = [
+  { id: 'notes', label: 'Заметки' },
+  { id: 'code', label: 'Код' },
+  { id: 'diagram', label: 'Диаграмма' }
+] as const;
+
+const BOARD_CONTENT: Record<(typeof BOARD_VIEWS)[number]['id'], string> = {
+  notes:
+    'Разбор: архитектура уведомлений → базы → метрики. Собрать примеры ошибок, уточнить SLA и обработку деградаций.',
+  code: `function evaluateCandidate(signal) {
+  const metrics = ['clarity', 'adaptability', 'systemThinking'];
+  return metrics.every((key) => signal[key] >= 7);
+}
+
+const followUp = {
+  action: 'Share resources on React perf',
+  owner: 'Mentor'
+};`,
+  diagram:
+    'Интервьюер ⇄ Кандидат\n  ↳ Shared board (темы: архитектура / поведение)\n  ↳ AI вопросы (прогресс, сложность)\n  ↳ Таймер + предупреждения (30/10/5/1)'
+};
+
+const difficultyLabels: Record<DifficultyLevel, string> = {
+  easy: 'Легкий',
+  medium: 'Средний',
+  hard: 'Сложный'
+};
+
+const COMPETENCY_RATING_LABELS: Record<'strong' | 'neutral' | 'weak', string> = {
+  strong: 'Сильная сторона',
+  neutral: 'Нейтрально',
+  weak: 'Зона роста'
+};
+
+const COMPETENCY_RATING_CLASSES: Record<'strong' | 'neutral' | 'weak', string> = {
+  strong: 'border-emerald-400/60 bg-emerald-500/20 text-emerald-200 focus-visible:outline-emerald-300',
+  neutral: 'border-slate-500/60 bg-slate-900/60 text-slate-200 focus-visible:outline-secondary',
+  weak: 'border-rose-500/60 bg-rose-600/20 text-rose-200 focus-visible:outline-rose-300'
+};
+
+const RECOMMENDATION_BADGE_CLASSES: Record<'advocate' | 'hold' | 'decline', string> = {
+  advocate: 'border-emerald-400/60 bg-emerald-500/20 text-emerald-200 focus-visible:outline-emerald-300',
+  hold: 'border-amber-400/60 bg-amber-500/20 text-amber-200 focus-visible:outline-amber-300',
+  decline: 'border-rose-500/60 bg-rose-600/20 text-rose-200 focus-visible:outline-rose-300'
 };
 
 const SAFETY_ACTION_LABELS: Record<SafetyActionType, string> = {
@@ -137,12 +297,96 @@ function formatMinutesLabel(value: number) {
   }
 }
 
+function generateQuestionId(category: string) {
+  return `${category.replace(/\s+/g, '-').toLowerCase()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function pickRandomQuestion(excludePrompt?: string) {
+  const pool = excludePrompt
+    ? QUESTION_BANK.filter((entry) => entry.prompt !== excludePrompt)
+    : QUESTION_BANK;
+  const fallbackPool = pool.length ? pool : QUESTION_BANK;
+  const candidate = fallbackPool[Math.floor(Math.random() * fallbackPool.length)];
+  return {
+    ...candidate,
+    id: generateQuestionId(candidate.category)
+  } satisfies AIQuestion;
+}
+
+function adjustDifficulty(level: DifficultyLevel, direction: 'up' | 'down'): DifficultyLevel {
+  const order: DifficultyLevel[] = ['easy', 'medium', 'hard'];
+  const index = order.indexOf(level);
+  if (index === -1) {
+    return level;
+  }
+  if (direction === 'up') {
+    return order[Math.min(order.length - 1, index + 1)] ?? level;
+  }
+  return order[Math.max(0, index - 1)] ?? level;
+}
+
+function buildInitialDeck(size = 4): AIQuestion[] {
+  const prompts = new Set<string>();
+  const deck: AIQuestion[] = [];
+
+  while (deck.length < size) {
+    const candidate = pickRandomQuestion();
+    if (prompts.has(candidate.prompt)) {
+      continue;
+    }
+
+    prompts.add(candidate.prompt);
+    deck.push(candidate);
+  }
+
+  return deck;
+}
+
+function createMilestoneState(): Record<number, boolean> {
+  return WARNING_MINUTES.reduce<Record<number, boolean>>((acc, value) => {
+    acc[value] = false;
+    return acc;
+  }, {});
+}
+
 export default function ActiveSessionPage() {
   const [sessionStart] = useState(() => new Date(Date.now() + 12 * 60 * 1000));
   const sessionEnd = useMemo(
     () => new Date(sessionStart.getTime() + 60 * 60 * 1000),
     [sessionStart]
   );
+
+  const initialDeck = useMemo(() => buildInitialDeck(), []);
+  const [questionDeck, setQuestionDeck] = useState<AIQuestion[]>(() => initialDeck);
+  const [questionStates, setQuestionStates] = useState<Record<string, { answered: boolean; flagged: boolean }>>(() =>
+    Object.fromEntries(initialDeck.map((question) => [question.id, { answered: false, flagged: false }]))
+  );
+  const [relevanceRatings, setRelevanceRatings] = useState<
+    Record<string, 'relevant' | 'neutral' | 'off-topic' | null>
+  >(() => Object.fromEntries(initialDeck.map((question) => [question.id, null])));
+  const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
+  const [timerAlerts, setTimerAlerts] = useState<TimerAlert[]>([]);
+  const [triggeredMilestones, setTriggeredMilestones] = useState<Record<number, boolean>>(() => createMilestoneState());
+  const [isTimerPaused, setIsTimerPaused] = useState(false);
+  const [sessionSecondsElapsed, setSessionSecondsElapsed] = useState(0);
+  const [boardTheme, setBoardTheme] = useState<'dark' | 'light'>('dark');
+  const [boardView, setBoardView] = useState<(typeof BOARD_VIEWS)[number]['id']>('notes');
+  const [boardNotes, setBoardNotes] = useState(
+    'Итоги первых 20 минут: сильная декомпозиция, быстро выбирает метрики. Слабые места — нестабильные примеры по перформансу.'
+  );
+  const [competencyRatings, setCompetencyRatings] = useState<Record<string, 'strong' | 'neutral' | 'weak' | null>>(() =>
+    Object.fromEntries(COMPETENCY_AREAS.map((area) => [area.id, null]))
+  );
+  const [interviewerSummaryNotes, setInterviewerSummaryNotes] = useState(
+    'Кандидат уверенно держит темп, задаёт уточняющие вопросы и держит связь с бизнес-контекстом.'
+  );
+  const [interviewerRiskNotes, setInterviewerRiskNotes] = useState(
+    'Не хватает конкретики по работе с React profiler, стоит попросить показать план улучшений.'
+  );
+  const [interviewerActionItems, setInterviewerActionItems] = useState(
+    'Отправить шаблон ретро по perf-оптимизациям и договориться о follow-up через 2 дня.'
+  );
+  const [recommendationDecision, setRecommendationDecision] = useState<'advocate' | 'hold' | 'decline'>('advocate');
 
   const [now, setNow] = useState(() => new Date());
   const [checklistState, setChecklistState] = useState<Record<string, boolean>>(() =>
@@ -190,6 +434,62 @@ export default function ActiveSessionPage() {
     .toString()
     .padStart(2, '0');
 
+  useEffect(() => {
+    if (!hasStarted) {
+      setSessionSecondsElapsed(0);
+      return;
+    }
+
+    if (isTimerPaused) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setSessionSecondsElapsed((prev) => Math.min(prev + 1, SESSION_LENGTH_MINUTES * 60));
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [hasStarted, isTimerPaused]);
+
+  useEffect(() => {
+    if (!hasStarted) {
+      setTimerAlerts([]);
+      setTriggeredMilestones(createMilestoneState());
+    }
+  }, [hasStarted]);
+
+  useEffect(() => {
+    if (!hasStarted) {
+      return;
+    }
+
+    const minutesLeft = Math.max(0, Math.ceil((SESSION_LENGTH_MINUTES * 60 - sessionSecondsElapsed) / 60));
+    const dueMilestones = WARNING_MINUTES.filter((milestone) => !triggeredMilestones[milestone] && minutesLeft <= milestone);
+
+    if (!dueMilestones.length) {
+      return;
+    }
+
+    dueMilestones.forEach((milestone) => {
+      setTimerAlerts((prev) => [
+        {
+          id: `timer-alert-${milestone}-${Date.now()}`,
+          milestone,
+          message: `До конца осталось ${milestone} ${formatMinutesLabel(milestone)}.`,
+          createdAt: new Date()
+        },
+        ...prev
+      ]);
+    });
+
+    setTriggeredMilestones((prev) => ({
+      ...prev,
+      ...Object.fromEntries(dueMilestones.map((milestone) => [milestone, true]))
+    }));
+  }, [hasStarted, sessionSecondsElapsed, triggeredMilestones]);
+
   const timelineItems: TimelineItem[] = useMemo(() => {
     const itemsWithTime = TIMELINE_CHECKPOINTS.map((checkpoint) => ({
       ...checkpoint,
@@ -218,6 +518,91 @@ export default function ActiveSessionPage() {
       };
     });
   }, [now, sessionStart]);
+
+  const totalSessionSeconds = SESSION_LENGTH_MINUTES * 60;
+  const sessionSecondsLeft = Math.max(0, totalSessionSeconds - sessionSecondsElapsed);
+  const sessionProgressPercent = Math.min(100, Math.round((sessionSecondsElapsed / totalSessionSeconds) * 100));
+  const sessionMinutesLeft = Math.max(0, Math.ceil(sessionSecondsLeft / 60));
+
+  const answeredCount = useMemo(
+    () => Object.values(questionStates).filter((state) => state?.answered).length,
+    [questionStates]
+  );
+  const flaggedCount = useMemo(
+    () => Object.values(questionStates).filter((state) => state?.flagged).length,
+    [questionStates]
+  );
+
+  const totalQuestions = questionDeck.length;
+  const candidateProgressPercent = totalQuestions ? Math.round((answeredCount / totalQuestions) * 100) : 0;
+  const activeQuestion = questionDeck[activeQuestionIndex] ?? null;
+  const activeQuestionState = activeQuestion
+    ? questionStates[activeQuestion.id] ?? { answered: false, flagged: false }
+    : null;
+  const activeQuestionRelevance = activeQuestion ? relevanceRatings[activeQuestion.id] ?? null : null;
+  const upcomingMilestones = WARNING_MINUTES.filter((milestone) => !triggeredMilestones[milestone]);
+  const sessionHoursLeft = Math.floor(sessionSecondsLeft / 3600)
+    .toString()
+    .padStart(2, '0');
+  const sessionMinutesComponent = Math.floor((sessionSecondsLeft % 3600) / 60)
+    .toString()
+    .padStart(2, '0');
+  const sessionSecondsComponent = Math.floor(sessionSecondsLeft % 60)
+    .toString()
+    .padStart(2, '0');
+  const sessionTimerLabel = `${sessionHoursLeft}:${sessionMinutesComponent}:${sessionSecondsComponent}`;
+  const difficultyBadgeClass: Record<DifficultyLevel, string> = {
+    easy: 'border-emerald-500/40 bg-emerald-500/15 text-emerald-200',
+    medium: 'border-amber-500/40 bg-amber-500/15 text-amber-200',
+    hard: 'border-rose-500/40 bg-rose-600/15 text-rose-200'
+  };
+  const relevanceOptions = [
+    { value: 'relevant' as const, label: 'В тему' },
+    { value: 'neutral' as const, label: 'Норм' },
+    { value: 'off-topic' as const, label: 'Мимо' }
+  ];
+  const decisionOptions = [
+    { value: 'advocate' as const, label: 'Рекомендую' },
+    { value: 'hold' as const, label: 'Нужен доп. раунд' },
+    { value: 'decline' as const, label: 'Не рекомендую' }
+  ];
+  const isPrevDisabled = activeQuestionIndex <= 0;
+  const isNextDisabled = activeQuestionIndex >= totalQuestions - 1;
+  const boardThemeClasses =
+    boardTheme === 'dark'
+      ? 'border-slate-800 bg-slate-950 text-slate-100'
+      : 'border-slate-200 bg-slate-50 text-slate-900';
+  const boardInputClasses =
+    boardTheme === 'dark'
+      ? 'border-slate-800 bg-slate-900/80 text-slate-100 placeholder:text-slate-500'
+      : 'border-slate-200 bg-white text-slate-900 placeholder:text-slate-500';
+  const boardViewContent = BOARD_CONTENT[boardView];
+  const timerAlertPreview = timerAlerts.slice(0, 4);
+  const latestAlert = timerAlerts[0] ?? null;
+  const boardHeaderLabelClass = boardTheme === 'dark' ? 'text-slate-400' : 'text-slate-500';
+  const boardTitleClass = boardTheme === 'dark' ? 'text-white' : 'text-slate-900';
+  const boardDescriptionClass = boardTheme === 'dark' ? 'text-slate-300' : 'text-slate-600';
+  const boardThemeButtonClass =
+    boardTheme === 'dark'
+      ? 'border-slate-700 bg-slate-900/80 text-slate-200 hover:bg-slate-900 focus-visible:outline-secondary'
+      : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100 focus-visible:outline-secondary';
+  const boardTabInactiveClass =
+    boardTheme === 'dark'
+      ? 'border-slate-700 bg-slate-900/70 text-slate-200 hover:bg-slate-900 focus-visible:outline-secondary'
+      : 'border-slate-300 bg-white text-slate-600 hover:bg-slate-100 focus-visible:outline-secondary';
+  const boardContentWrapperClass =
+    boardTheme === 'dark'
+      ? 'border-slate-800 bg-slate-900/70 text-slate-200'
+      : 'border-slate-200 bg-white/80 text-slate-700';
+  const boardHotkeyItemClass =
+    boardTheme === 'dark'
+      ? 'border-slate-800/70 bg-slate-950/60 text-slate-300'
+      : 'border-slate-200 bg-white text-slate-600';
+  const boardPreTextClass = boardTheme === 'dark' ? 'text-slate-200' : 'text-slate-600';
+  const interviewerTextareaClass =
+    'w-full rounded-2xl border border-slate-800 bg-slate-950/60 px-4 py-3 text-sm text-slate-200 placeholder:text-slate-500 focus:border-secondary focus:outline-none';
+  const interviewerCardClass = 'rounded-2xl border border-slate-800/70 bg-slate-950/60 p-5';
+  const notesHotkey = HOTKEY_HINTS[2] ?? null;
 
   const completedChecklist = Object.values(checklistState).filter(Boolean).length;
 
@@ -291,6 +676,133 @@ export default function ActiveSessionPage() {
     handleSendMessage('Скоро буду');
   };
 
+  const handleQuestionNavigation = (direction: 'prev' | 'next') => {
+    setActiveQuestionIndex((prev) => {
+      if (direction === 'prev') {
+        return Math.max(0, prev - 1);
+      }
+      return Math.min(totalQuestions - 1, prev + 1);
+    });
+  };
+
+  const handleRegenerateActiveQuestion = () => {
+    if (!activeQuestion) {
+      return;
+    }
+
+    const replacement = pickRandomQuestion(activeQuestion.prompt);
+    const replacementWithId: AIQuestion = {
+      ...replacement,
+      id: activeQuestion.id
+    };
+
+    setQuestionDeck((prev) =>
+      prev.map((question, index) => (index === activeQuestionIndex ? replacementWithId : question))
+    );
+    setQuestionStates((prev) => ({
+      ...prev,
+      [activeQuestion.id]: { answered: false, flagged: false }
+    }));
+    setRelevanceRatings((prev) => ({
+      ...prev,
+      [activeQuestion.id]: null
+    }));
+  };
+
+  const handleDifficultyAdjust = (direction: 'up' | 'down') => {
+    if (!activeQuestion) {
+      return;
+    }
+
+    const nextLevel = adjustDifficulty(activeQuestion.difficulty, direction);
+    if (nextLevel === activeQuestion.difficulty) {
+      return;
+    }
+
+    setQuestionDeck((prev) =>
+      prev.map((question, index) =>
+        index === activeQuestionIndex ? { ...question, difficulty: nextLevel } : question
+      )
+    );
+  };
+
+  const handleMarkAnswered = () => {
+    if (!activeQuestion) {
+      return;
+    }
+
+    setQuestionStates((prev) => {
+      const current = prev[activeQuestion.id] ?? { answered: false, flagged: false };
+      if (current.answered) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [activeQuestion.id]: { ...current, answered: true }
+      };
+    });
+  };
+
+  const handleToggleFlag = () => {
+    if (!activeQuestion) {
+      return;
+    }
+
+    setQuestionStates((prev) => {
+      const current = prev[activeQuestion.id] ?? { answered: false, flagged: false };
+      return {
+        ...prev,
+        [activeQuestion.id]: { ...current, flagged: !current.flagged }
+      };
+    });
+  };
+
+  const handleSetRelevance = (value: 'relevant' | 'neutral' | 'off-topic') => {
+    if (!activeQuestion) {
+      return;
+    }
+
+    setRelevanceRatings((prev) => {
+      const current = prev[activeQuestion.id] ?? null;
+      return {
+        ...prev,
+        [activeQuestion.id]: current === value ? null : value
+      };
+    });
+  };
+
+  const handleToggleTimerPause = () => {
+    setIsTimerPaused((prev) => !prev);
+  };
+
+  const handleSwitchTheme = () => {
+    setBoardTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  const handleSelectBoardView = (view: (typeof BOARD_VIEWS)[number]['id']) => {
+    setBoardView(view);
+  };
+
+  const handleCompetencyRating = (areaId: string, rating: 'strong' | 'neutral' | 'weak') => {
+    setCompetencyRatings((prev) => ({
+      ...prev,
+      [areaId]: prev[areaId] === rating ? null : rating
+    }));
+  };
+
+  const handleAddQuestion = () => {
+    const newQuestion = pickRandomQuestion();
+    setQuestionDeck((prev) => [...prev, newQuestion]);
+    setQuestionStates((prev) => ({
+      ...prev,
+      [newQuestion.id]: { answered: false, flagged: false }
+    }));
+    setRelevanceRatings((prev) => ({
+      ...prev,
+      [newQuestion.id]: null
+    }));
+  };
+
   const handleSafetyAction = (type: SafetyActionType) => {
     const actionId = Date.now();
     const newAction: SafetyActionState = {
@@ -357,7 +869,87 @@ export default function ActiveSessionPage() {
             </div>
           </header>
 
-          <section className="rounded-3xl border border-rose-500/60 bg-rose-950/30 p-8 shadow-xl shadow-rose-950/30">
+          <section className="space-y-6 rounded-3xl border border-rose-500/60 bg-rose-950/30 p-8 shadow-xl shadow-rose-950/30">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-col gap-2 text-sm text-rose-100/80">
+                <p className="text-xs uppercase tracking-[0.3em] text-rose-200/70">Основной таймер</p>
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-3xl font-semibold text-white">{sessionTimerLabel}</span>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-rose-300/40 bg-rose-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-rose-100">
+                    {sessionMinutesLeft} {formatMinutesLabel(sessionMinutesLeft)} до конца
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-rose-100/70">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-rose-300/40 px-2 py-1 text-rose-100">
+                    <ClockIcon className="h-4 w-4" /> {sessionProgressPercent}%
+                  </span>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-rose-300/40 px-2 py-1 text-rose-100">
+                    <BoltIcon className="h-4 w-4" /> Осталось вопросов: {totalQuestions - answeredCount}
+                  </span>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-rose-300/40 px-2 py-1 text-rose-100">
+                    <FlagIcon className="h-4 w-4" /> Флагов: {flaggedCount}
+                  </span>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleToggleTimerPause}
+                  className="inline-flex items-center gap-2 rounded-full border border-rose-100/40 bg-rose-500/20 px-4 py-2 text-sm font-semibold text-rose-50 transition hover:bg-rose-500/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-200"
+                >
+                  {isTimerPaused ? <PlayIcon className="h-5 w-5" /> : <PauseIcon className="h-5 w-5" />}
+                  {isTimerPaused ? 'Продолжить' : 'Пауза'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSwitchTheme}
+                  className="inline-flex items-center gap-2 rounded-full border border-rose-100/20 bg-rose-900/40 px-4 py-2 text-sm font-semibold text-rose-100 transition hover:bg-rose-900/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-200"
+                >
+                  {boardTheme === 'dark' ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
+                  {boardTheme === 'dark' ? 'Светлый режим доски' : 'Тёмный режим доски'}
+                </button>
+                <div className="flex items-center gap-2 rounded-full border border-rose-100/20 bg-rose-900/40 px-4 py-2 text-xs text-rose-100">
+                  <CommandLineIcon className="h-4 w-4" /> {HOTKEY_HINTS[1]?.combo} — {HOTKEY_HINTS[1]?.description}
+                </div>
+              </div>
+            </div>
+            {latestAlert ? (
+              <div className="mt-4 flex items-center justify-between rounded-2xl border border-rose-200/40 bg-rose-500/20 px-4 py-3 text-sm text-rose-50">
+                <div className="flex items-center gap-3">
+                  <BellAlertIcon className="h-5 w-5" />
+                  <span>{latestAlert.message}</span>
+                </div>
+                <span className="text-xs text-rose-100/70">
+                  {formatTime(latestAlert.createdAt)} · {timerAlertPreview.length} уведомл.
+                </span>
+              </div>
+            ) : null}
+            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              {timerAlertPreview.map((alert) => (
+                <div
+                  key={alert.id}
+                  className="rounded-2xl border border-rose-200/20 bg-rose-900/40 px-4 py-3 text-xs text-rose-100"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-2 text-rose-100">
+                      <FlagIcon className="h-4 w-4" /> {alert.milestone} мин
+                    </span>
+                    <time>{formatTime(alert.createdAt)}</time>
+                  </div>
+                  <p className="mt-2 text-rose-50/90">{alert.message}</p>
+                </div>
+              ))}
+              {upcomingMilestones.length ? (
+                <div className="rounded-2xl border border-rose-200/20 bg-rose-900/40 px-4 py-3 text-xs text-rose-100">
+                  <div className="flex items-center gap-2 text-rose-100">
+                    <ClockIcon className="h-4 w-4" /> Следующие напоминания
+                  </div>
+                  <p className="mt-2 text-rose-50/80">
+                    {upcomingMilestones.map((milestone) => `${milestone} мин`).join(' · ') || 'Все предупреждения отправлены'}
+                  </p>
+                </div>
+              ) : null}
+            </div>
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
               <div className="space-y-4">
                 <p className="text-xs uppercase tracking-[0.3em] text-rose-200/70">Безопасность</p>
@@ -496,6 +1088,307 @@ export default function ActiveSessionPage() {
               {safetyLiveMessage}
             </div>
           </section>
+
+          <div className="grid gap-8 xl:grid-cols-[1.7fr_1fr]">
+            <section className="rounded-3xl border border-slate-800 bg-slate-900/80 p-8 shadow-lg shadow-slate-950/30">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.3em] text-slate-400">AI-панель</p>
+                  <h2 className="mt-1 text-2xl font-semibold text-white">Вопросы для интервью</h2>
+                  <p className="mt-2 max-w-2xl text-sm text-slate-400">
+                    Управляй подборкой вопросов, чтобы держать ритм сессии. Меняй сложность, перегенерируй подсказки и
+                    помечай их релевантность для кандидата.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddQuestion}
+                  className="inline-flex items-center gap-2 rounded-full border border-secondary/40 bg-secondary/10 px-4 py-2 text-sm font-semibold text-secondary transition hover:bg-secondary/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+                >
+                  <SparklesIcon className="h-5 w-5" /> Добавить вопрос
+                </button>
+              </div>
+
+              {activeQuestion ? (
+                <div className="mt-6 space-y-6">
+                  <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-400">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1 font-semibold text-slate-200">
+                      <ChatBubbleLeftRightIcon className="h-4 w-4" />{' '}
+                      <span>
+                        Вопрос {activeQuestionIndex + 1}/{totalQuestions}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${difficultyBadgeClass[activeQuestion.difficulty]}`}
+                      >
+                        <BoltIcon className="h-4 w-4" /> {difficultyLabels[activeQuestion.difficulty]}
+                      </span>
+                      <span className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1 text-xs font-semibold text-slate-200">
+                        <CommandLineIcon className="h-4 w-4" /> {activeQuestion.category}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-800/70 bg-slate-950/60 p-5">
+                    <h3 className="text-lg font-semibold text-white">{activeQuestion.prompt}</h3>
+                    <p className="mt-4 text-xs uppercase tracking-[0.25em] text-slate-400">Фоллоу-апы</p>
+                    <ul className="mt-2 space-y-2 text-sm text-slate-300">
+                      {activeQuestion.followUps.map((followUp, index) => (
+                        <li key={followUp} className="flex items-start gap-2">
+                          <span className="mt-1 inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-slate-700 bg-slate-900 text-xs text-slate-400">
+                            {index + 1}
+                          </span>
+                          <span>{followUp}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => handleQuestionNavigation('prev')}
+                        disabled={isPrevDisabled}
+                        className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/60 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <ChevronLeftIcon className="h-5 w-5" /> Предыдущий
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleQuestionNavigation('next')}
+                        disabled={isNextDisabled}
+                        className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/60 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Следующий <ChevronRightIcon className="h-5 w-5" />
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={handleMarkAnswered}
+                        className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                          activeQuestionState?.answered
+                            ? 'border-emerald-400/60 bg-emerald-500/20 text-emerald-200 focus-visible:outline-emerald-300'
+                            : 'border-slate-700 bg-slate-900/60 text-slate-200 hover:bg-slate-900 focus-visible:outline-secondary'
+                        }`}
+                      >
+                        <CheckCircleIcon className="h-5 w-5" /> {activeQuestionState?.answered ? 'Отмечен' : 'Задан'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleToggleFlag}
+                        className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                          activeQuestionState?.flagged
+                            ? 'border-amber-400/60 bg-amber-500/20 text-amber-200 focus-visible:outline-amber-300'
+                            : 'border-slate-700 bg-slate-900/60 text-slate-200 hover:bg-slate-900 focus-visible:outline-amber-300'
+                        }`}
+                      >
+                        <FlagIcon className="h-5 w-5" /> {activeQuestionState?.flagged ? 'В стоп-листе' : 'Отметить'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={handleRegenerateActiveQuestion}
+                      className="inline-flex items-center gap-2 rounded-full border border-secondary/40 bg-secondary/10 px-4 py-2 text-sm font-semibold text-secondary transition hover:bg-secondary/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+                    >
+                      <ArrowPathIcon className="h-5 w-5" /> Перегенерировать
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDifficultyAdjust('down')}
+                      className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/60 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500"
+                    >
+                      <ChevronLeftIcon className="h-5 w-5" /> Легче
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDifficultyAdjust('up')}
+                      className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/60 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-400"
+                    >
+                      Сложнее <ChevronRightIcon className="h-5 w-5" />
+                    </button>
+                  </div>
+
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Оценка релевантности</p>
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      {relevanceOptions.map((option) => {
+                        const isActive = activeQuestionRelevance === option.value;
+                        return (
+                          <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => handleSetRelevance(option.value)}
+                            className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-wide transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                              isActive
+                                ? 'border-secondary bg-secondary text-slate-950 focus-visible:outline-secondary'
+                                : 'border-slate-700 bg-slate-900/60 text-slate-200 hover:bg-slate-900 focus-visible:outline-secondary'
+                            }`}
+                          >
+                            {option.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-6 rounded-2xl border border-slate-800/70 bg-slate-950/60 p-6 text-sm text-slate-300">
+                  Нет доступных вопросов. Нажми «Добавить вопрос», чтобы сгенерировать новую подсказку.
+                </div>
+              )}
+            </section>
+
+            <div className="space-y-6">
+              <section className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 shadow-lg shadow-slate-950/30">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Прогресс кандидата</p>
+                    <h2 className="mt-1 text-xl font-semibold text-white">
+                      Вопрос {totalQuestions ? activeQuestionIndex + 1 : 0} из {totalQuestions}
+                    </h2>
+                  </div>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-secondary/40 bg-secondary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-secondary">
+                    <SparklesIcon className="h-4 w-4" /> {candidateProgressPercent}%
+                  </span>
+                </div>
+                <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-slate-800">
+                  <div
+                    className="h-full rounded-full bg-secondary transition-all"
+                    style={{ width: `${candidateProgressPercent}%` }}
+                  />
+                </div>
+                <dl className="mt-4 grid grid-cols-2 gap-3 text-sm text-slate-300">
+                  <div className="rounded-2xl border border-slate-800/70 bg-slate-950/60 p-4">
+                    <dt className="text-xs uppercase tracking-[0.25em] text-slate-400">Задано</dt>
+                    <dd className="mt-2 text-lg font-semibold text-white">{answeredCount}</dd>
+                  </div>
+                  <div className="rounded-2xl border border-slate-800/70 bg-slate-950/60 p-4">
+                    <dt className="text-xs uppercase tracking-[0.25em] text-slate-400">Флаги</dt>
+                    <dd className="mt-2 text-lg font-semibold text-white">{flaggedCount}</dd>
+                  </div>
+                  <div className="rounded-2xl border border-slate-800/70 bg-slate-950/60 p-4">
+                    <dt className="text-xs uppercase tracking-[0.25em] text-slate-400">Осталось</dt>
+                    <dd className="mt-2 text-lg font-semibold text-white">{totalQuestions - answeredCount}</dd>
+                  </div>
+                  <div className="rounded-2xl border border-slate-800/70 bg-slate-950/60 p-4">
+                    <dt className="text-xs uppercase tracking-[0.25em] text-slate-400">Текущий статус</dt>
+                    <dd className="mt-2 text-sm text-slate-200">
+                      {activeQuestionState?.answered
+                        ? 'Вопрос закрыт'
+                        : activeQuestionState?.flagged
+                        ? 'Отложен на потом'
+                        : 'Готов к обсуждению'}
+                    </dd>
+                  </div>
+                </dl>
+                <ul className="mt-4 space-y-2 text-sm text-slate-300">
+                  {questionDeck.map((question, index) => {
+                    const state = questionStates[question.id] ?? { answered: false, flagged: false };
+                    const isActive = index === activeQuestionIndex;
+                    return (
+                      <li
+                        key={question.id}
+                        className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-xs uppercase tracking-wide ${
+                          isActive
+                            ? 'border-secondary bg-secondary/20 text-secondary'
+                            : state.answered
+                            ? 'border-emerald-400/40 bg-emerald-500/10 text-emerald-200'
+                            : state.flagged
+                            ? 'border-amber-400/40 bg-amber-500/10 text-amber-200'
+                            : 'border-slate-800/70 bg-slate-950/60 text-slate-300'
+                        }`}
+                      >
+                        <span className="flex items-center gap-2 text-left text-[11px] font-semibold">
+                          {isActive ? (
+                            <PlayIcon className="h-4 w-4" />
+                          ) : state.answered ? (
+                            <CheckCircleIcon className="h-4 w-4" />
+                          ) : state.flagged ? (
+                            <FlagIcon className="h-4 w-4" />
+                          ) : (
+                            <SparklesIcon className="h-4 w-4" />
+                          )}
+                          {question.category}
+                        </span>
+                        <span className="hidden text-[10px] font-semibold text-slate-400 sm:block">
+                          {difficultyLabels[question.difficulty]}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+
+              <section className={`rounded-3xl p-6 shadow-lg shadow-slate-950/30 transition ${boardThemeClasses}`}>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className={`text-xs uppercase tracking-[0.3em] ${boardHeaderLabelClass}`}>Общая доска</p>
+                    <h2 className={`mt-1 text-xl font-semibold ${boardTitleClass}`}>Рабочее пространство кандидата</h2>
+                    <p className={`mt-2 text-sm ${boardDescriptionClass}`}>
+                      Переключай темы и представления, чтобы синхронизироваться по заметкам, коду и диаграммам.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSwitchTheme}
+                    className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${boardThemeButtonClass}`}
+                  >
+                    {boardTheme === 'dark' ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
+                    {boardTheme === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
+                  </button>
+                </div>
+                <div className="mt-5 flex flex-wrap items-center gap-2">
+                  {BOARD_VIEWS.map((view) => {
+                    const isActive = boardView === view.id;
+                    return (
+                      <button
+                        key={view.id}
+                        type="button"
+                        onClick={() => handleSelectBoardView(view.id)}
+                        className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                          isActive
+                            ? 'border-secondary bg-secondary text-slate-950 focus-visible:outline-secondary'
+                            : boardTabInactiveClass
+                        }`}
+                      >
+                        {view.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className={`mt-5 rounded-2xl border p-5 ${boardContentWrapperClass}`}>
+                  {boardView === 'notes' ? (
+                    <textarea
+                      value={boardNotes}
+                      onChange={(event) => setBoardNotes(event.target.value)}
+                      className={`min-h-[220px] w-full resize-y rounded-xl border px-4 py-3 text-sm leading-relaxed transition focus:border-secondary focus:outline-none ${boardInputClasses}`}
+                    />
+                  ) : (
+                    <pre className={`whitespace-pre-wrap text-sm leading-relaxed ${boardPreTextClass}`}>
+                      {boardViewContent}
+                    </pre>
+                  )}
+                </div>
+                <ul className="mt-5 grid gap-2 text-xs">
+                  {HOTKEY_HINTS.map((hint) => (
+                    <li
+                      key={hint.combo}
+                      className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-2 ${boardHotkeyItemClass}`}
+                    >
+                      <span className="font-semibold tracking-wide">{hint.combo}</span>
+                      <span className="text-right text-[11px] uppercase tracking-[0.25em]">{hint.description}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </div>
+          </div>
 
           <div className="grid gap-8 lg:grid-cols-[2fr_1fr]">
             <section className="rounded-3xl border border-slate-800 bg-slate-900/80 p-8 shadow-lg shadow-slate-950/30">
@@ -642,10 +1535,134 @@ export default function ActiveSessionPage() {
                   </a>
                 </div>
               </section>
+          </div>
+        </div>
+
+        <section className="rounded-3xl border border-slate-800 bg-slate-900/80 p-8 shadow-lg shadow-slate-950/30">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Интервьюер</p>
+              <h2 className="mt-1 text-2xl font-semibold text-white">Оценка и рекомендации</h2>
+              <p className="mt-2 text-sm text-slate-400">
+                Зафиксируй впечатления по ключевым компетенциям и подготовь финальный вердикт по кандидату.
+              </p>
+            </div>
+            {notesHotkey ? (
+              <span className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-300">
+                <CommandLineIcon className="h-4 w-4" /> {notesHotkey.combo} — {notesHotkey.description}
+              </span>
+            ) : null}
+          </div>
+          <div className="mt-6 grid gap-6 xl:grid-cols-[1.2fr_1fr]">
+            <div className="space-y-4">
+              {COMPETENCY_AREAS.map((area) => {
+                const current = competencyRatings[area.id] ?? null;
+                return (
+                  <div key={area.id} className={interviewerCardClass}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="text-lg font-semibold text-white">{area.label}</h3>
+                        <p className="mt-1 text-sm text-slate-300">{area.description}</p>
+                      </div>
+                      {current ? (
+                        <span
+                          className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${COMPETENCY_RATING_CLASSES[current]}`}
+                        >
+                          {COMPETENCY_RATING_LABELS[current]}
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {(['strong', 'neutral', 'weak'] as const).map((value) => {
+                        const isActive = current === value;
+                        return (
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() => handleCompetencyRating(area.id, value)}
+                            className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                              isActive
+                                ? COMPETENCY_RATING_CLASSES[value]
+                                : 'border-slate-700 bg-slate-900/60 text-slate-200 hover:bg-slate-900 focus-visible:outline-secondary'
+                            }`}
+                          >
+                            {COMPETENCY_RATING_LABELS[value]}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="space-y-4">
+              <div className={interviewerCardClass}>
+                <h3 className="text-lg font-semibold text-white">Заметки интервьюера</h3>
+                <p className="mt-1 text-xs uppercase tracking-[0.25em] text-slate-400">
+                  Фокус на заметках: {notesHotkey ? notesHotkey.combo : '⌘ + L'}
+                </p>
+                <label className="mt-4 block text-xs uppercase tracking-[0.25em] text-slate-400">Сводка</label>
+                <textarea
+                  value={interviewerSummaryNotes}
+                  onChange={(event) => setInterviewerSummaryNotes(event.target.value)}
+                  rows={4}
+                  className={interviewerTextareaClass}
+                />
+                <label className="mt-4 block text-xs uppercase tracking-[0.25em] text-slate-400">Риски</label>
+                <textarea
+                  value={interviewerRiskNotes}
+                  onChange={(event) => setInterviewerRiskNotes(event.target.value)}
+                  rows={3}
+                  className={interviewerTextareaClass}
+                />
+                <label className="mt-4 block text-xs uppercase tracking-[0.25em] text-slate-400">Action items</label>
+                <textarea
+                  value={interviewerActionItems}
+                  onChange={(event) => setInterviewerActionItems(event.target.value)}
+                  rows={3}
+                  className={interviewerTextareaClass}
+                />
+              </div>
+              <div className={interviewerCardClass}>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Рекомендация</h3>
+                    <p className="mt-1 text-sm text-slate-300">Выбери финальный вердикт по кандидату.</p>
+                  </div>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-300">
+                    <ClipboardDocumentCheckIcon className="h-4 w-4" />
+                    {decisionOptions.find((option) => option.value === recommendationDecision)?.label ?? 'Не выбрано'}
+                  </span>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {decisionOptions.map((option) => {
+                    const isActive = recommendationDecision === option.value;
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setRecommendationDecision(option.value)}
+                        className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                          isActive
+                            ? RECOMMENDATION_BADGE_CLASSES[option.value]
+                            : 'border-slate-700 bg-slate-900/60 text-slate-200 hover:bg-slate-900 focus-visible:outline-secondary'
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="mt-4 rounded-2xl border border-slate-700 bg-slate-900/60 px-4 py-3 text-xs text-slate-300">
+                  <span className="font-semibold text-secondary">Подсказка:</span> реши вовремя, чтобы координаторы могли
+                  назначить следующий шаг без задержек.
+                </div>
+              </div>
             </div>
           </div>
+        </section>
 
-          {isLobbyOpen && (
+        {isLobbyOpen && (
             <section className="rounded-3xl border border-secondary/40 bg-slate-900/80 p-8 shadow-xl shadow-secondary/20">
               <div className="flex flex-col gap-6 lg:flex-row">
                 <div className="flex-1 space-y-4">

@@ -4,15 +4,22 @@ import {
   SessionFormat,
   UserRole
 } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 async function main() {
+  // Хешируем пароли для тестовых пользователей
+  const candidatePasswordHash = await bcrypt.hash('supermock', 12);
+  const interviewerPasswordHash = await bcrypt.hash('supermock', 12);
+
   const candidateUser = await prisma.user.upsert({
     where: { email: 'candidate@supermock.io' },
     update: {},
     create: {
       email: 'candidate@supermock.io',
+      passwordHash: candidatePasswordHash,
+      emailVerifiedAt: new Date(),
       role: UserRole.CANDIDATE,
       profile: { locale: 'en', level: 'Junior' }
     }
@@ -23,6 +30,8 @@ async function main() {
     update: {},
     create: {
       email: 'interviewer@supermock.io',
+      passwordHash: interviewerPasswordHash,
+      emailVerifiedAt: new Date(),
       role: UserRole.INTERVIEWER,
       profile: { locale: 'en', level: 'Senior' }
     }

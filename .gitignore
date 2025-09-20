@@ -40,3 +40,6 @@ prisma/migrations/
 
 # Misc
 *.swp
+~/.codex/
+.playwright-mcp
+.pnpm-store

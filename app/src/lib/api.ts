@@ -12,6 +12,17 @@ import type {
   CompletedSessionDto,
   InterviewerSessionDto
 } from '../../../shared/src/types/matching.js';
+import type {
+  CreateRealtimeSessionPayload,
+  JoinRealtimeSessionPayload,
+  MarkNotificationsReadPayload,
+  NotificationDto,
+  RealtimeSessionDto,
+  SessionParticipantDto,
+  UpdateRealtimeSessionStatusPayload
+} from '../../../shared/src/types/realtime.js';
+import type { CompleteOnboardingPayload, CompleteOnboardingResponse } from '../../../shared/src/types/user.js';
+import type { InterviewAiInsightDto, PlatformStatsDto } from '../../../shared/src/types/analytics.js';
 import type { OnboardingProfileDraftPayload, OnboardingProfileDraftResponse } from '@/types/onboarding';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
@@ -117,4 +128,133 @@ export function saveOnboardingProfileDraft(payload: OnboardingProfileDraftPayloa
     method: 'POST',
     body: JSON.stringify(payload)
   });
+}
+
+export function completeOnboarding(payload: CompleteOnboardingPayload) {
+  return request<CompleteOnboardingResponse>('/onboarding/complete', {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+}
+
+export function fetchNotifications(params?: {
+  unreadOnly?: boolean;
+  limit?: number;
+  before?: string;
+}) {
+  const search = new URLSearchParams();
+
+  if (params?.unreadOnly !== undefined) {
+    search.set('unreadOnly', String(params.unreadOnly));
+  }
+
+  if (params?.limit) {
+    search.set('limit', String(params.limit));
+  }
+
+  if (params?.before) {
+    search.set('before', params.before);
+  }
+
+  const query = search.toString();
+  const suffix = query ? `?${query}` : '';
+
+  return request<NotificationDto[]>(`/notifications${suffix}`);
+}
+
+export function markNotificationsRead(payload: MarkNotificationsReadPayload) {
+  return request<{ updated: number }>('/notifications/read', {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+}
+
+export function fetchRealtimeSessions(query?: {
+  status?: RealtimeSessionDto['status'];
+  hostId?: string;
+  matchId?: string;
+  activeOnly?: boolean;
+}) {
+  const search = new URLSearchParams();
+
+  if (query?.status) {
+    search.set('status', query.status);
+  }
+
+  if (query?.hostId) {
+    search.set('hostId', query.hostId);
+  }
+
+  if (query?.matchId) {
+    search.set('matchId', query.matchId);
+  }
+
+  if (query?.activeOnly !== undefined) {
+    search.set('activeOnly', String(query.activeOnly));
+  }
+
+  const suffix = search.toString() ? `?${search.toString()}` : '';
+  return request<RealtimeSessionDto[]>(`/sessions${suffix}`);
+}
+
+export function fetchRealtimeSession(id: string) {
+  return request<RealtimeSessionDto>(`/sessions/${id}`);
+}
+
+export function createRealtimeSession(payload: CreateRealtimeSessionPayload) {
+  return request<RealtimeSessionDto>('/sessions', {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+}
+
+export function joinRealtimeSession(
+  sessionId: string,
+  payload: JoinRealtimeSessionPayload
+) {
+  return request<SessionParticipantDto>(`/sessions/${sessionId}/join`, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+}
+
+export function leaveRealtimeSession(sessionId: string, participantId: string) {
+  return request<{ success: boolean }>(`/sessions/${sessionId}/leave`, {
+    method: 'POST',
+    body: JSON.stringify({ participantId })
+  });
+}
+
+export function heartbeatRealtimeSession(
+  sessionId: string,
+  payload: { participantId?: string; timestamp?: string } = {}
+) {
+  return request<RealtimeSessionDto>(`/sessions/${sessionId}/heartbeat`, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+}
+
+export function updateRealtimeSessionStatus(
+  sessionId: string,
+  payload: UpdateRealtimeSessionStatusPayload
+) {
+  return request<RealtimeSessionDto>(`/sessions/${sessionId}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload)
+  });
+}
+
+export function deleteRealtimeSession(sessionId: string) {
+  return request<void>(`/sessions/${sessionId}`, {
+    method: 'DELETE'
+  });
+}
+
+export function fetchInterviewAiInsights(matchId: string) {
+  return request<InterviewAiInsightDto>(`/analytics/interviews/${matchId}/ai`);
+}
+
+export function fetchPlatformStats() {
+  return request<PlatformStatsDto>('/analytics/overview');
 }

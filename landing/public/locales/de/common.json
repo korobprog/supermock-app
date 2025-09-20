@@ -1,0 +1,614 @@
+{
+  "common": {
+    "title": "Super Mock - AI Interview Plattform",
+    "description": "Bereiten Sie sich auf Ihr Interview in 6 Sprachen mit KI-Analyse und echten Interviewern vor.",
+    "testSection": "Sprachtest-Bereich",
+    "testDescription": "Dies ist ein Testbereich zur Überprüfung, ob die Internationalisierung korrekt funktioniert."
+  },
+  "seo": {
+    "title": "Super Mock - KI-Interview-Vorbereitungsplattform in 6 Sprachen | Echte Interviewer",
+    "description": "Bereiten Sie sich auf Ihr Interview in 6 Sprachen mit Super Mock vor. KI-Analyse, echte Interviewer, 10+ Berufe. Personalisiertes Feedback und Kompetenzverbesserung.",
+    "keywords": "Interview, Vorstellungsgespräch, KI, künstliche Intelligenz, Jobvorbereitung, Karriere, Englisch, Russisch, Deutsch, Französisch, Spanisch, Chinesisch, Programmierung, Marketing, Verkauf, HR",
+    "ogTitle": "Super Mock - KI-Interview-Vorbereitungsplattform in 6 Sprachen",
+    "ogDescription": "Bereiten Sie sich auf Ihr Interview in 6 Sprachen mit Super Mock vor. KI-Analyse, echte Interviewer, 10+ Berufe.",
+    "twitterTitle": "Super Mock - KI-Interview-Vorbereitungsplattform in 6 Sprachen",
+    "twitterDescription": "Bereiten Sie sich auf Ihr Interview in 6 Sprachen mit Super Mock vor. KI-Analyse, echte Interviewer, 10+ Berufe."
+  },
+  "navigation": {
+    "home": "Startseite",
+    "features": "Funktionen",
+    "learningProcess": "Prozess",
+    "professions": "Berufe",
+    "languages": "Sprachen",
+    "pricing": "Preise",
+    "instructions": "Hilfe",
+    "support": "Support",
+    "about": "Über uns",
+    "login": "Anmelden"
+  },
+  "hero": {
+    "title": "Bereiten Sie sich auf Ihr",
+    "titleHighlight": "Vorstellungsgespräch",
+    "titleSuffix": "in 6 Sprachen vor",
+    "subtitle": "Super Mock — KI-Plattform für Vorstellungsgespräche mit einzigartiger Kandidaten- und Interviewer-Zuordnung",
+    "startLearning": "🚀 Lernen beginnen",
+    "openApp": "💻 App öffnen",
+    "help": "Hilfe"
+  },
+  "stats": {
+    "professions": "Technische<br />Berufe 💼",
+    "languages": "Sprachen 🌍",
+    "interviews": "Vorstellungsgespräche 📊",
+    "success": "Erfolgsrate 🎯"
+  },
+  "features": {
+    "title": "Plattform",
+    "titleHighlight": "Funktionen",
+    "subtitle": "Moderne Technologien für effektive Vorbereitung auf Vorstellungsgespräche",
+    "webrtc": {
+      "title": "WebRTC-Videoanrufe",
+      "description": "Hochwertige Echtzeitkommunikation"
+    },
+    "coding": {
+      "title": "Echtzeit-Programmierung",
+      "description": "Kollaboratives Code-Schreiben"
+    },
+    "chat": {
+      "title": "Interviewer ↔ Kandidat Chat",
+      "description": "Sofortige Kommunikation"
+    },
+    "ai": {
+      "title": "KI-Analyse",
+      "description": "Intelligente Fähigkeitsbewertung"
+    },
+    "feedback": {
+      "title": "Personalisierte Rückmeldung",
+      "description": "Detaillierte Empfehlungen"
+    },
+    "learning": {
+      "title": "Interaktives Lernen",
+      "description": "Prozess-Gamifizierung"
+    }
+  },
+  "languages": {
+    "title": "Unterstützte",
+    "titleHighlight": "Sprachen",
+    "subtitle": "Führen Sie Vorstellungsgespräche in Ihrer Muttersprache",
+    "english": "English",
+    "englishDesc": "Englische Sprache",
+    "russian": "Russian",
+    "russianDesc": "Russische Sprache",
+    "spanish": "Spanish",
+    "spanishDesc": "Spanische Sprache",
+    "french": "French",
+    "frenchDesc": "Französische Sprache",
+    "german": "German",
+    "germanDesc": "Deutsche Sprache",
+    "chinese": "Chinese",
+    "chineseDesc": "Chinesische Sprache",
+    "benefits": {
+      "global": {
+        "title": "Globaler Zugang",
+        "description": "Interviewvorbereitung in 6 Hauptsprachen der Welt"
+      },
+      "colleagues": {
+        "title": "Ihre Kollegen mit Ihrem Stack und Sprache",
+        "description": "Wählen Sie die Tageszeit"
+      },
+      "communication": {
+        "title": "Natürliche Kommunikation",
+        "description": "Komfortable Kommunikation in Ihrer Muttersprache ohne Sprachbarrieren"
+      }
+    },
+    "cta": {
+      "title": "Wählen Sie eine",
+      "titleHighlight": "Sprache",
+      "titleSuffix": "und beginnen Sie zu lernen",
+      "subtitle": "Bereiten Sie sich auf ein Interview in einer der 6 unterstützten Sprachen vor",
+      "startLearning": "Lernen Beginnen",
+      "learningProcess": "Lernprozess"
+    }
+  },
+  "learningProcess": {
+    "hero": {
+      "title": "Lern",
+      "titleHighlight": "Prozess",
+      "subtitle": "Schritt-für-Schritt-Plan zur Vorbereitung auf technische Vorstellungsgespräche mit KI-Technologien",
+      "startLearning": "Lernen beginnen"
+    },
+    "processSteps": {
+      "step1": {
+        "title": "Sprachauswahl",
+        "description": "Interviews in 6 Sprachen",
+        "details": "Wählen Sie eine Sprache für die Durchführung von Interviews aus 6 verfügbaren Sprachen"
+      },
+      "step2": {
+        "title": "Berufsauswahl",
+        "description": "10+ technische Richtungen",
+        "details": "Bestimmen Sie die technische Spezialisierung für die Vorbereitung"
+      },
+      "step3": {
+        "title": "Werkzeuge und Technologien",
+        "description": "Technologie-Stack des Berufs",
+        "details": "Studieren Sie die notwendigen Werkzeuge und Technologien für den gewählten Beruf"
+      },
+      "step4": {
+        "title": "Mock-Interview",
+        "description": "Realistische Simulation",
+        "details": "Führen Sie realistische Interviews mit echten Teilnehmern durch"
+      },
+      "step5": {
+        "title": "Feedback erhalten",
+        "description": "Detailliertes Feedback",
+        "details": "Erhalten Sie eine detaillierte Analyse Ihrer Antworten und Ihres Verhaltens"
+      },
+      "step6": {
+        "title": "KI-Analyse und Planung",
+        "description": "Personalisierte Empfehlungen",
+        "details": "KI analysiert Ergebnisse und erstellt einen Entwicklungsplan"
+      },
+      "step7": {
+        "title": "Lernen in Anwendungen",
+        "description": "Praktische Aufgaben",
+        "details": "Vervollständigen Sie praktische Aufgaben, um Fähigkeiten zu festigen"
+      },
+      "step8": {
+        "title": "Zyklus-Wiederholung",
+        "description": "Kontinuierliche Entwicklung",
+        "details": "Kehren Sie zum Anfang zurück für ständige Verbesserung"
+      }
+    },
+    "languagesSection": {
+      "title": "Unterstützte",
+      "titleHighlight": "Sprachen",
+      "subtitle": "Führen Sie Vorstellungsgespräche in Ihrer Muttersprache"
+    },
+    "professionsSection": {
+      "title": "Technische",
+      "titleHighlight": "Berufe",
+      "subtitle": "Vorbereitung auf Interviews in allen IT-Bereichen"
+    },
+    "plansSection": {
+      "title": "Lernprozess nach Tarifen",
+      "subtitle": "Verschiedene Zugangsebenen zu Lernfunktionen je nach gewähltem Tarif",
+      "free": {
+        "title": "Kostenlos",
+        "description": "Grundlegende Fähigkeiten",
+        "features": {
+          "mockInterviews": {
+            "title": "Mock-Interviews",
+            "description": "Grundlegende Interview-Simulationen"
+          },
+          "basicFeedback": {
+            "title": "Grundlegendes Feedback",
+            "description": "Einfaches Feedback"
+          }
+        },
+        "select": "Kostenlos wählen"
+      },
+      "basic": {
+        "title": "Basic",
+        "description": "Erweiterte Analyse",
+        "features": {
+          "mockInterviews": {
+            "title": "Mock-Interviews",
+            "description": "Erweiterte Simulationen"
+          },
+          "aiAssistant": {
+            "title": "KI-Assistent",
+            "description": "KI-Unterstützung während Interviews"
+          },
+          "aiAnalysis": {
+            "title": "KI-Analyse und Planung",
+            "description": "Personalisierte Empfehlungen"
+          },
+          "advancedAnalytics": {
+            "title": "Erweiterte Analysen",
+            "description": "Detaillierte Fortschrittsstatistiken"
+          }
+        },
+        "select": "Basic wählen"
+      },
+      "pro": {
+        "title": "Pro",
+        "description": "Vollständiger Lernzyklus",
+        "features": {
+          "allBasicFeatures": {
+            "title": "Alle Basic-Funktionen",
+            "description": "Vollständiger Zugang zu Analysen"
+          },
+          "appLearning": {
+            "title": "Lernen in Anwendungen",
+            "description": "Praktische Aufgaben"
+          },
+          "cycleRepetition": {
+            "title": "Zyklus-Wiederholung",
+            "description": "Kontinuierliche Entwicklung"
+          },
+          "prioritySupport": {
+            "title": "Prioritäts-Support",
+            "description": "Exklusive Funktionen"
+          }
+        },
+        "select": "Pro wählen"
+      }
+    },
+    "cta": {
+      "title": "Bereit zum",
+      "titleHighlight": "Lernen",
+      "titleSuffix": "beginnen?",
+      "subtitle": "Schließen Sie sich Tausenden von Entwicklern an, die ihre Fähigkeiten bereits mit Super Mock verbessert haben",
+      "startLearning": "Lernen beginnen",
+      "comparePlans": "Tarife vergleichen"
+    }
+  },
+  "pricing": {
+    "title": "Wählen Sie Ihren",
+    "titleHighlight": "Tarif",
+    "subtitle": "🎯 Flexible Pläne für effektive Vorbereitung auf Vorstellungsgespräche",
+    "betaNotice": {
+      "title": "Die Plattform befindet sich derzeit in der Beta-Version",
+      "description": "Daher sind die Preise für alle maximal erschwinglich. Nach dem Release der Vollversion werden die Tarife höher sein, also ist jetzt die profitabelste Zeit, sich zu verbinden!"
+    },
+    "learnMore": "💰 Mehr über Preise erfahren",
+    "included": "✅ Was enthalten ist:",
+    "excluded": "❌ Was nicht enthalten ist:",
+    "proDiscount": "Günstiger Preis (40% Ersparnis)",
+    "free": {
+      "title": "Kostenlos",
+      "price": "$1",
+      "period": "USD pro Monat",
+      "feature1": "Unbegrenzte Mock-Interviews",
+      "feature2": "Gültigkeitsdauer: 1 Monat",
+      "feature3": "Grundlegende Plattformfunktionen",
+      "select": "Tarif wählen"
+    },
+    "basic": {
+      "title": "Basic",
+      "price": "$9.99",
+      "period": "USD pro Monat",
+      "feature1": "Mock-Interviews",
+      "feature2": "KI-Assistent",
+      "feature3": "Gültigkeitsdauer: 1 Monat",
+      "feature4": "Erweiterte Analysen",
+      "select": "Tarif wählen"
+    },
+    "pro": {
+      "title": "Pro",
+      "price": "$20",
+      "period": "USD für 3 Monate",
+      "popular": "Beliebt",
+      "feature1": "Alle Basic-Funktionen",
+      "feature2": "Lernen in Anwendungen",
+      "feature3": "Zyklus-Wiederholung",
+      "feature4": "Prioritäts-Support",
+      "feature5": "Exklusive Funktionen",
+      "feature6": "Gültigkeitsdauer: 3 Monate",
+      "select": "Tarif wählen"
+    }
+  },
+  "social": {
+    "title": "Wir sind da, wenn es schwierig ist",
+    "subtitle": "SuperMock geht es nicht nur um Karriere und Vorstellungsgespräche. Es geht um Menschen.",
+    "description": "Wir wissen, wie schwer es für diejenigen sein kann, die sich in schwierigen Lebenssituationen befinden. Daher:",
+    "donationsPrefix": "10% aller Zahlungen",
+    "donations": "leiten wir an diejenigen weiter, die es besonders brauchen.",
+    "accessibilityPrefix": "Menschen mit Behinderungen und einkommensschwache Familien",
+    "accessibility": "können kostenlos auf unserer Plattform lernen.",
+    "conclusion": "Weil jeder eine Chance auf eine Zukunft mit Hoffnung und Liebe verdient ❤️"
+  },
+  "pricingFaq": {
+    "title": "Häufig Gestellte Fragen",
+    "howToChoose": {
+      "question": "Wie wähle ich einen Plan?",
+      "answer": "Beginnen Sie mit dem Free-Plan, um sich mit der Plattform vertraut zu machen, und wechseln Sie dann je nach Bedarf zu Basic oder Pro."
+    },
+    "cancelSubscription": {
+      "question": "Kann ich mein Abonnement kündigen?",
+      "answer": "Ja, Sie können Ihr Abonnement jederzeit kündigen. Die bezahlte Zeit bleibt bis zum Ende der Gültigkeitsdauer aktiv."
+    },
+    "trialPeriod": {
+      "question": "Gibt es eine Testphase?",
+      "answer": "Der Free-Plan ermöglicht es Ihnen, die grundlegenden Plattformfunktionen kostenlos zu testen."
+    },
+    "paymentMethods": {
+      "question": "Welche Zahlungsmethoden sind verfügbar?",
+      "answer": "Wir akzeptieren Zahlungen in USD über verschiedene Zahlungssysteme."
+    }
+  },
+  "pricingCta": {
+    "title": "Bereit zum",
+    "titleHighlight": "Lernen",
+    "titleSuffix": "?",
+    "subtitle": "Wählen Sie den richtigen Plan und beginnen Sie noch heute mit der Vorbereitung auf Ihr Vorstellungsgespräch",
+    "startLearning": "Lernen Beginnen",
+    "learningProcess": "Lernprozess"
+  },
+  "about": {
+    "title": "Über",
+    "titleHighlight": "Super Mock",
+    "description1": "Super Mock ist eine innovative KI-Plattform, die den Prozess der Vorbereitung auf technische Vorstellungsgespräche revolutioniert. Wir kombinieren fortschrittliche Technologien der künstlichen Intelligenz mit mehrsprachiger Unterstützung, um eine personalisierte Lernerfahrung zu schaffen.",
+    "description2": "Unsere Plattform hilft Kandidaten dabei, ihre Programmier-, Kommunikations- und Problemlösungsfähigkeiten durch realistische Interview-Simulationen mit KI-Analyse und Echtzeit-Feedback zu verbessern.",
+    "learnMore": "Mehr erfahren",
+    "page": {
+      "badge": "Über uns",
+      "name": "Korobkov Maxim Viktorovich",
+      "subtitle": "Schöpfer von SuperMock — einer innovativen Plattform für die Vorbereitung auf Vorstellungsgespräche mit künstlicher Intelligenz",
+      "contact": "Kontakt",
+      "projectTitle": "Über das Projekt",
+      "projectSubtitle": "Einzigartige Plattform für personalisiertes IT-Berufslernen",
+      "principles": "Grundprinzipien:",
+      "principlesText": "Viele IT-Kurse sind nicht lebendig, sie sind nicht individuell. Jeder Mensch ist besonders und alle sind unterschiedlich, es gibt keine identischen Menschen, was bedeutet, dass das Prinzip im Lernen für jeden besonders und persönlich sein sollte.",
+      "readMore": "Mehr lesen...",
+      "hideDetails": "Details ausblenden",
+      "authorIntro": "Mein Name ist Korobkov Maxim Viktorovich und ich bin ein Entwickler mit 20 Jahren Erfahrung, begann mit automatisierten Handelssystemen an Finanzbörsen, entwerfe derzeit Systeme für Unternehmensbedürfnisse.",
+      "problemDescription": "Ich bekomme viele Ideen im Leben aus Problemen, auf die ich stoße, und als Entwickler versuche ich sie zu lösen. Zeit ist das Wertvollste in unserem Leben, ich stand vor dem Problem, dass viel Zeit für das Lernen aufgewendet wird. Ich studierte in vier Unternehmen, diese Erfahrung ist mir bekannt, sie alle versuchen Probleme zu lösen, aber viele ihrer Schüler gehen unzufrieden weg.",
+      "solutionTitle": "Lösung des Problems im Ansatz:",
+      "solutionText": "Das Wichtigste, wohin wir gehen, ist das Ziel, aber während wir dorthin gehen, vergessen wir bereits, was wir durchgemacht oder gelernt haben. Ist Ihnen das vertraut? Ich denke ja, jedem ist das vertraut... Also was ist dann die Lösung? Lassen Sie uns nicht nur lehren zu memorieren, sondern auch leben, uns in das gute Verständnis dieses Wortes vertiefen :)",
+      "experienceDescription": "Stellen Sie sich vor, auch wenn Sie bereits ein Profi sind und etwas in der IT erreicht haben. Sie sind ein Junior und brennen darauf, in die IT einzusteigen und viel Geld remote zu verdienen, Saft am Meer trinkend, auf einem MacBook arbeitend... Aber, es gibt ein \"ABER\" — Arbeitgeber nehmen nicht einmal bei einer Antwort, in ihre erfolgreiche Gesellschaft, Sie passen nicht, Live-Coding versagt oder falsch beantwortet, wenige Projekte keine kommerzielle Erfahrung.",
+      "ideaTitle": "Hier kam die Idee:",
+      "ideaText": "Erstellen Sie einen Service, wo alles an einem Ort ist und es Ihren persönlichen Mentor gibt — einen echten Freund, auch wenn es KI ist! Stellen Sie sich vor, Sie haben einige Grundlagen auf der Plattform gelernt, und dann sagt Ihnen der Mentor: \"Sind Sie bereit, gehen wir zu einem Mock-Interview, bestehen Sie es, ich werde mir das Feedback ansehen und weiter davon ausgehend werde ich Sie führen, die Lücken in Ihrem Wissen füllen\".",
+      "learningDescription": "Sie bestehen Interviews, gewöhnen sich an die Kommunikation und sprechen selbstbewusst mit dem Interviewer, nicht wie früher mit zitternder Stimme oder betend, dass die Verbindung verschwindet und aus dieser Hölle herauskommt :) Im Allgemeinen geht das Lernen mit Freude, weil es für Sie gemacht und für Sie konfiguriert ist.",
+      "conclusion": "Das ist das System, das ich speziell für Sie entwickelt habe. Bestehen Sie Interviews, kommunizieren Sie mit Kollegen, zahlen Sie einen angemessenen Betrag für das Lernen als Zeichen der Dankbarkeit für die Unterstützung des Projekts.",
+      "featuresTitle": "Hauptfunktionen",
+      "featuresSubtitle": "Was SuperMock zu einer einzigartigen Plattform macht",
+      "feature1": "Persönlicher KI-Mentor für jeden Benutzer",
+      "feature2": "Mock-Interviews mit realistischen Szenarien",
+      "feature3": "Adaptives Lernen basierend auf Ihren Lücken",
+      "feature4": "Entwicklung sowohl technischer als auch Soft Skills",
+      "skillsTitle": "Fähigkeiten und Technologien",
+      "skillsSubtitle": "Spezialisierung im Bereich KI und Webentwicklung",
+      "skill1": {
+        "name": "KI/ML",
+        "description": "Maschinelles Lernen, neuronale Netze, natürliche Sprachverarbeitung"
+      },
+      "skill2": {
+        "name": "Webentwicklung",
+        "description": "Frontend- und Backend-Entwicklung, moderne Frameworks"
+      },
+      "skill3": {
+        "name": "Interview-Coaching",
+        "description": "Vorbereitung auf Vorstellungsgespräche, Soft Skills Entwicklung"
+      },
+      "skill4": {
+        "name": "Produktmanagement",
+        "description": "Produktmanagement, Analytik, Entwicklungsstrategie"
+      },
+      "collaborationTitle": "Bereit für Zusammenarbeit",
+      "collaborationSubtitle": "offen für neue Projekte und berufliche Möglichkeiten.",
+      "email": "E-Mail",
+      "linkedin": "LinkedIn",
+      "github": "GitHub",
+      "telegram": "Telegram"
+    }
+  },
+  "professions": {
+    "hero": {
+      "title": "Technische",
+      "titleHighlight": "Berufe",
+      "subtitle": "Bereiten Sie sich auf Vorstellungsgespräche in allen IT-Bereichen vor"
+    },
+    "professionsList": {
+      "frontend": {
+        "name": "Frontend",
+        "description": "Entwicklung von Benutzeroberflächen"
+      },
+      "backend": {
+        "name": "Backend",
+        "description": "Server-seitige Entwicklung und API"
+      },
+      "fullstack": {
+        "name": "Fullstack",
+        "description": "Full-Stack-Entwicklung"
+      },
+      "mobile": {
+        "name": "Mobile",
+        "description": "Mobile Entwicklung"
+      },
+      "devops": {
+        "name": "DevOps",
+        "description": "Infrastruktur und Automatisierung"
+      },
+      "qa": {
+        "name": "QA",
+        "description": "Tests und Qualitätssicherung"
+      },
+      "uxui": {
+        "name": "UX/UI",
+        "description": "Design der Benutzererfahrung"
+      },
+      "dataAnalyst": {
+        "name": "Datenanalytiker",
+        "description": "Datenanalyse"
+      },
+      "dataScientist": {
+        "name": "Datenwissenschaftler",
+        "description": "Datenwissenschaft und ML"
+      },
+      "productManager": {
+        "name": "Produktmanager",
+        "description": "Produktmanagement"
+      }
+    },
+    "stats": {
+      "professions": "Technische<br />Berufe 💼",
+      "languages": "Sprachen 🌍",
+      "interviews": "Vorstellungsgespräche 📊",
+      "success": "Erfolgsrate 🎯"
+    },
+    "cta": {
+      "title": "Wählen Sie einen",
+      "titleHighlight": "Beruf",
+      "titleSuffix": "und beginnen Sie mit der Vorbereitung",
+      "subtitle": "Bereiten Sie sich auf ein Vorstellungsgespräch in jeder technischen Spezialisierung vor",
+      "startLearning": "Lernen beginnen",
+      "learningProcess": "Lernprozess"
+    }
+  },
+  "instructions": {
+    "hero": {
+      "title": "SuperMock Hilfe",
+      "subtitle": "Schritt-für-Schritt-Anleitung zur Nutzung der Plattform für Vorstellungsgespräch-Übungen",
+      "startLearning": "Lernen beginnen",
+      "haveQuestions": "Haben Sie Fragen?"
+    },
+    "steps": {
+      "title": "Schritt-für-Schritt",
+      "titleHighlight": "Anleitung",
+      "subtitle": "Folgen Sie diesen einfachen Schritten, um mit der Übung von Vorstellungsgesprächen zu beginnen",
+      "step1": {
+        "title": "Klicken Sie auf den SuperMock-Button",
+        "description": "Lernen beginnen",
+        "details": "Gehen Sie zur Hauptseite und klicken Sie auf den 'Lernen beginnen'-Button, um in das System einzutreten"
+      },
+      "step2": {
+        "title": "Wählen Sie einen Beruf",
+        "description": "Geben Sie den Bereich an, in dem Sie üben möchten",
+        "details": "Wählen Sie aus der Liste der verfügbaren Berufe denjenigen aus, der Ihren Lernzielen entspricht"
+      },
+      "step3": {
+        "title": "Wählen Sie eine Rolle",
+        "description": "Kandidat oder Interviewer",
+        "details": "Entscheiden Sie sich für die Rolle: Möchten Sie als Kandidat oder als Interviewer üben"
+      },
+      "step4": {
+        "title": "Finden Sie ein Vorstellungsgespräch",
+        "description": "Das System wird einen passenden Partner finden",
+        "details": "Unser System wird automatisch einen passenden Partner für Sie zum Üben finden"
+      },
+      "step5": {
+        "title": "Führen Sie das Vorstellungsgespräch",
+        "description": "Nutzen Sie den integrierten Videoanruf",
+        "details": "Führen Sie ein vollständiges Vorstellungsgespräch mit dem integrierten Videoanruf"
+      },
+      "step6": {
+        "title": "Hinterlassen Sie Feedback",
+        "description": "Bewerten Sie Ihren Partner und erhalten Sie eine Bewertung",
+        "details": "Nach dem Vorstellungsgespräch hinterlassen Sie konstruktives Feedback und erhalten eine Bewertung von Ihrem Partner"
+      }
+    },
+    "tips": {
+      "title": "💡",
+      "titleHighlight": "Tipps",
+      "subtitle": "Nützliche Empfehlungen für effektive Übungen",
+      "tip1": {
+        "title": "Seien Sie höflich und professionell",
+        "description": "Befolgen Sie die Geschäftsetikette und behandeln Sie Ihren Partner mit Respekt"
+      },
+      "tip2": {
+        "title": "Hinterlassen Sie konstruktives Feedback",
+        "description": "Helfen Sie Ihrem Partner, seine Fähigkeiten zu verbessern, indem Sie nützliche Empfehlungen geben"
+      },
+      "tip3": {
+        "title": "Üben Sie regelmäßig",
+        "description": "Für bessere Ergebnisse widmen Sie regelmäßig Zeit zum Üben"
+      }
+    },
+    "cta": {
+      "title": "Haben Sie",
+      "titleHighlight": "Fragen",
+      "titleSuffix": "?",
+      "subtitle": "Schreiben Sie uns! 📧 Wir sind immer bereit zu helfen",
+      "contactUs": "Kontaktieren Sie uns",
+      "startPractice": "Übung beginnen"
+    }
+  },
+  "support": {
+    "hero": {
+      "title": "Support",
+      "subtitle": "💜 Wir glauben, dass jeder die Möglichkeit verdient, zu wachsen und sich zu entwickeln"
+    },
+    "supportOptions": {
+      "freeLearning": {
+        "title": "Kostenloses Lernen",
+        "description": "Für Menschen mit Behinderungen und einkommensschwache Familien",
+        "features": {
+          "feature1": "Vollzugang zur Plattform",
+          "feature2": "Alle Funktionen und Möglichkeiten",
+          "feature3": "Persönliche Unterstützung"
+        }
+      },
+      "discounts": {
+        "title": "Rabatte und Vergünstigungen",
+        "description": "Für diejenigen, die sich in schwierigen Lebenssituationen befinden",
+        "features": {
+          "feature1": "Individuelle Rabatte bis zu 50%",
+          "feature2": "Flexible Zahlungsbedingungen",
+          "feature3": "Betrachtung jedes Einzelfalls"
+        }
+      }
+    },
+    "howItWorks": {
+      "title": "Wie bekomme ich Support?",
+      "subtitle": "Wir werden Ihre Situation prüfen und die optimale Lösung anbieten",
+      "steps": {
+        "step1": {
+          "title": "Schreiben Sie uns",
+          "description": "Beschreiben Sie Ihre Situation in Telegram"
+        },
+        "step2": {
+          "title": "Wir werden prüfen",
+          "description": "Wir werden Ihre Anfrage innerhalb von 24 Stunden prüfen"
+        },
+        "step3": {
+          "title": "Hilfe erhalten",
+          "description": "Wir werden eine passende Support-Option anbieten"
+        }
+      }
+    },
+    "cta": {
+      "title": "Bereit, Ihnen zu",
+      "titleHighlight": "helfen",
+      "titleSuffix": "",
+      "subtitle": "Schreiben Sie uns in Telegram, und wir werden Ihre Situation definitiv prüfen. Jeder Fall ist einzigartig, und wir werden einen Weg finden, Ihnen zu helfen.",
+      "buttonText": "In Telegram schreiben",
+      "responseTime": "💜 Wir antworten innerhalb von 24 Stunden"
+    },
+    "socialImpact": {
+      "title": "Unser sozialer Einfluss",
+      "stats": {
+        "donations": {
+          "value": "10%",
+          "description": "Aller Zahlungen geht an die Hilfe für Bedürftige"
+        },
+        "peopleHelped": {
+          "value": "100+",
+          "description": "Menschen erhielten kostenlosen Zugang zum Lernen"
+        },
+        "responseTime": {
+          "value": "24h",
+          "description": "Durchschnittliche Antwortzeit auf Support-Anfragen"
+        }
+      }
+    }
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "description": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
+    "goHome": "Zur Startseite gehen",
+    "explore": "Unsere Plattform erkunden",
+    "help": "Brauchen Sie Hilfe? Kontaktieren Sie unser Support-Team.",
+    "contactSupport": "Support kontaktieren"
+  },
+  "footer": {
+    "description": "KI-Plattform für die Vorbereitung auf technische Vorstellungsgespräche mit Unterstützung für 6 Sprachen und personalisierter Rückmeldung.",
+    "product": "Produkt",
+    "support": "Support",
+    "payment": "Zahlung",
+    "features": "Funktionen",
+    "professions": "Berufe",
+    "languages": "Sprachen",
+    "pricing": "Preise",
+    "help": "Hilfe",
+    "documentation": "Dokumentation",
+    "supportLink": "Support",
+    "faq": "FAQ",
+    "about": "Über uns",
+    "privacyPolicy": "Datenschutzrichtlinie",
+    "termsOfService": "Nutzungsbedingungen",
+    "github": "GitHub",
+
+    "linkedin": "LinkedIn",
+    "copyright": "© 2025 Super Mock. Alle Rechte vorbehalten."
+  }
+}

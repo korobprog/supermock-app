@@ -26,6 +26,7 @@ import type {
 } from '../../../shared/src/types/matching.js';
 import { calculateMatchingScore } from '../../../shared/src/utils/scoring.js';
 import { prisma } from './prisma.js';
+import { emitSlotUpdate } from './realtime/bus.js';
 
 function toInterviewerSummary(
   interviewer: InterviewerProfile & { availability?: InterviewerAvailability[] }
@@ -411,7 +412,10 @@ export async function createInterviewerAvailability(
     }
   });
 
-  return mapAvailability(slot);
+  const mapped = mapAvailability(slot);
+  emitSlotUpdate({ action: 'created', slot: mapped });
+
+  return mapped;
 }
 
 export async function deleteInterviewerAvailability(id: string): Promise<boolean> {
@@ -421,6 +425,8 @@ export async function deleteInterviewerAvailability(id: string): Promise<boolean
   }
 
   await prisma.interviewerAvailability.delete({ where: { id } });
+
+  emitSlotUpdate({ action: 'deleted', slot: mapAvailability(existing) });
   return true;
 }
 

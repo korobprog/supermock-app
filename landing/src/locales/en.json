@@ -1,0 +1,563 @@
+{
+  "navigation": {
+    "features": "Features",
+    "learningProcess": "Process",
+    "professions": "Professions",
+    "languages": "Languages",
+    "pricing": "Pricing",
+    "instructions": "📖 Help",
+    "support": "💜 Support",
+    "about": "About",
+    "login": "Login"
+  },
+  "hero": {
+    "title": "Prepare for your",
+    "titleHighlight": "interview",
+    "titleSuffix": "in 6 languages",
+    "subtitle": "Super Mock — AI platform for interviews with unique candidate and interviewer matching",
+    "startLearning": "🚀 Start Learning",
+    "openApp": "💻 Open App",
+    "help": "📖 Help"
+  },
+  "stats": {
+    "professions": "Technical<br />Professions 💼",
+    "languages": "Languages 🌍",
+    "interviews": "Interviews 📊",
+    "success": "Success Rate 🎯"
+  },
+  "features": {
+    "title": "Platform",
+    "titleHighlight": "Features",
+    "subtitle": "Modern technologies for effective interview preparation",
+    "webrtc": {
+      "title": "WebRTC Video Calls",
+      "description": "High-quality real-time communication"
+    },
+    "coding": {
+      "title": "Real-time Programming",
+      "description": "Collaborative code writing"
+    },
+    "chat": {
+      "title": "Interviewer ↔ Candidate Chat",
+      "description": "Instant communication"
+    },
+    "ai": {
+      "title": "AI Analysis",
+      "description": "Smart skill assessment"
+    },
+    "feedback": {
+      "title": "Personalized Feedback",
+      "description": "Detailed recommendations"
+    },
+    "learning": {
+      "title": "Interactive Learning",
+      "description": "Process gamification"
+    }
+  },
+  "languages": {
+    "title": "Supported",
+    "titleHighlight": "Languages",
+    "subtitle": "Take interviews in your native language",
+    "english": "English",
+    "englishDesc": "English language",
+    "russian": "Russian",
+    "russianDesc": "Russian language",
+    "spanish": "Spanish",
+    "spanishDesc": "Spanish language",
+    "french": "French",
+    "frenchDesc": "French language",
+    "german": "German",
+    "germanDesc": "German language",
+    "chinese": "Chinese",
+    "chineseDesc": "Chinese language",
+    "benefits": {
+      "global": {
+        "title": "Global Access",
+        "description": "Interview preparation in 6 major world languages"
+      },
+      "colleagues": {
+        "title": "Your colleagues with your stack and language",
+        "description": "Choose time during the day"
+      },
+      "communication": {
+        "title": "Natural Communication",
+        "description": "Comfortable communication in your native language without language barriers"
+      }
+    },
+    "cta": {
+      "title": "Choose a",
+      "titleHighlight": "language",
+      "titleSuffix": "and start learning",
+      "subtitle": "Prepare for an interview in any of the 6 supported languages",
+      "startLearning": "Start Learning",
+      "learningProcess": "Learning Process"
+    }
+  },
+  "learningProcess": {
+    "hero": {
+      "title": "Learning",
+      "titleHighlight": "Process",
+      "subtitle": "Step-by-step plan for preparing for technical interviews using AI technologies",
+      "startLearning": "Start Learning"
+    },
+    "processSteps": {
+      "step1": {
+        "title": "Language Selection",
+        "description": "Interviews in 6 languages",
+        "details": "Choose a language for conducting interviews from 6 available languages"
+      },
+      "step2": {
+        "title": "Profession Selection",
+        "description": "10+ technical directions",
+        "details": "Determine the technical specialization for preparation"
+      },
+      "step3": {
+        "title": "Tools and Technologies",
+        "description": "Technology stack of the profession",
+        "details": "Study the necessary tools and technologies for the chosen profession"
+      },
+      "step4": {
+        "title": "Mock Interview",
+        "description": "Realistic simulation",
+        "details": "Take realistic interviews with real participants"
+      },
+      "step5": {
+        "title": "Getting Feedback",
+        "description": "Detailed feedback",
+        "details": "Get a detailed analysis of your answers and behavior"
+      },
+      "step6": {
+        "title": "AI Analysis and Planning",
+        "description": "Personalized recommendations",
+        "details": "AI analyzes results and creates a development plan"
+      },
+      "step7": {
+        "title": "Learning in Applications",
+        "description": "Practical tasks",
+        "details": "Complete practical tasks to reinforce skills"
+      },
+      "step8": {
+        "title": "Cycle Repetition",
+        "description": "Continuous development",
+        "details": "Return to the beginning for constant improvement"
+      }
+    },
+    "languagesSection": {
+      "title": "Supported",
+      "titleHighlight": "Languages",
+      "subtitle": "Take interviews in your native language"
+    },
+    "professionsSection": {
+      "title": "Technical",
+      "titleHighlight": "Professions",
+      "subtitle": "Preparation for interviews in all IT areas"
+    },
+    "plansSection": {
+      "title": "Learning Process by Plans",
+      "subtitle": "Different levels of access to learning features depending on the chosen plan",
+      "free": {
+        "title": "Free",
+        "description": "Basic capabilities",
+        "features": {
+          "mockInterviews": {
+            "title": "Mock Interviews",
+            "description": "Basic interview simulations"
+          },
+          "basicFeedback": {
+            "title": "Basic Feedback",
+            "description": "Simple feedback"
+          }
+        },
+        "select": "Select Free"
+      },
+      "basic": {
+        "title": "Basic",
+        "description": "Extended analysis",
+        "features": {
+          "mockInterviews": {
+            "title": "Mock Interviews",
+            "description": "Extended simulations"
+          },
+          "aiAssistant": {
+            "title": "AI Assistant",
+            "description": "AI support during interviews"
+          },
+          "aiAnalysis": {
+            "title": "AI Analysis and Planning",
+            "description": "Personalized recommendations"
+          },
+          "advancedAnalytics": {
+            "title": "Advanced Analytics",
+            "description": "Detailed progress statistics"
+          }
+        },
+        "select": "Select Basic"
+      },
+      "pro": {
+        "title": "Pro",
+        "description": "Full learning cycle",
+        "features": {
+          "allBasicFeatures": {
+            "title": "All Basic Features",
+            "description": "Full access to analytics"
+          },
+          "appLearning": {
+            "title": "Learning in Applications",
+            "description": "Practical tasks"
+          },
+          "cycleRepetition": {
+            "title": "Cycle Repetition",
+            "description": "Continuous development"
+          },
+          "prioritySupport": {
+            "title": "Priority Support",
+            "description": "Exclusive features"
+          }
+        },
+        "select": "Select Pro"
+      }
+    },
+    "cta": {
+      "title": "Ready to",
+      "titleHighlight": "start",
+      "titleSuffix": "learning?",
+      "subtitle": "Join thousands of developers who have already improved their skills with Super Mock",
+      "startLearning": "Start Learning",
+      "comparePlans": "Compare Plans"
+    }
+  },
+  "pricing": {
+    "title": "Choose your",
+    "titleHighlight": "plan",
+    "subtitle": "🎯 Flexible plans for effective interview preparation",
+    "betaNotice": {
+      "title": "The platform is currently in Beta version",
+      "description": "Therefore, prices are maximally affordable for everyone. After the full version release, tariffs will be higher, so now is the most profitable time to connect!"
+    },
+    "learnMore": "💰 Learn more about pricing",
+    "free": {
+      "title": "Free",
+      "price": "$1",
+      "period": "USD per month",
+      "features": [
+        "Unlimited mock interviews",
+        "Validity period: 1 month",
+        "Basic platform features"
+      ],
+      "select": "Select Plan"
+    },
+    "basic": {
+      "title": "Basic",
+      "price": "$9.99",
+      "period": "USD per month",
+      "features": [
+        "Mock interviews",
+        "AI assistant",
+        "Validity period: 1 month",
+        "Advanced analytics"
+      ],
+      "select": "Select Plan"
+    },
+    "pro": {
+      "title": "Pro",
+      "price": "$20",
+      "period": "USD for 3 months",
+      "popular": "Popular",
+      "features": [
+        "Mock interviews",
+        "AI assistant",
+        "Validity period: 3 months",
+        "Priority support",
+        "Exclusive features"
+      ],
+      "select": "Select Plan"
+    }
+  },
+  "social": {
+    "title": "We are here when it's difficult",
+    "subtitle": "SuperMock is not only about career and interviews. It's about people.",
+    "description": "We know how hard it can be for those who find themselves in difficult life situations. Therefore:",
+    "donations": "10% of all payments we direct to help those who especially need it.",
+    "accessibility": "People with disabilities and low-income families can study on our platform for free.",
+    "conclusion": "Because everyone deserves a chance for a future with hope and love ❤️"
+  },
+  "about": {
+    "title": "About",
+    "titleHighlight": "Super Mock",
+    "description1": "Super Mock is an innovative AI platform that revolutionizes the process of preparing for technical interviews. We combine cutting-edge artificial intelligence technologies with multilingual support to create a personalized learning experience.",
+    "description2": "Our platform helps candidates improve their programming, communication, and problem-solving skills through realistic interview simulations with AI analysis and real-time feedback.",
+    "learnMore": "Learn More",
+    "page": {
+      "badge": "About us",
+      "name": "Korobkov Maxim Viktorovich",
+      "subtitle": "Creator of SuperMock — an innovative platform for interview preparation using artificial intelligence",
+      "contact": "Contact",
+      "projectTitle": "About the project",
+      "projectSubtitle": "Unique platform for personalized IT profession learning",
+      "principles": "Main principles:",
+      "principlesText": "Many IT courses are not live, they are not individual. Every person is special and everyone is different, there are no identical people, which means the principle in learning should be special and personal for everyone.",
+      "readMore": "Read more...",
+      "hideDetails": "Hide details",
+      "authorIntro": "My name is Korobkov Maxim Viktorovich and I am a developer with 20 years of experience, started with automated trading systems on financial exchanges, currently designing systems for company needs.",
+      "problemDescription": "I get many ideas in life from problems I encounter, and as a developer I try to solve them. Time is the most valuable thing in our life, I faced the problem that a lot of time is spent on learning. I studied in four companies, this experience is known to me, they all try to solve problems, but many of their students leave unsatisfied.",
+      "solutionTitle": "Solution to the problem in approach:",
+      "solutionText": "The most important thing we go to is the goal, but while we go to it we already forget what we went through or learned. Is this familiar to you? I think yes, everyone is familiar with this... So what's the solution then? Let's not just teach to memorize, but also live, immerse ourselves in the good sense of understanding this word :)",
+      "experienceDescription": "Imagine even if you are already a pro and have achieved something in IT. You are a junior and burn to enter IT and earn a lot of money remotely drinking juice on the seashore, working on a MacBook... But, there is one \"BUT\" — employers don't take even if there is a response, into their successful society, you don't fit, live coding failed or answered incorrectly, few projects no commercial experience.",
+      "ideaTitle": "Here came the idea:",
+      "ideaText": "Create a service where everything is in one place and there is your personal mentor — a real friend even if it's AI! Imagine, you learned some basics on the platform, and then the mentor tells you: \"Are you ready, let's go to a mock interview, pass it I will look at the feedback and further from this I will guide you, fill the gaps in your knowledge\".",
+      "learningDescription": "You pass interviews, get used to communication and confidently speak with the interviewer, not as before with a trembling voice or praying that the connection would disappear and get out of this hell :) In general, learning goes with joy because it is made for you and configured for you.",
+      "conclusion": "This is the system I developed specifically for you. Pass interviews communicating with colleagues, pay a reasonable amount for learning as a sign of gratitude for supporting the project.",
+      "featuresTitle": "Key features",
+      "featuresSubtitle": "What makes SuperMock a unique platform",
+      "feature1": "Personal AI mentor for each user",
+      "feature2": "Mock interviews with realistic scenarios",
+      "feature3": "Adaptive learning based on your gaps",
+      "feature4": "Development of both technical and soft skills",
+      "skillsTitle": "Skills and technologies",
+      "skillsSubtitle": "Specialization in AI and web development",
+      "skill1": {
+        "name": "AI/ML",
+        "description": "Machine learning, neural networks, natural language processing"
+      },
+      "skill2": {
+        "name": "Web Development",
+        "description": "Frontend and Backend development, modern frameworks"
+      },
+      "skill3": {
+        "name": "Interview Coaching",
+        "description": "Interview preparation, soft skills development"
+      },
+      "skill4": {
+        "name": "Product Management",
+        "description": "Product management, analytics, development strategy"
+      },
+      "collaborationTitle": "Ready for collaboration",
+      "collaborationSubtitle": "open to new projects and professional opportunities.",
+      "email": "Email",
+      "linkedin": "LinkedIn",
+      "github": "GitHub",
+      "telegram": "Telegram"
+    }
+  },
+  "professions": {
+    "hero": {
+      "title": "Technical",
+      "titleHighlight": "Professions",
+      "subtitle": "Prepare for interviews in all IT areas"
+    },
+    "professionsList": {
+      "frontend": {
+        "name": "Frontend",
+        "description": "User interface development"
+      },
+      "backend": {
+        "name": "Backend",
+        "description": "Server-side development and API"
+      },
+      "fullstack": {
+        "name": "Fullstack",
+        "description": "Full-stack development"
+      },
+      "mobile": {
+        "name": "Mobile",
+        "description": "Mobile development"
+      },
+      "devops": {
+        "name": "DevOps",
+        "description": "Infrastructure and automation"
+      },
+      "qa": {
+        "name": "QA",
+        "description": "Testing and quality assurance"
+      },
+      "uxui": {
+        "name": "UX/UI",
+        "description": "User experience design"
+      },
+      "dataAnalyst": {
+        "name": "Data Analyst",
+        "description": "Data analysis"
+      },
+      "dataScientist": {
+        "name": "Data Scientist",
+        "description": "Data science and ML"
+      },
+      "productManager": {
+        "name": "Product Manager",
+        "description": "Product management"
+      }
+    },
+    "stats": {
+      "professions": "Technical<br />Professions 💼",
+      "languages": "Languages 🌍",
+      "interviews": "Interviews 📊",
+      "success": "Success Rate 🎯"
+    },
+    "cta": {
+      "title": "Choose a",
+      "titleHighlight": "profession",
+      "titleSuffix": "and start preparing",
+      "subtitle": "Prepare for an interview in any technical specialty",
+      "startLearning": "Start Learning",
+      "learningProcess": "Learning Process"
+    }
+  },
+  "instructions": {
+    "hero": {
+      "title": "SuperMock Help",
+      "subtitle": "Step-by-step guide to using the platform for interview practice",
+      "startLearning": "Start Learning",
+      "haveQuestions": "Have questions?"
+    },
+    "steps": {
+      "title": "Step-by-step",
+      "titleHighlight": "guide",
+      "subtitle": "Follow these simple steps to start practicing interviews",
+      "step1": {
+        "title": "Click the SuperMock button",
+        "description": "Start learning",
+        "details": "Go to the main page and click the 'Start Learning' button to enter the system"
+      },
+      "step2": {
+        "title": "Choose a profession",
+        "description": "Specify the area you want to practice in",
+        "details": "Choose from the list of available professions the one that matches your learning goals"
+      },
+      "step3": {
+        "title": "Choose a role",
+        "description": "Candidate or interviewer",
+        "details": "Decide on the role: whether you want to practice as a candidate or as an interviewer"
+      },
+      "step4": {
+        "title": "Find an interview",
+        "description": "The system will find a suitable partner",
+        "details": "Our system will automatically find a suitable partner for you to practice with"
+      },
+      "step5": {
+        "title": "Conduct the interview",
+        "description": "Use the built-in video call",
+        "details": "Conduct a full interview using the built-in video call"
+      },
+      "step6": {
+        "title": "Leave feedback",
+        "description": "Rate your partner and get a rating",
+        "details": "After the interview, leave constructive feedback and get a rating from your partner"
+      }
+    },
+    "tips": {
+      "title": "💡",
+      "titleHighlight": "Tips",
+      "subtitle": "Useful recommendations for effective practice",
+      "tip1": {
+        "title": "Be polite and professional",
+        "description": "Follow business etiquette and treat your partner with respect"
+      },
+      "tip2": {
+        "title": "Leave constructive feedback",
+        "description": "Help your partner improve their skills by providing useful recommendations"
+      },
+      "tip3": {
+        "title": "Practice regularly",
+        "description": "For better results, dedicate time to practice on a regular basis"
+      }
+    },
+    "cta": {
+      "title": "Have",
+      "titleHighlight": "questions",
+      "titleSuffix": "?",
+      "subtitle": "Write to us! 📧 We are always ready to help",
+      "contactUs": "Contact us",
+      "startPractice": "Start practice"
+    }
+  },
+  "support": {
+    "hero": {
+      "title": "Support",
+      "subtitle": "💜 We believe that everyone deserves the opportunity to grow and develop"
+    },
+    "supportOptions": {
+      "freeLearning": {
+        "title": "Free Learning",
+        "description": "For people with disabilities and low-income families",
+        "features": {
+          "feature1": "Full access to the platform",
+          "feature2": "All features and capabilities",
+          "feature3": "Personal support"
+        }
+      },
+      "discounts": {
+        "title": "Discounts and Benefits",
+        "description": "For those who find themselves in difficult life situations",
+        "features": {
+          "feature1": "Individual discounts up to 50%",
+          "feature2": "Flexible payment terms",
+          "feature3": "Consideration of each case"
+        }
+      }
+    },
+    "howItWorks": {
+      "title": "How to get support?",
+      "subtitle": "We will review your situation and offer the optimal solution",
+      "steps": {
+        "step1": {
+          "title": "Write to us",
+          "description": "Describe your situation in Telegram"
+        },
+        "step2": {
+          "title": "We will study",
+          "description": "We will review your application within 24 hours"
+        },
+        "step3": {
+          "title": "Get help",
+          "description": "We will offer a suitable support option"
+        }
+      }
+    },
+    "cta": {
+      "title": "Ready to",
+      "titleHighlight": "help",
+      "titleSuffix": "you",
+      "subtitle": "Write to us in Telegram, and we will definitely review your situation. Every case is unique, and we will find a way to help you.",
+      "buttonText": "Write to Telegram",
+      "responseTime": "💜 We will respond within 24 hours"
+    },
+    "socialImpact": {
+      "title": "Our Social Impact",
+      "stats": {
+        "donations": {
+          "value": "10%",
+          "description": "Of all payments goes to help those in need"
+        },
+        "peopleHelped": {
+          "value": "100+",
+          "description": "People received free access to learning"
+        },
+        "responseTime": {
+          "value": "24h",
+          "description": "Average response time to support requests"
+        }
+      }
+    }
+  },
+  "footer": {
+    "description": "AI platform for technical interview preparation with support for 6 languages and personalized feedback.",
+    "product": "Product",
+    "support": "Support",
+    "payment": "Payment",
+    "features": "Features",
+    "professions": "Professions",
+    "languages": "Languages",
+    "pricing": "Pricing",
+    "help": "📖 Help",
+    "documentation": "Documentation",
+    "supportLink": "💜 Support",
+    "faq": "FAQ",
+    "about": "About",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "github": "GitHub",
+
+    "linkedin": "LinkedIn",
+    "copyright": "© 2025 Super Mock. All rights reserved."
+  }
+}

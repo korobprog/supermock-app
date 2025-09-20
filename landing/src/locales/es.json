@@ -1,0 +1,595 @@
+{
+  "navigation": {
+    "features": "Características",
+    "learningProcess": "Proceso",
+    "professions": "Profesiones",
+    "languages": "Idiomas",
+    "pricing": "Precios",
+    "instructions": "📖 Ayuda",
+    "support": "💜 Soporte",
+    "about": "Acerca de",
+    "login": "Iniciar sesión"
+  },
+  "hero": {
+    "title": "Prepárate para tu",
+    "titleHighlight": "entrevista",
+    "titleSuffix": "en 6 idiomas",
+    "subtitle": "Super Mock — Plataforma AI para entrevistas con emparejamiento único de candidatos e entrevistadores",
+    "startLearning": "🚀 Comenzar a aprender",
+    "openApp": "💻 Abrir aplicación",
+    "help": "📖 Ayuda"
+  },
+  "stats": {
+    "professions": "Profesiones<br />Técnicas 💼",
+    "languages": "Idiomas 🌍",
+    "interviews": "Entrevistas 📊",
+    "success": "Tasa de éxito 🎯"
+  },
+  "features": {
+    "title": "Características de la",
+    "titleHighlight": "plataforma",
+    "subtitle": "Tecnologías modernas para una preparación efectiva de entrevistas",
+    "webrtc": {
+      "title": "Videollamadas WebRTC",
+      "description": "Comunicación de alta calidad en tiempo real"
+    },
+    "coding": {
+      "title": "Programación en tiempo real",
+      "description": "Escritura colaborativa de código"
+    },
+    "chat": {
+      "title": "Chat entrevistador ↔ candidato",
+      "description": "Comunicación instantánea"
+    },
+    "ai": {
+      "title": "Análisis AI",
+      "description": "Evaluación inteligente de habilidades"
+    },
+    "feedback": {
+      "title": "Retroalimentación personalizada",
+      "description": "Recomendaciones detalladas"
+    },
+    "learning": {
+      "title": "Aprendizaje interactivo",
+      "description": "Gamificación del proceso"
+    }
+  },
+  "languages": {
+    "title": "Idiomas",
+    "titleHighlight": "soportados",
+    "subtitle": "Realiza entrevistas en tu idioma nativo",
+    "english": "English",
+    "englishDesc": "Idioma inglés",
+    "russian": "Russian",
+    "russianDesc": "Idioma ruso",
+    "spanish": "Spanish",
+    "spanishDesc": "Idioma español",
+    "french": "French",
+    "frenchDesc": "Idioma francés",
+    "german": "German",
+    "germanDesc": "Idioma alemán",
+    "chinese": "Chinese",
+    "chineseDesc": "Idioma chino",
+    "benefits": {
+      "global": {
+        "title": "Acceso Global",
+        "description": "Preparación para entrevistas en 6 idiomas principales del mundo"
+      },
+      "colleagues": {
+        "title": "Tus colegas con tu stack e idioma",
+        "description": "Elige el tiempo durante el día"
+      },
+      "communication": {
+        "title": "Comunicación Natural",
+        "description": "Comunicación cómoda en tu idioma nativo sin barreras lingüísticas"
+      }
+    },
+    "cta": {
+      "title": "Elige un",
+      "titleHighlight": "idioma",
+      "titleSuffix": "y comienza a aprender",
+      "subtitle": "Prepárate para una entrevista en cualquiera de los 6 idiomas soportados",
+      "startLearning": "Comenzar a Aprender",
+      "learningProcess": "Proceso de Aprendizaje"
+    }
+  },
+  "learningProcess": {
+    "hero": {
+      "title": "Proceso de",
+      "titleHighlight": "aprendizaje",
+      "subtitle": "Plan paso a paso para prepararse para entrevistas técnicas usando tecnologías AI",
+      "startLearning": "Comenzar a aprender"
+    },
+    "processSteps": {
+      "step1": {
+        "title": "Selección de idioma",
+        "description": "Entrevistas en 6 idiomas",
+        "details": "Elige un idioma para realizar entrevistas de 6 idiomas disponibles"
+      },
+      "step2": {
+        "title": "Selección de profesión",
+        "description": "10+ direcciones técnicas",
+        "details": "Determina la especialización técnica para la preparación"
+      },
+      "step3": {
+        "title": "Herramientas y tecnologías",
+        "description": "Stack de tecnologías de la profesión",
+        "details": "Estudia las herramientas y tecnologías necesarias para la profesión elegida"
+      },
+      "step4": {
+        "title": "Entrevista simulada",
+        "description": "Simulación realista",
+        "details": "Realiza entrevistas realistas con participantes reales"
+      },
+      "step5": {
+        "title": "Obtener retroalimentación",
+        "description": "Retroalimentación detallada",
+        "details": "Obtén un análisis detallado de tus respuestas y comportamiento"
+      },
+      "step6": {
+        "title": "Análisis AI y planificación",
+        "description": "Recomendaciones personalizadas",
+        "details": "AI analiza resultados y crea un plan de desarrollo"
+      },
+      "step7": {
+        "title": "Aprendizaje en aplicaciones",
+        "description": "Tareas prácticas",
+        "details": "Completa tareas prácticas para reforzar habilidades"
+      },
+      "step8": {
+        "title": "Repetición del ciclo",
+        "description": "Desarrollo continuo",
+        "details": "Vuelve al principio para la mejora constante"
+      }
+    },
+    "languagesSection": {
+      "title": "Idiomas",
+      "titleHighlight": "soportados",
+      "subtitle": "Realiza entrevistas en tu idioma nativo"
+    },
+    "professionsSection": {
+      "title": "Profesiones",
+      "titleHighlight": "técnicas",
+      "subtitle": "Preparación para entrevistas en todas las áreas IT"
+    },
+    "plansSection": {
+      "title": "Proceso de aprendizaje por planes",
+      "subtitle": "Diferentes niveles de acceso a funciones de aprendizaje según el plan elegido",
+      "free": {
+        "title": "Gratis",
+        "description": "Capacidades básicas",
+        "features": {
+          "mockInterviews": {
+            "title": "Entrevistas simuladas",
+            "description": "Simulaciones básicas de entrevistas"
+          },
+          "basicFeedback": {
+            "title": "Retroalimentación básica",
+            "description": "Retroalimentación simple"
+          }
+        },
+        "select": "Seleccionar Gratis"
+      },
+      "basic": {
+        "title": "Básico",
+        "description": "Análisis extendido",
+        "features": {
+          "mockInterviews": {
+            "title": "Entrevistas simuladas",
+            "description": "Simulaciones extendidas"
+          },
+          "aiAssistant": {
+            "title": "Asistente AI",
+            "description": "Soporte AI durante entrevistas"
+          },
+          "aiAnalysis": {
+            "title": "Análisis AI y planificación",
+            "description": "Recomendaciones personalizadas"
+          },
+          "advancedAnalytics": {
+            "title": "Analítica avanzada",
+            "description": "Estadísticas detalladas de progreso"
+          }
+        },
+        "select": "Seleccionar Básico"
+      },
+      "pro": {
+        "title": "Pro",
+        "description": "Ciclo completo de aprendizaje",
+        "features": {
+          "allBasicFeatures": {
+            "title": "Todas las funciones Básico",
+            "description": "Acceso completo a analítica"
+          },
+          "appLearning": {
+            "title": "Aprendizaje en aplicaciones",
+            "description": "Tareas prácticas"
+          },
+          "cycleRepetition": {
+            "title": "Repetición del ciclo",
+            "description": "Desarrollo continuo"
+          },
+          "prioritySupport": {
+            "title": "Soporte prioritario",
+            "description": "Funciones exclusivas"
+          }
+        },
+        "select": "Seleccionar Pro"
+      }
+    },
+    "cta": {
+      "title": "¿Listo para",
+      "titleHighlight": "comenzar",
+      "titleSuffix": "a aprender?",
+      "subtitle": "Únete a miles de desarrolladores que ya han mejorado sus habilidades con Super Mock",
+      "startLearning": "Comenzar a aprender",
+      "comparePlans": "Comparar planes"
+    }
+  },
+  "pricing": {
+    "title": "Elige tu",
+    "titleHighlight": "plan",
+    "subtitle": "🎯 Planes flexibles para una preparación efectiva de entrevistas",
+    "betaNotice": {
+      "title": "La plataforma está actualmente en versión Beta",
+      "description": "Por lo tanto, los precios son máximamente asequibles para todos. Después del lanzamiento de la versión completa, las tarifas serán más altas, ¡así que ahora es el momento más rentable para conectarse!"
+    },
+    "learnMore": "💰 Más información sobre precios",
+    "included": "✅ Lo que está incluido:",
+    "excluded": "❌ Lo que no está incluido:",
+    "proDiscount": "Precio favorable (40% de ahorro)",
+    "free": {
+      "title": "Gratis",
+      "price": "$1",
+      "period": "USD por mes",
+      "features": [
+        "Entrevistas simuladas ilimitadas",
+        "Período de validez: 1 mes",
+        "Funciones básicas de la plataforma"
+      ],
+      "select": "Seleccionar Plan"
+    },
+    "basic": {
+      "title": "Básico",
+      "price": "$9.99",
+      "period": "USD por mes",
+      "features": [
+        "Entrevistas simuladas",
+        "Asistente AI",
+        "Período de validez: 1 mes",
+        "Analítica avanzada"
+      ],
+      "select": "Seleccionar Plan"
+    },
+    "pro": {
+      "title": "Pro",
+      "price": "$20",
+      "period": "USD por 3 meses",
+      "popular": "Popular",
+      "features": [
+        "Entrevistas simuladas",
+        "Asistente AI",
+        "Período de validez: 3 meses",
+        "Soporte prioritario",
+        "Funciones exclusivas"
+      ],
+      "select": "Seleccionar Plan"
+    }
+  },
+  "social": {
+    "title": "Estamos aquí cuando es difícil",
+    "subtitle": "SuperMock no es solo sobre carrera y entrevistas. Es sobre personas.",
+    "description": "Sabemos lo difícil que puede ser para aquellos que se encuentran en situaciones de vida difíciles. Por lo tanto:",
+    "donationsPrefix": "10% de todos los pagos",
+    "donations": "los dirigimos a ayudar a aquellos que especialmente lo necesitan.",
+    "accessibilityPrefix": "Las personas con discapacidades y familias de bajos ingresos",
+    "accessibility": "pueden estudiar en nuestra plataforma gratis.",
+    "conclusion": "Porque todos merecen una oportunidad para un futuro con esperanza y amor ❤️"
+  },
+  "pricingFaq": {
+    "title": "Preguntas Frecuentes",
+    "howToChoose": {
+      "question": "¿Cómo elegir un plan?",
+      "answer": "Comienza con el plan Free para familiarizarte con la plataforma, luego pasa a Basic o Pro según tus necesidades."
+    },
+    "cancelSubscription": {
+      "question": "¿Puedo cancelar mi suscripción?",
+      "answer": "Sí, puedes cancelar tu suscripción en cualquier momento. El período pagado permanecerá activo hasta el final del período de validez."
+    },
+    "trialPeriod": {
+      "question": "¿Hay un período de prueba?",
+      "answer": "El plan Free te permite probar las funciones básicas de la plataforma gratis."
+    },
+    "paymentMethods": {
+      "question": "¿Qué métodos de pago están disponibles?",
+      "answer": "Aceptamos pagos en USD a través de varios sistemas de pago."
+    }
+  },
+  "pricingCta": {
+    "title": "¿Listo para",
+    "titleHighlight": "comenzar",
+    "titleSuffix": "a aprender?",
+    "subtitle": "Elige el plan adecuado y comienza a prepararte para tu entrevista hoy",
+    "startLearning": "Comenzar a Aprender",
+    "learningProcess": "Proceso de Aprendizaje"
+  },
+  "about": {
+    "title": "Acerca de",
+    "titleHighlight": "Super Mock",
+    "description1": "Super Mock es una plataforma AI innovadora que revoluciona el proceso de preparación para entrevistas técnicas. Combinamos tecnologías de inteligencia artificial de vanguardia con soporte multilingüe para crear una experiencia de aprendizaje personalizada.",
+    "description2": "Nuestra plataforma ayuda a los candidatos a mejorar sus habilidades de programación, comunicación y resolución de problemas a través de simulaciones realistas de entrevistas con análisis AI y retroalimentación en tiempo real.",
+    "learnMore": "Saber más",
+    "page": {
+      "badge": "Acerca de nosotros",
+      "name": "Korobkov Maxim Viktorovich",
+      "subtitle": "Creador de SuperMock — una plataforma innovadora para la preparación de entrevistas usando inteligencia artificial",
+      "contact": "Contactar",
+      "projectTitle": "Acerca del proyecto",
+      "projectSubtitle": "Plataforma única para el aprendizaje personalizado de profesiones IT",
+      "principles": "Principios principales:",
+      "principlesText": "Muchos cursos de IT no son en vivo, no son individuales. Cada persona es especial y todos son diferentes, no hay personas idénticas, lo que significa que el principio en el aprendizaje debe ser especial y personal para cada uno.",
+      "readMore": "Leer más...",
+      "hideDetails": "Ocultar detalles",
+      "authorIntro": "Mi nombre es Korobkov Maxim Viktorovich y soy un desarrollador con 20 años de experiencia, comencé con sistemas de trading automatizados en bolsas financieras, actualmente diseño sistemas para necesidades empresariales.",
+      "problemDescription": "Recibo muchas ideas en la vida de problemas que encuentro, y como desarrollador trato de resolverlos. El tiempo es lo más valioso en nuestra vida, me enfrenté al problema de que se gasta mucho tiempo en el aprendizaje. Estudié en cuatro empresas, esta experiencia me es conocida, todas intentan resolver problemas, pero muchos de sus estudiantes se van insatisfechos.",
+      "solutionTitle": "Solución al problema en el enfoque:",
+      "solutionText": "Lo más importante a lo que vamos es la meta, pero mientras vamos hacia ella ya olvidamos lo que pasamos o aprendimos. ¿Te es familiar esto? Creo que sí, a todos les es familiar... Entonces, ¿cuál es la solución? No solo enseñemos a memorizar, sino también vivamos, nos sumerjamos en el buen sentido de entender esta palabra :)",
+      "experienceDescription": "Imagina incluso si ya eres un profesional y has logrado algo en IT. Eres un junior y ardes por entrar en IT y ganar mucho dinero remotamente bebiendo jugo en la orilla del mar, trabajando en un MacBook... Pero, hay un \"PERO\" — los empleadores no toman ni siquiera si hay una respuesta, en su sociedad exitosa, no encajas, el live coding falló o respondiste incorrectamente, pocos proyectos no hay experiencia comercial.",
+      "ideaTitle": "Aquí vino la idea:",
+      "ideaText": "¡Crear un servicio donde todo esté en un lugar y haya tu mentor personal — un verdadero amigo aunque sea IA! Imagina, aprendiste algunos conceptos básicos en la plataforma, y luego el mentor te dice: \"¿Estás listo, vamos a una entrevista simulada, pásala yo estaré viendo el feedback y desde ahí te guiaré, llenando las brechas en tu conocimiento\".",
+      "learningDescription": "Pasas entrevistas, te acostumbras a la comunicación y hablas con confianza con el entrevistador, no como antes con voz temblorosa o rezando para que la conexión desaparezca y salir de este infierno :) En general, el aprendizaje va con alegría porque está hecho para ti y configurado para ti.",
+      "conclusion": "Este es el sistema que desarrollé específicamente para ti. Pasa entrevistas comunicándote con colegas, paga una cantidad razonable por el aprendizaje como señal de gratitud por apoyar el proyecto.",
+      "featuresTitle": "Características clave",
+      "featuresSubtitle": "Lo que hace a SuperMock una plataforma única",
+      "feature1": "Mentor IA personal para cada usuario",
+      "feature2": "Entrevistas simuladas con escenarios realistas",
+      "feature3": "Aprendizaje adaptativo basado en tus brechas",
+      "feature4": "Desarrollo tanto de habilidades técnicas como soft skills",
+      "skillsTitle": "Habilidades y tecnologías",
+      "skillsSubtitle": "Especialización en IA y desarrollo web",
+      "skill1": {
+        "name": "IA/ML",
+        "description": "Aprendizaje automático, redes neuronales, procesamiento de lenguaje natural"
+      },
+      "skill2": {
+        "name": "Desarrollo Web",
+        "description": "Desarrollo Frontend y Backend, frameworks modernos"
+      },
+      "skill3": {
+        "name": "Coaching de Entrevistas",
+        "description": "Preparación para entrevistas, desarrollo de soft skills"
+      },
+      "skill4": {
+        "name": "Gestión de Productos",
+        "description": "Gestión de productos, analítica, estrategia de desarrollo"
+      },
+      "collaborationTitle": "Listo para colaborar",
+      "collaborationSubtitle": "abierto a nuevos proyectos y oportunidades profesionales.",
+      "email": "Correo",
+      "linkedin": "LinkedIn",
+      "github": "GitHub",
+      "telegram": "Telegram"
+    }
+  },
+  "professions": {
+    "hero": {
+      "title": "Profesiones",
+      "titleHighlight": "Técnicas",
+      "subtitle": "Prepárate para entrevistas en todas las áreas de TI"
+    },
+    "professionsList": {
+      "frontend": {
+        "name": "Frontend",
+        "description": "Desarrollo de interfaces de usuario"
+      },
+      "backend": {
+        "name": "Backend",
+        "description": "Desarrollo del lado del servidor y API"
+      },
+      "fullstack": {
+        "name": "Fullstack",
+        "description": "Desarrollo de pila completa"
+      },
+      "mobile": {
+        "name": "Mobile",
+        "description": "Desarrollo móvil"
+      },
+      "devops": {
+        "name": "DevOps",
+        "description": "Infraestructura y automatización"
+      },
+      "qa": {
+        "name": "QA",
+        "description": "Pruebas y aseguramiento de calidad"
+      },
+      "uxui": {
+        "name": "UX/UI",
+        "description": "Diseño de experiencia de usuario"
+      },
+      "dataAnalyst": {
+        "name": "Analista de Datos",
+        "description": "Análisis de datos"
+      },
+      "dataScientist": {
+        "name": "Científico de Datos",
+        "description": "Ciencia de datos y ML"
+      },
+      "productManager": {
+        "name": "Gerente de Producto",
+        "description": "Gestión de productos"
+      }
+    },
+    "stats": {
+      "professions": "Profesiones<br />Técnicas 💼",
+      "languages": "Idiomas 🌍",
+      "interviews": "Entrevistas 📊",
+      "success": "Tasa de Éxito 🎯"
+    },
+    "cta": {
+      "title": "Elige una",
+      "titleHighlight": "profesión",
+      "titleSuffix": "y comienza a prepararte",
+      "subtitle": "Prepárate para una entrevista en cualquier especialidad técnica",
+      "startLearning": "Comenzar a Aprender",
+      "learningProcess": "Proceso de Aprendizaje"
+    }
+  },
+  "instructions": {
+    "hero": {
+      "title": "Ayuda de SuperMock",
+      "subtitle": "Guía paso a paso para usar la plataforma de práctica de entrevistas",
+      "startLearning": "Comenzar a aprender",
+      "haveQuestions": "¿Tienes preguntas?"
+    },
+    "steps": {
+      "title": "Guía",
+      "titleHighlight": "paso a paso",
+      "subtitle": "Sigue estos simples pasos para comenzar a practicar entrevistas",
+      "step1": {
+        "title": "Haz clic en el botón SuperMock",
+        "description": "Comenzar a aprender",
+        "details": "Ve a la página principal y haz clic en el botón 'Comenzar a aprender' para entrar al sistema"
+      },
+      "step2": {
+        "title": "Elige una profesión",
+        "description": "Especifica el área en la que quieres practicar",
+        "details": "Elige de la lista de profesiones disponibles la que coincida con tus objetivos de aprendizaje"
+      },
+      "step3": {
+        "title": "Elige un rol",
+        "description": "Candidato o entrevistador",
+        "details": "Decide el rol: si quieres practicar como candidato o como entrevistador"
+      },
+      "step4": {
+        "title": "Encuentra una entrevista",
+        "description": "El sistema encontrará un compañero adecuado",
+        "details": "Nuestro sistema automáticamente encontrará un compañero adecuado para que practiques"
+      },
+      "step5": {
+        "title": "Realiza la entrevista",
+        "description": "Usa la videollamada integrada",
+        "details": "Realiza una entrevista completa usando la videollamada integrada"
+      },
+      "step6": {
+        "title": "Deja retroalimentación",
+        "description": "Evalúa a tu compañero y recibe una calificación",
+        "details": "Después de la entrevista, deja retroalimentación constructiva y recibe una calificación de tu compañero"
+      }
+    },
+    "tips": {
+      "title": "💡",
+      "titleHighlight": "Consejos",
+      "subtitle": "Recomendaciones útiles para una práctica efectiva",
+      "tip1": {
+        "title": "Sé cortés y profesional",
+        "description": "Sigue la etiqueta empresarial y trata a tu compañero con respeto"
+      },
+      "tip2": {
+        "title": "Deja retroalimentación constructiva",
+        "description": "Ayuda a tu compañero a mejorar sus habilidades proporcionando recomendaciones útiles"
+      },
+      "tip3": {
+        "title": "Practica regularmente",
+        "description": "Para mejores resultados, dedica tiempo a la práctica de manera regular"
+      }
+    },
+    "cta": {
+      "title": "¿Tienes",
+      "titleHighlight": "preguntas",
+      "titleSuffix": "?",
+      "subtitle": "¡Escríbenos! 📧 Siempre estamos listos para ayudar",
+      "contactUs": "Contáctanos",
+      "startPractice": "Comenzar práctica"
+    }
+  },
+  "support": {
+    "hero": {
+      "title": "Soporte",
+      "subtitle": "💜 Creemos que todos merecen la oportunidad de crecer y desarrollarse"
+    },
+    "supportOptions": {
+      "freeLearning": {
+        "title": "Aprendizaje Gratuito",
+        "description": "Para personas con discapacidades y familias de bajos ingresos",
+        "features": {
+          "feature1": "Acceso completo a la plataforma",
+          "feature2": "Todas las funciones y capacidades",
+          "feature3": "Soporte personal"
+        }
+      },
+      "discounts": {
+        "title": "Descuentos y Beneficios",
+        "description": "Para aquellos que se encuentran en situaciones de vida difíciles",
+        "features": {
+          "feature1": "Descuentos individuales hasta 50%",
+          "feature2": "Términos de pago flexibles",
+          "feature3": "Consideración de cada caso"
+        }
+      }
+    },
+    "howItWorks": {
+      "title": "¿Cómo obtener soporte?",
+      "subtitle": "Revisaremos su situación y ofreceremos la solución óptima",
+      "steps": {
+        "step1": {
+          "title": "Escríbanos",
+          "description": "Describa su situación en Telegram"
+        },
+        "step2": {
+          "title": "Estudiaremos",
+          "description": "Revisaremos su solicitud dentro de 24 horas"
+        },
+        "step3": {
+          "title": "Obtenga ayuda",
+          "description": "Ofreceremos una opción de soporte adecuada"
+        }
+      }
+    },
+    "cta": {
+      "title": "Listos para",
+      "titleHighlight": "ayudarle",
+      "titleSuffix": "",
+      "subtitle": "Escríbanos en Telegram, y definitivamente revisaremos su situación. Cada caso es único, y encontraremos una manera de ayudarle.",
+      "buttonText": "Escribir a Telegram",
+      "responseTime": "💜 Responderemos dentro de 24 horas"
+    },
+    "socialImpact": {
+      "title": "Nuestro Impacto Social",
+      "stats": {
+        "donations": {
+          "value": "10%",
+          "description": "De todos los pagos va a ayudar a los necesitados"
+        },
+        "peopleHelped": {
+          "value": "100+",
+          "description": "Personas recibieron acceso gratuito al aprendizaje"
+        },
+        "responseTime": {
+          "value": "24h",
+          "description": "Tiempo promedio de respuesta a solicitudes de soporte"
+        }
+      }
+    }
+  },
+  "footer": {
+    "description": "Plataforma AI para preparación de entrevistas técnicas con soporte para 6 idiomas y retroalimentación personalizada.",
+    "product": "Producto",
+    "support": "Soporte",
+    "payment": "Pago",
+    "features": "Características",
+    "professions": "Profesiones",
+    "languages": "Idiomas",
+    "pricing": "Precios",
+    "help": "📖 Ayuda",
+    "documentation": "Documentación",
+    "supportLink": "💜 Soporte",
+    "faq": "FAQ",
+    "about": "Acerca de",
+    "privacyPolicy": "Política de Privacidad",
+    "termsOfService": "Términos de Servicio",
+    "github": "GitHub",
+
+    "linkedin": "LinkedIn",
+    "copyright": "© 2025 Super Mock. Todos los derechos reservados."
+  }
+}

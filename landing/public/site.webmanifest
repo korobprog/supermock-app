@@ -1,0 +1,25 @@
+{
+  "name": "Super Mock - AI-платформа для подготовки к собеседованиям",
+  "short_name": "Super Mock",
+  "description": "AI-платформа для подготовки к собеседованиям на 6 языках",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#667eea",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo_main.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo_main.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "lang": "ru",
+  "dir": "ltr"
+}
