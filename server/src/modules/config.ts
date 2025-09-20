@@ -1,7 +1,6 @@
 const DEFAULT_PORT = Number(process.env.SERVER_PORT ?? 4000);
 const DEFAULT_HOST = process.env.SERVER_HOST ?? '0.0.0.0';
-
-const defaultCorsOrigins = (process.env.CORS_ORIGIN ?? '').split(',').filter(Boolean);
+const DEFAULT_CORS_ORIGINS = ['http://localhost:3000', 'http://localhost:3001'];
 
 export type AppConfig = {
   port: number;
@@ -15,7 +14,7 @@ export function buildConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     port: env.SERVER_PORT ? Number(env.SERVER_PORT) : DEFAULT_PORT,
     host: env.SERVER_HOST ?? DEFAULT_HOST,
     corsOrigins:
-      env.CORS_ORIGIN?.split(',').map((origin) => origin.trim()).filter(Boolean) ?? defaultCorsOrigins,
+      env.CORS_ORIGIN?.split(',').map((origin) => origin.trim()).filter(Boolean) ?? DEFAULT_CORS_ORIGINS,
     logLevel: (env.LOG_LEVEL as AppConfig['logLevel']) ?? 'info'
   };
 }

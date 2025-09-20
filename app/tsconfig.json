@@ -19,7 +19,9 @@
       "@/components/*": ["src/components/*"],
       "@/hooks/*": ["src/hooks/*"],
       "@/lib/*": ["src/lib/*"],
+      "@/data/*": ["src/data/*"],
       "@/store/*": ["src/store/*"],
+      "@/styles/*": ["src/styles/*"],
       "@/types/*": ["src/types/*"]
     }
   },

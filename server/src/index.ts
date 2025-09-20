@@ -3,7 +3,9 @@ import websocket from '@fastify/websocket';
 import cors from '@fastify/cors';
 
 import { buildConfig } from './modules/config.js';
+import { registerCoreRoutes } from './routes/core.route.js';
 import { registerHealthRoute } from './routes/health.route.js';
+import { registerMatchingRoutes } from './routes/matching.route.js';
 
 const config = buildConfig();
 
@@ -21,7 +23,9 @@ async function bootstrap() {
 
   await app.register(websocket);
 
+  registerCoreRoutes(app);
   registerHealthRoute(app);
+  registerMatchingRoutes(app);
 
   try {
     await app.listen({ port: config.port, host: config.host });

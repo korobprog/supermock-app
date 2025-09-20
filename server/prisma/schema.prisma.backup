@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -111,21 +111,6 @@ model InterviewMatch {
   scheduledAt    DateTime?
   roomUrl        String?
   status         MatchStatus        @default(MATCHED)
-  completedAt    DateTime?
-  summary        InterviewSummary?
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
-}
-
-model InterviewSummary {
-  id          String          @id @default(cuid())
-  matchId     String          @unique
-  match       InterviewMatch  @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  interviewerNotes String
-  candidateNotes   String?
-  aiHighlights     Json?
-  rating           Int             @default(0)
-  strengths        String[]        @default([])
-  improvements     String[]        @default([])
-  createdAt        DateTime        @default(now())
 }

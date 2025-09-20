@@ -9,6 +9,15 @@
   },
   "scripts": {
     "dev": "pnpm -r --parallel dev",
+    "dev:app": "pnpm --filter ./app dev --port 3000",
+    "dev:landing": "pnpm --filter ./landing dev --port 3001",
+    "dev:server": "pnpm --filter ./server dev",
+    "start:dev": "./scripts/start-dev.sh",
+    "start:dev:server": "./scripts/start-dev.sh server",
+    "start:dev:app": "./scripts/start-dev.sh app",
+    "start:dev:landing": "./scripts/start-dev.sh landing",
+    "stop:dev": "./scripts/start-dev.sh stop",
+    "status:dev": "./scripts/start-dev.sh status",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
     "format": "pnpm -r format",
@@ -19,6 +28,13 @@
     "test:e2e": "pnpm -r --filter ./app test:e2e",
     "db:migrate": "pnpm --filter ./server db:migrate",
     "db:seed": "pnpm --filter ./server db:seed",
-    "db:reset": "pnpm --filter ./server db:reset"
+    "db:reset": "pnpm --filter ./server db:reset",
+    "kill:ports": "./scripts/kill-ports.sh",
+    "kill:app": "lsof -ti:3000 | xargs kill -9 2>/dev/null || true",
+    "kill:landing": "lsof -ti:3001 | xargs kill -9 2>/dev/null || true",
+    "kill:server": "lsof -ti:4000 | xargs kill -9 2>/dev/null || true"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.0"
   }
 }
