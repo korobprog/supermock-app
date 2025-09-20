@@ -4,8 +4,19 @@ import { useQuery } from '@tanstack/react-query';
 import OnboardingProgress from './OnboardingProgress';
 import { fetchMatchOverview } from '@/lib/api';
 import { useUserProfile } from '@/store/useUserProfile';
+import type { UserRole } from '../../../../shared/src/types/user.js';
 
 const SESSION_REWARD_USD = 65;
+
+type RoleCardRole = Extract<UserRole, 'CANDIDATE' | 'INTERVIEWER'>;
+
+type RoleCardConfig = {
+  id: RoleCardRole;
+  purpose: string;
+  title: string;
+  description: string;
+  stats: Array<{ label: string; value: string }>;
+};
 
 function formatUsd(amount: number) {
   return `$${amount.toLocaleString('en-US')}`;
@@ -72,6 +83,54 @@ export default function RoleSelectionStep() {
     };
   }, [overviewQuery.data, demandGap]);
 
+  const roleCards = useMemo<RoleCardConfig[]>(
+    () => [
+      {
+        id: 'CANDIDATE',
+        purpose: 'Для практики',
+        title: 'Стать кандидатом',
+        description:
+          'Получайте собеседования по выбранной профессии и языку. После каждой сессии - структурированный разбор от интервьюера и AI.',
+        stats: [
+          {
+            label: 'Активных заявок в очереди',
+            value: String(queuedRequests)
+          },
+          {
+            label: 'Прогноз ожидания',
+            value: `~${estimatedWaitMinutes} мин`
+          },
+          {
+            label: 'Доступные направления',
+            value: '18+ IT профилей'
+          }
+        ]
+      },
+      {
+        id: 'INTERVIEWER',
+        purpose: 'Для экспертов',
+        title: 'Стать интервьюером',
+        description:
+          'Делитесь опытом, ведите до 5 сессий в день и получайте вознаграждение. Система подбирает кандидатов по стеку, знаниям и часовому поясу.',
+        stats: [
+          {
+            label: 'Запланировано сессий',
+            value: String(scheduledMatches)
+          },
+          {
+            label: 'Ожидающих кандидатов',
+            value: String(queuedRequests)
+          },
+          {
+            label: 'Потенциал дохода (≈)',
+            value: formatUsd(projectedIncome)
+          }
+        ]
+      }
+    ],
+    [estimatedWaitMinutes, projectedIncome, queuedRequests, scheduledMatches]
+  );
+
   return (
     <section className="w-full max-w-3xl rounded-3xl border border-slate-800 bg-slate-900/70 p-8 shadow-2xl shadow-slate-950/40">
       <header className="flex flex-wrap items-start justify-between gap-4">
@@ -89,93 +148,50 @@ export default function RoleSelectionStep() {
       </header>
 
       <div className="mt-8 grid gap-5 md:grid-cols-2">
-        <button
-          type="button"
-          className={buildCardClassName(profile.role === 'CANDIDATE')}
-          onClick={() => setRole('CANDIDATE')}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-secondary/80">Для практики</p>
-              <h2 className="mt-1 text-2xl font-semibold">Стать кандидатом</h2>
-            </div>
-            <div className="flex flex-col items-end gap-2">
-              {recommendation.role === 'CANDIDATE' && (
-                <span className="rounded-full border border-amber-400/50 bg-amber-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-amber-200">
-                  Выгодно сейчас
-                </span>
-              )}
-              {profile.role === 'CANDIDATE' && (
-                <span className="rounded-full border border-secondary/80 bg-secondary/20 px-3 py-1 text-xs font-semibold text-secondary">
-                  Вы выбрали
-                </span>
-              )}
-            </div>
-          </div>
-          <p className="text-sm text-slate-300">
-            Получайте собеседования по выбранной профессии и языку. После каждой сессии - структурированный разбор от
-            интервьюера и AI.
-          </p>
-          <dl className="grid gap-3 text-sm">
-            <div className="flex items-center justify-between">
-              <dt className="text-slate-400">Активных заявок в очереди</dt>
-              <dd className="font-semibold text-white">{queuedRequests}</dd>
-            </div>
-            <div className="flex items-center justify-between">
-              <dt className="text-slate-400">Прогноз ожидания</dt>
-              <dd className="font-semibold text-white">~{estimatedWaitMinutes} мин</dd>
-            </div>
-            <div className="flex items-center justify-between">
-              <dt className="text-slate-400">Доступные направления</dt>
-              <dd className="font-semibold text-white">18+ IT профилей</dd>
-            </div>
-          </dl>
-        </button>
+        {roleCards.map((card) => {
+          const isActive = profile.role === card.id;
+          const isRecommended = recommendation.role === card.id;
 
-        <button
-          type="button"
-          className={buildCardClassName(profile.role === 'INTERVIEWER')}
-          onClick={() => setRole('INTERVIEWER')}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-secondary/80">Для экспертов</p>
-              <h2 className="mt-1 text-2xl font-semibold">Стать интервьюером</h2>
-            </div>
-            <div className="flex flex-col items-end gap-2">
-              {recommendation.role === 'INTERVIEWER' && (
-                <span className="rounded-full border border-amber-400/50 bg-amber-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-amber-200">
-                  Выгодно сейчас
-                </span>
-              )}
-              {profile.role === 'INTERVIEWER' && (
-                <span className="rounded-full border border-secondary/80 bg-secondary/20 px-3 py-1 text-xs font-semibold text-secondary">
-                  Вы выбрали
-                </span>
-              )}
-            </div>
-          </div>
-          <p className="text-sm text-slate-300">
-            Делитесь опытом, ведите до 5 сессий в день и получайте вознаграждение. Система подбирает кандидатов по
-            стеку, знаниям и часовому поясу.
-          </p>
-          <dl className="grid gap-3 text-sm">
-            <div className="flex items-center justify-between">
-              <dt className="text-slate-400">Запланировано сессий</dt>
-              <dd className="font-semibold text-white">{scheduledMatches}</dd>
-            </div>
-            <div className="flex items-center justify-between">
-              <dt className="text-slate-400">Ожидающих кандидатов</dt>
-              <dd className="font-semibold text-white">{queuedRequests}</dd>
-            </div>
-            <div className="flex items-center justify-between">
-              <dt className="text-slate-400">Потенциал дохода (≈)</dt>
-              <dd className="font-semibold text-white">{formatUsd(projectedIncome)}</dd>
-            </div>
-          </dl>
-        </button>
+          return (
+            <button
+              key={card.id}
+              type="button"
+              className={buildCardClassName(isActive)}
+              onClick={() => setRole(card.id)}
+              aria-pressed={isActive}
+              data-role={card.id.toLowerCase()}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-secondary/80">{card.purpose}</p>
+                  <h2 className="mt-1 text-2xl font-semibold">{card.title}</h2>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  {isRecommended && (
+                    <span className="rounded-full border border-amber-400/50 bg-amber-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-amber-200">
+                      Выгодно сейчас
+                    </span>
+                  )}
+                  {isActive && (
+                    <span className="rounded-full border border-secondary/80 bg-secondary/20 px-3 py-1 text-xs font-semibold text-secondary">
+                      Вы выбрали
+                    </span>
+                  )}
+                </div>
+              </div>
+              <p className="text-sm text-slate-300">{card.description}</p>
+              <dl className="grid gap-3 text-sm">
+                {card.stats.map((stat) => (
+                  <div key={`${card.id}-${stat.label}`} className="flex items-center justify-between">
+                    <dt className="text-slate-400">{stat.label}</dt>
+                    <dd className="font-semibold text-white">{stat.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </button>
+          );
+        })}
       </div>
-
       <aside className="mt-6 space-y-3 rounded-2xl border border-secondary/40 bg-secondary/10 px-5 py-4">
         <p className="text-sm font-semibold text-secondary">{recommendation.label}</p>
         <p className="text-sm text-slate-200">{recommendation.explanation}</p>
