@@ -7,8 +7,10 @@ import {
   ChatBubbleLeftRightIcon,
   CheckCircleIcon,
   ClockIcon,
+  LifebuoyIcon,
   MapPinIcon,
   PaperAirplaneIcon,
+  ShieldExclamationIcon,
   WifiIcon
 } from '@heroicons/react/24/outline';
 
@@ -35,6 +37,31 @@ type ChatMessage = {
   text: string;
   timestamp: Date;
   isSelf?: boolean;
+};
+
+type SafetyActionType = 'report' | 'moderator';
+
+type SafetyActionState = {
+  id: number;
+  type: SafetyActionType;
+  submittedAt: Date;
+  status: 'pending' | 'acknowledged';
+  acknowledgedAt?: Date;
+};
+
+const SAFETY_ACTION_LABELS: Record<SafetyActionType, string> = {
+  report: 'Пожаловаться',
+  moderator: 'Позвать модератора'
+};
+
+const SAFETY_ACTION_DESCRIPTIONS: Record<SafetyActionType, string> = {
+  report: 'Сообщить о нарушении поведения, дискриминации или тревожном контенте.',
+  moderator: 'Попросить сотрудника SuperMock присоединиться к комнате и помочь участникам.'
+};
+
+const SAFETY_STATUS_LABELS: Record<SafetyActionState['status'], string> = {
+  pending: 'Ожидает ответа',
+  acknowledged: 'Модератор подключается'
 };
 
 const TIMELINE_CHECKPOINTS: TimelineCheckpoint[] = [
@@ -136,6 +163,7 @@ export default function ActiveSessionPage() {
     }
   ]);
   const [chatInput, setChatInput] = useState('');
+  const [safetyActions, setSafetyActions] = useState<SafetyActionState[]>([]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -263,6 +291,33 @@ export default function ActiveSessionPage() {
     handleSendMessage('Скоро буду');
   };
 
+  const handleSafetyAction = (type: SafetyActionType) => {
+    const actionId = Date.now();
+    const newAction: SafetyActionState = {
+      id: actionId,
+      type,
+      submittedAt: new Date(),
+      status: 'pending'
+    };
+
+    setSafetyActions((prev) => [newAction, ...prev]);
+
+    setTimeout(() => {
+      setSafetyActions((prev) =>
+        prev.map((action) =>
+          action.id === actionId
+            ? { ...action, status: 'acknowledged', acknowledgedAt: new Date() }
+            : action
+        )
+      );
+    }, 3500);
+  };
+
+  const latestSafetyAction = safetyActions[0];
+  const safetyLiveMessage = latestSafetyAction
+    ? `${SAFETY_ACTION_LABELS[latestSafetyAction.type]} · ${SAFETY_STATUS_LABELS[latestSafetyAction.status]}`
+    : 'Активных запросов в модерацию нет.';
+
   return (
     <>
       <Head>
@@ -301,6 +356,146 @@ export default function ActiveSessionPage() {
               </div>
             </div>
           </header>
+
+          <section className="rounded-3xl border border-rose-500/60 bg-rose-950/30 p-8 shadow-xl shadow-rose-950/30">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+              <div className="space-y-4">
+                <p className="text-xs uppercase tracking-[0.3em] text-rose-200/70">Безопасность</p>
+                <h2 className="text-2xl font-semibold text-white">Центр модерации</h2>
+                <p className="text-sm text-rose-100/80">
+                  Если во время интервью происходит что-то тревожное, мгновенно сигнализируй команде SuperMock. Мы
+                  фиксируем контекст беседы и берём ситуацию под контроль.
+                </p>
+                <ul className="space-y-2 text-sm text-rose-100/90">
+                  <li className="flex items-start gap-2">
+                    <ShieldExclamationIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-rose-300" />
+                    <span>Сигналы уходят в приоритетный канал 24/7 и сохраняются в журнале инцидентов.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <LifebuoyIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-rose-300" />
+                    <span>Модератор может подключиться в комнату, приостановить сессию и помочь участникам.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <ChatBubbleLeftRightIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-rose-300" />
+                    <span>После обращения мы отправим краткое резюме действий и рекомендации по безопасности.</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-stretch lg:w-auto">
+                <button
+                  type="button"
+                  onClick={() => handleSafetyAction('report')}
+                  className="inline-flex w-full items-center justify-between gap-3 rounded-2xl border border-rose-400/50 bg-rose-500/20 px-5 py-3 text-sm font-semibold text-rose-50 transition hover:bg-rose-500/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-200 sm:w-60"
+                >
+                  <span className="flex items-center gap-2">
+                    <ShieldExclamationIcon className="h-5 w-5" />
+                    {SAFETY_ACTION_LABELS.report}
+                  </span>
+                  <span className="text-xs font-medium uppercase tracking-wide text-rose-100/80">Alt + !</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSafetyAction('moderator')}
+                  className="inline-flex w-full items-center justify-between gap-3 rounded-2xl border border-rose-200/40 bg-rose-900/40 px-5 py-3 text-sm font-semibold text-rose-100 transition hover:bg-rose-900/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-200 sm:w-60"
+                >
+                  <span className="flex items-center gap-2">
+                    <LifebuoyIcon className="h-5 w-5" />
+                    {SAFETY_ACTION_LABELS.moderator}
+                  </span>
+                  <span className="text-xs font-medium uppercase tracking-wide text-rose-100/60">Shift + M</span>
+                </button>
+              </div>
+            </div>
+            <div className="mt-6 grid gap-5 lg:grid-cols-2">
+              <div className="rounded-2xl border border-rose-200/20 bg-rose-950/40 p-5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-white">Журнал обращений</h3>
+                  <span className="rounded-full border border-rose-200/30 bg-rose-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-rose-100">
+                    {safetyActions.length ? `${safetyActions.length} актив.` : 'Пока пусто'}
+                  </span>
+                </div>
+                <div className="mt-4 space-y-3">
+                  {safetyActions.length ? (
+                    <ul className="space-y-3">
+                      {safetyActions.map((action) => {
+                        const badgeStyles =
+                          action.status === 'acknowledged'
+                            ? 'border border-emerald-400/40 bg-emerald-500/10 text-emerald-200'
+                            : 'border border-amber-400/40 bg-amber-500/10 text-amber-200';
+
+                        return (
+                          <li
+                            key={action.id}
+                            className="rounded-2xl border border-rose-200/20 bg-rose-950/30 p-4 shadow-sm shadow-rose-950/30"
+                          >
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="flex items-center gap-2 text-sm font-semibold text-rose-100">
+                                {action.type === 'report' ? (
+                                  <ShieldExclamationIcon className="h-5 w-5 text-rose-200" />
+                                ) : (
+                                  <LifebuoyIcon className="h-5 w-5 text-rose-200" />
+                                )}
+                                <span>{SAFETY_ACTION_LABELS[action.type]}</span>
+                              </div>
+                              <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${badgeStyles}`}>
+                                {SAFETY_STATUS_LABELS[action.status]}
+                              </span>
+                            </div>
+                            <p className="mt-2 text-sm text-rose-100/80">{SAFETY_ACTION_DESCRIPTIONS[action.type]}</p>
+                            <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-rose-200/70">
+                              <span>Отправлено: {formatTime(action.submittedAt)}</span>
+                              {action.acknowledgedAt ? (
+                                <span>Подтверждено: {formatTime(action.acknowledgedAt)}</span>
+                              ) : null}
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-rose-100/70">
+                      Обращения ещё не отправлялись. При необходимости нажми одну из кнопок, и команда подключится в течение
+                      нескольких минут.
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-rose-200/20 bg-rose-900/40 p-5">
+                <h3 className="text-lg font-semibold text-white">Что происходит после сигнала</h3>
+                <ol className="mt-4 space-y-3 text-sm text-rose-100/90">
+                  <li className="flex items-start gap-2">
+                    <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-rose-500/20 text-xs font-semibold text-rose-100">
+                      1
+                    </span>
+                    <span>PagerDuty и Slack получают уведомление с выдержкой чата и списком участников.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-rose-500/20 text-xs font-semibold text-rose-100">
+                      2
+                    </span>
+                    <span>Модератор пишет в мини-чате, проверяет чеклист безопасности и подключается в видеокомнату.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-rose-500/20 text-xs font-semibold text-rose-100">
+                      3
+                    </span>
+                    <span>По итогам формируется инцидент-отчёт и, при необходимости, временно блокируются участники.</span>
+                  </li>
+                </ol>
+                <p className="mt-4 text-xs text-rose-200/70">
+                  Альтернативные контакты: <span className="font-semibold text-rose-100">support@supermock.io</span> или
+                  горячая линия +1 (555) 010-42-42.
+                </p>
+              </div>
+            </div>
+            <div
+              className="mt-6 rounded-2xl border border-rose-200/10 bg-rose-900/40 px-4 py-3 text-sm text-rose-100"
+              role="status"
+              aria-live="polite"
+            >
+              {safetyLiveMessage}
+            </div>
+          </section>
 
           <div className="grid gap-8 lg:grid-cols-[2fr_1fr]">
             <section className="rounded-3xl border border-slate-800 bg-slate-900/80 p-8 shadow-lg shadow-slate-950/30">
