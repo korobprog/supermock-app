@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 
 import LanguageStep from '@/components/onboarding/LanguageStep';
 import RoleSelectionStep from '@/components/onboarding/RoleSelectionStep';
 import SkillProfileStep from '@/components/onboarding/SkillProfileStep';
 import TimezoneStep from '@/components/onboarding/TimezoneStep';
+import { useUserProfile } from '@/store/useUserProfile';
 
 const STEP_COMPONENTS: Array<() => JSX.Element> = [
   LanguageStep,
@@ -15,6 +17,8 @@ const STEP_COMPONENTS: Array<() => JSX.Element> = [
 
 export default function OnboardingPage() {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const router = useRouter();
+  const profile = useUserProfile((state) => state.profile);
 
   const CurrentStepComponent = useMemo(() => STEP_COMPONENTS[currentStepIndex] ?? LanguageStep, [currentStepIndex]);
   const isFirstStep = currentStepIndex === 0;
@@ -46,7 +50,7 @@ export default function OnboardingPage() {
                   return;
                 }
 
-                // TODO: navigate to the next onboarding step once implemented
+                router.push(profile.role === 'INTERVIEWER' ? '/interviewer' : '/interview');
               }}
             >
               {isLastStep ? 'Continue' : 'Next step'}
