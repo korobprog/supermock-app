@@ -10,6 +10,8 @@ import {
 import { useSaveOnboardingDraft } from '@/hooks/useOnboardingDraft';
 import { useUserProfile } from '@/store/useUserProfile';
 
+import OnboardingProgress from './OnboardingProgress';
+
 const CATEGORY_TITLES: Record<ProfessionCategory, string> = {
   'core-engineering': 'Основные роли разработки',
   'specialized-engineering': 'Специализированные инженерные роли',

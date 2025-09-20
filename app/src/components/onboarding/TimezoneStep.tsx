@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 
 import OnboardingProgress from './OnboardingProgress';
 import { useUserProfile } from '@/store/useUserProfile';
+
+import OnboardingProgress from './OnboardingProgress';
 import type { SupportedLanguage } from '../../../../shared/src/types/user.js';
 
 const LANGUAGE_TO_INTL_LOCALE: Record<SupportedLanguage, string> = {
