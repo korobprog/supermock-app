@@ -2,10 +2,11 @@ import { useMemo, useState } from 'react';
 import Head from 'next/head';
 
 import LanguageStep from '@/components/onboarding/LanguageStep';
+import RoleSelectionStep from '@/components/onboarding/RoleSelectionStep';
 import SkillProfileStep from '@/components/onboarding/SkillProfileStep';
 import TimezoneStep from '@/components/onboarding/TimezoneStep';
 
-const STEP_COMPONENTS: Array<() => JSX.Element> = [LanguageStep, TimezoneStep, SkillProfileStep];
+const STEP_COMPONENTS: Array<() => JSX.Element> = [LanguageStep, TimezoneStep, SkillProfileStep, RoleSelectionStep];
 
 export default function OnboardingPage() {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
