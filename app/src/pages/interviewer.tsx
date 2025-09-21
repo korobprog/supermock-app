@@ -56,8 +56,24 @@ function getDefaultLanguageFromUrl(languageParam?: string | string[] | null): st
   }
 
   const trimmedLanguage = decodedLanguage.trim();
+  if (!trimmedLanguage) {
+    return DEFAULT_LANGUAGE_LABEL;
+  }
 
-  return trimmedLanguage || DEFAULT_LANGUAGE_LABEL;
+  const normalizedLabel = normalizeLanguageLabel(trimmedLanguage);
+  if (!normalizedLabel) {
+    return trimmedLanguage;
+  }
+
+  const normalizedIndex = trimmedLanguage.indexOf(normalizedLabel);
+  if (normalizedIndex > 0) {
+    const prefix = trimmedLanguage.slice(0, normalizedIndex).trim();
+    if (prefix) {
+      return `${prefix} ${normalizedLabel}`.trim();
+    }
+  }
+
+  return normalizedLabel;
 }
 
 function toArray(value: string | string[] | undefined) {
