@@ -578,8 +578,8 @@ export default function InterviewerDashboardPage() {
 
       const normalizedLanguage = normalizeLanguageLabel(selectedLanguage);
       const payload = {
-        start: startDateTime.toISOString(),
-        end: endDateTime.toISOString(),
+        start: formatDateTimeWithTimezone(startDateTime),
+        end: formatDateTimeWithTimezone(endDateTime),
         isRecurring,
         language: normalizedLanguage
       };
