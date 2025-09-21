@@ -90,6 +90,18 @@ export function fetchInterviewerAvailability(interviewerId: string) {
   return request<AvailabilitySlotDto[]>(`/matching/interviewers/${interviewerId}/availability`);
 }
 
+export interface SlotDetailsDto extends AvailabilitySlotDto {
+  participantCapacity: number;
+  participantCount: number;
+  candidateId?: string | null;
+  language?: string | null;
+  profession?: string | null;
+}
+
+export function fetchSlotDetails(slotId: string) {
+  return request<SlotDetailsDto>(`/matching/slots/${slotId}`);
+}
+
 export function fetchSlot(slotId: string) {
   return request<SlotDto>(`/matching/slots/${slotId}`);
 }
@@ -111,7 +123,7 @@ export function deleteInterviewerAvailabilitySlot(slotId: string) {
 }
 
 export function joinSlot(slotId: string, payload: JoinSlotPayload) {
-  return request<SlotDto>(`/matching/slots/${slotId}/join`, {
+  return request<MatchRequestWithResultDto>(`/matching/slots/${slotId}/join`, {
     method: 'POST',
     body: JSON.stringify(payload)
   });

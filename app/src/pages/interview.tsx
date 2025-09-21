@@ -14,7 +14,9 @@ import {
   fetchMatchOverview,
   fetchMatchPreviews,
   fetchMatchRequest,
+  fetchSlotDetails,
   fetchRecentSessions,
+  joinSlot,
   scheduleMatch
 } from '@/lib/api';
 import type {
@@ -60,8 +62,15 @@ export default function InterviewMatchingPage() {
     tools: intentTools,
     onlyFree: intentOnlyFree,
     onlyWithParticipants: intentOnlyWithParticipants,
-    tab: intentTab
+    tab: intentTab,
+    candidateId: intentCandidateId,
+    slotId: intentSlotId,
+    slotStart: intentSlotStart,
+    slotEnd: intentSlotEnd,
+    slotLanguage: intentSlotLanguage,
+    slotProfession: intentSlotProfession
   } = router.query;
+  const isSlotJoinIntent = typeof intentSlotId === 'string';
   const [selectedCandidateId, setSelectedCandidateId] = useState<string>('');
   const [targetRole, setTargetRole] = useState('');
   const [focusAreasInput, setFocusAreasInput] = useState('');
@@ -80,6 +89,20 @@ export default function InterviewMatchingPage() {
   const [improvementsInput, setImprovementsInput] = useState('');
   const [rating, setRating] = useState(4);
   const [slotIntentApplied, setSlotIntentApplied] = useState(false);
+  const slotLanguageFromIntent =
+    typeof intentSlotLanguage === 'string'
+      ? intentSlotLanguage
+      : typeof intentLanguage === 'string'
+        ? intentLanguage
+        : undefined;
+  const slotProfessionFromIntent =
+    typeof intentSlotProfession === 'string'
+      ? intentSlotProfession
+      : typeof intentProfession === 'string'
+        ? intentProfession
+        : undefined;
+  const slotStartFromIntent = typeof intentSlotStart === 'string' ? intentSlotStart : undefined;
+  const slotEndFromIntent = typeof intentSlotEnd === 'string' ? intentSlotEnd : undefined;
 
   const overviewQuery = useQuery({ queryKey: ['matching', 'overview'], queryFn: fetchMatchOverview });
   const candidatesQuery = useQuery({ queryKey: ['matching', 'candidates'], queryFn: fetchCandidateSummaries });
@@ -89,21 +112,108 @@ export default function InterviewMatchingPage() {
     queryFn: () => fetchRecentSessions(5)
   });
 
+  const slotDetailsQuery = useQuery({
+    queryKey: ['matching', 'slot', intentSlotId],
+    queryFn: () => fetchSlotDetails(intentSlotId as string),
+    enabled: router.isReady && isSlotJoinIntent
+  });
+  const slotCandidateId = slotDetailsQuery.data?.candidateId ?? null;
+  const lockedCandidateId = useMemo(() => {
+    if (!isSlotJoinIntent) {
+      return null;
+    }
+
+    if (typeof intentCandidateId === 'string') {
+      return intentCandidateId;
+    }
+
+    return slotCandidateId ?? null;
+  }, [intentCandidateId, isSlotJoinIntent, slotCandidateId]);
+  const lockedCandidate = useMemo(() => {
+    if (!lockedCandidateId) {
+      return undefined;
+    }
+
+    return candidatesQuery.data?.find((candidate) => candidate.id === lockedCandidateId);
+  }, [candidatesQuery.data, lockedCandidateId]);
+  const slotStartIso = slotDetailsQuery.data?.start ?? slotStartFromIntent;
+  const slotEndIso = slotDetailsQuery.data?.end ?? slotEndFromIntent;
+  const slotLanguage = slotDetailsQuery.data?.language ?? slotLanguageFromIntent;
+  const slotProfession = slotDetailsQuery.data?.profession ?? slotProfessionFromIntent;
+  const slotProfessionTitle = slotProfession
+    ? PROFESSION_TITLES.get(slotProfession) ?? slotProfession
+    : undefined;
+  const slotCapacityTotal = slotDetailsQuery.data?.participantCapacity;
+  const slotCapacityUsed = slotDetailsQuery.data?.participantCount ?? 0;
+  const slotStartDate = slotStartIso ? new Date(slotStartIso) : null;
+  const slotEndDate = slotEndIso ? new Date(slotEndIso) : null;
+  const formattedSlotStart =
+    slotStartDate && !Number.isNaN(slotStartDate.getTime())
+      ? slotStartDate.toLocaleString()
+      : '—';
+  const formattedSlotEnd =
+    slotEndDate && !Number.isNaN(slotEndDate.getTime())
+      ? slotEndDate.toLocaleString()
+      : '—';
+  const slotCapacityDisplay = slotDetailsQuery.isLoading
+    ? 'Loading…'
+    : slotDetailsQuery.isError
+      ? 'Unknown'
+      : slotCapacityTotal !== undefined
+        ? `${slotCapacityUsed} / ${slotCapacityTotal} participants`
+        : '—';
+  const slotDetailsErrorMessage =
+    slotDetailsQuery.isError && slotDetailsQuery.error instanceof Error
+      ? slotDetailsQuery.error.message
+      : slotDetailsQuery.isError
+        ? 'Failed to load slot details.'
+        : null;
+  const lockedCandidateLabel = lockedCandidate?.displayName ?? lockedCandidateId ?? null;
+
   useEffect(() => {
-    if (!selectedCandidateId && candidatesQuery.data?.length) {
-      const firstCandidate = candidatesQuery.data[0];
-      setSelectedCandidateId(firstCandidate.id);
+    if (!candidatesQuery.data?.length) {
+      return;
+    }
+
+    const candidateFromIntent = lockedCandidateId
+      ? candidatesQuery.data.find((candidate) => candidate.id === lockedCandidateId)
+      : undefined;
+    const fallbackCandidate = candidatesQuery.data[0];
+    const candidateForDefaults = candidateFromIntent ?? fallbackCandidate;
+
+    if (!selectedCandidateId && candidateForDefaults) {
+      setSelectedCandidateId(candidateForDefaults.id);
+    }
+
+    if (candidateForDefaults) {
       if (!targetRole) {
-        setTargetRole(firstCandidate.preferredRoles[0] ?? '');
+        setTargetRole(candidateForDefaults.preferredRoles[0] ?? '');
       }
       if (!focusAreasInput) {
-        setFocusAreasInput(firstCandidate.preferredRoles.join(', '));
+        setFocusAreasInput(candidateForDefaults.preferredRoles.join(', '));
       }
       if (!languagesInput) {
-        setLanguagesInput(firstCandidate.preferredLanguages.join(', '));
+        setLanguagesInput(candidateForDefaults.preferredLanguages.join(', '));
       }
     }
-  }, [candidatesQuery.data, focusAreasInput, languagesInput, selectedCandidateId, targetRole]);
+  }, [
+    candidatesQuery.data,
+    focusAreasInput,
+    languagesInput,
+    lockedCandidateId,
+    selectedCandidateId,
+    targetRole
+  ]);
+
+  useEffect(() => {
+    if (!lockedCandidateId) {
+      return;
+    }
+
+    if (selectedCandidateId !== lockedCandidateId) {
+      setSelectedCandidateId(lockedCandidateId);
+    }
+  }, [lockedCandidateId, selectedCandidateId]);
 
   useEffect(() => {
     if (!selectedInterviewerId && interviewersQuery.data?.length) {
@@ -116,8 +226,8 @@ export default function InterviewMatchingPage() {
       return;
     }
 
-    if (typeof intentProfession === 'string' && !targetRole) {
-      const professionTitle = PROFESSION_TITLES.get(intentProfession) ?? intentProfession;
+    if (slotProfessionFromIntent && !targetRole) {
+      const professionTitle = PROFESSION_TITLES.get(slotProfessionFromIntent) ?? slotProfessionFromIntent;
       setTargetRole(professionTitle);
     }
 
@@ -126,8 +236,8 @@ export default function InterviewMatchingPage() {
       setFocusAreasInput(toolValues.join(', '));
     }
 
-    if (typeof intentLanguage === 'string' && !languagesInput) {
-      setLanguagesInput(intentLanguage);
+    if (slotLanguageFromIntent && !languagesInput) {
+      setLanguagesInput(slotLanguageFromIntent);
     }
 
     if (!notes) {
@@ -150,10 +260,10 @@ export default function InterviewMatchingPage() {
     setSlotIntentApplied(true);
   }, [
     focusAreasInput,
-    intentLanguage,
+    slotLanguageFromIntent,
     intentOnlyFree,
     intentOnlyWithParticipants,
-    intentProfession,
+    slotProfessionFromIntent,
     intentTab,
     intentTools,
     languagesInput,
@@ -168,6 +278,28 @@ export default function InterviewMatchingPage() {
     onSuccess: (request) => {
       setActiveRequestId(request.id);
       queryClient.invalidateQueries({ queryKey: ['matching', 'overview'] });
+    }
+  });
+
+  const joinSlotMutation = useMutation({
+    mutationFn: (payload: CreateMatchRequestPayload) => {
+      if (!isSlotJoinIntent || typeof intentSlotId !== 'string') {
+        return Promise.reject(new Error('Slot intent is missing'));
+      }
+
+      return joinSlot(intentSlotId, payload);
+    },
+    onSuccess: (request) => {
+      if (!request) {
+        return;
+      }
+
+      setActiveRequestId(request.id);
+      queryClient.setQueryData(['matching', 'request', request.id], request);
+      queryClient.invalidateQueries({ queryKey: ['matching', 'overview'] });
+      if (typeof intentSlotId === 'string') {
+        queryClient.invalidateQueries({ queryKey: ['matching', 'slot', intentSlotId] });
+      }
     }
   });
 
@@ -296,6 +428,11 @@ export default function InterviewMatchingPage() {
       notes: notes.trim() || undefined
     };
 
+    if (isSlotJoinIntent) {
+      joinSlotMutation.mutate(payload);
+      return;
+    }
+
     createRequestMutation.mutate(payload);
   };
 
@@ -304,6 +441,25 @@ export default function InterviewMatchingPage() {
   }, [candidatesQuery.data, selectedCandidateId]);
 
   const interviewerOptions: InterviewerSummaryDto[] = interviewersQuery.data ?? [];
+  const isSubmitPending = isSlotJoinIntent
+    ? joinSlotMutation.isPending
+    : createRequestMutation.isPending;
+  const submitButtonLabel = isSlotJoinIntent
+    ? joinSlotMutation.isPending
+      ? 'Joining slot…'
+      : 'Join slot'
+    : createRequestMutation.isPending
+      ? 'Creating match request…'
+      : 'Generate match candidates';
+  const submitError = (isSlotJoinIntent ? joinSlotMutation.error : createRequestMutation.error) ?? null;
+  const submitErrorMessage = submitError instanceof Error ? submitError.message : null;
+  const submitSuccessMessage = isSlotJoinIntent
+    ? joinSlotMutation.isSuccess
+      ? 'Slot joined — request updated below.'
+      : null
+    : createRequestMutation.isSuccess
+      ? 'Match request queued — previews updated below.'
+      : null;
 
   return (
     <>
@@ -336,15 +492,51 @@ export default function InterviewMatchingPage() {
             );
           })}
         </section>
+        {isSlotJoinIntent && (
+          <section className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-6">
+            <h2 className="mb-3 text-xl font-semibold text-amber-200">Joining existing slot</h2>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div>
+                <p className="text-sm text-amber-200/80">Start</p>
+                <p className="font-medium text-white">{formattedSlotStart}</p>
+              </div>
+              <div>
+                <p className="text-sm text-amber-200/80">End</p>
+                <p className="font-medium text-white">{formattedSlotEnd}</p>
+              </div>
+              <div>
+                <p className="text-sm text-amber-200/80">Capacity</p>
+                <p className="font-medium text-white">{slotCapacityDisplay}</p>
+              </div>
+              <div>
+                <p className="text-sm text-amber-200/80">Language</p>
+                <p className="font-medium text-white">{slotLanguage ?? '—'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-amber-200/80">Profession</p>
+                <p className="font-medium text-white">{slotProfessionTitle ?? '—'}</p>
+              </div>
+            </div>
+            {slotDetailsErrorMessage && (
+              <p className="mt-3 text-sm text-red-300">{slotDetailsErrorMessage}</p>
+            )}
+            <p className="mt-4 text-xs text-amber-200/80">
+              {lockedCandidateLabel
+                ? `Candidate selection is locked to ${lockedCandidateLabel}.`
+                : 'Candidate selection will lock once slot details are loaded.'}
+            </p>
+          </section>
+        )}
         <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="grid gap-4 md:grid-cols-2">
               <label className="flex flex-col gap-2 text-sm">
                 <span className="text-slate-400">Candidate</span>
                 <select
-                  className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+                  className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white disabled:cursor-not-allowed disabled:opacity-60"
                   value={selectedCandidateId}
                   onChange={(event) => setSelectedCandidateId(event.target.value)}
+                  disabled={isSlotJoinIntent}
                 >
                   <option value="">Select candidate</option>
                   {candidatesQuery.data?.map((candidate) => (
@@ -353,6 +545,11 @@ export default function InterviewMatchingPage() {
                     </option>
                   ))}
                 </select>
+                {isSlotJoinIntent && (
+                  <span className="text-xs text-amber-200/80">
+                    Slot intent locks this field{lockedCandidateLabel ? ` for ${lockedCandidateLabel}` : ''}.
+                  </span>
+                )}
               </label>
 
               <label className="flex flex-col gap-2 text-sm">
@@ -422,15 +619,13 @@ export default function InterviewMatchingPage() {
               <button
                 type="submit"
                 className="rounded-lg bg-secondary px-4 py-2 text-sm font-semibold text-slate-950"
-                disabled={createRequestMutation.isPending}
+                disabled={isSubmitPending}
               >
-                {createRequestMutation.isPending ? 'Creating match request…' : 'Generate match candidates'}
+                {submitButtonLabel}
               </button>
-              {createRequestMutation.isError && (
-                <span className="text-sm text-red-400">{(createRequestMutation.error as Error).message}</span>
-              )}
-              {createRequestMutation.isSuccess && (
-                <span className="text-sm text-green-400">Match request queued — previews updated below.</span>
+              {submitErrorMessage && <span className="text-sm text-red-400">{submitErrorMessage}</span>}
+              {submitSuccessMessage && (
+                <span className="text-sm text-green-400">{submitSuccessMessage}</span>
               )}
               {scheduleMatchMutation.isError && (
                 <span className="text-sm text-red-400">{(scheduleMatchMutation.error as Error).message}</span>
