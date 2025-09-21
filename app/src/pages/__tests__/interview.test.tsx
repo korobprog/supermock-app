@@ -1,5 +1,8 @@
 import { screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+const fetchSlotDetailsMock = vi.fn();
+const joinSlotMock = vi.fn();
 
 vi.mock('@/lib/api', () => ({
   fetchMatchOverview: vi.fn(async () => ({
@@ -37,12 +40,32 @@ vi.mock('@/lib/api', () => ({
   createInterviewerAvailabilitySlot: vi.fn(),
   deleteInterviewerAvailabilitySlot: vi.fn(),
   fetchMatchRequest: vi.fn(),
-  fetchMatchPreviews: vi.fn(async () => ({ requestId: 'req-1', previews: [] }))
+  fetchMatchPreviews: vi.fn(async () => ({ requestId: 'req-1', previews: [] })),
+  fetchSlotDetails: fetchSlotDetailsMock,
+  joinSlot: joinSlotMock
 }));
 
 import InterviewMatchingPage from '../interview';
 import { mockRouter } from '@/test/router-mock';
 import { renderWithQueryClient } from '@/test/test-utils';
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mockRouter.query = {};
+  fetchSlotDetailsMock.mockReset();
+  joinSlotMock.mockReset();
+  fetchSlotDetailsMock.mockResolvedValue({
+    id: 'slot-default',
+    interviewerId: 'int-1',
+    start: new Date('2024-01-01T10:00:00Z').toISOString(),
+    end: new Date('2024-01-01T11:00:00Z').toISOString(),
+    isRecurring: false,
+    createdAt: new Date('2023-12-31T10:00:00Z').toISOString(),
+    participantCapacity: 2,
+    participantCount: 0
+  });
+  joinSlotMock.mockResolvedValue({ id: 'req-joined' } as any);
+});
 
 describe('InterviewMatchingPage', () => {
   it('prefills form fields from slot intent query parameters', async () => {
@@ -70,5 +93,44 @@ describe('InterviewMatchingPage', () => {
     expect(screen.getByLabelText('Notes (optional)')).toHaveValue(
       expect.stringContaining('Исходный таб: live')
     );
+  });
+
+  it('locks onto the candidate when a slot join intent is present', async () => {
+    fetchSlotDetailsMock.mockResolvedValue({
+      id: 'slot-1',
+      interviewerId: 'int-1',
+      start: '2024-06-01T09:00:00.000Z',
+      end: '2024-06-01T10:00:00.000Z',
+      isRecurring: false,
+      createdAt: '2024-05-30T12:00:00.000Z',
+      participantCapacity: 3,
+      participantCount: 1,
+      candidateId: 'cand-1',
+      language: '🇬🇧 English',
+      profession: 'frontend-developer'
+    });
+
+    mockRouter.query = {
+      slotId: 'slot-1',
+      candidateId: 'cand-1',
+      slotStart: '2024-06-01T09:00:00.000Z',
+      slotEnd: '2024-06-01T10:00:00.000Z',
+      slotLanguage: '🇬🇧 English',
+      slotProfession: 'frontend-developer'
+    };
+
+    renderWithQueryClient(<InterviewMatchingPage />);
+
+    await waitFor(() => expect(fetchSlotDetailsMock).toHaveBeenCalledWith('slot-1'));
+
+    expect(screen.getByText('Joining existing slot')).toBeInTheDocument();
+    expect(screen.getByText(/1 \/ 3 participants/)).toBeInTheDocument();
+
+    const candidateSelect = screen.getByLabelText('Candidate') as HTMLSelectElement;
+    expect(candidateSelect).toBeDisabled();
+    expect(candidateSelect.value).toBe('cand-1');
+
+    expect(screen.getByText(/Slot intent locks this field/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Join slot' })).toBeInTheDocument();
   });
 });
