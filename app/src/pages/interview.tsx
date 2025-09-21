@@ -308,11 +308,12 @@ export default function InterviewMatchingPage() {
     queryKey: ['matching', 'request', activeRequestId],
     queryFn: () => fetchMatchRequest(activeRequestId!).catch(() => null),
     enabled: Boolean(activeRequestId),
-    refetchInterval: (data) => {
+    refetchInterval: (query) => {
       if (!activeRequestId) {
         return false;
       }
 
+      const data = query.state.data;
       if (!data) {
         return 2000;
       }

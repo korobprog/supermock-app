@@ -21,7 +21,8 @@ const nextConfig = {
         hostname: '*.supermock.ru'
       }
     ]
-  }
+  },
+  pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx']
 };
 
 export default nextConfig;

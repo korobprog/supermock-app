@@ -461,7 +461,7 @@ function mapAvailability(slot: InterviewerAvailability): AvailabilitySlotDto {
     start: slot.start.toISOString(),
     end: slot.end.toISOString(),
     isRecurring: slot.isRecurring,
-    language: slot.language,
+    language: slot.language ?? undefined,
     createdAt: slot.createdAt.toISOString()
   };
 }
