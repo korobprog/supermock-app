@@ -126,10 +126,13 @@ export interface SlotDto {
   waitlistCount: number;
 }
 
+export type JoinSlotMatchRequestPayload = Omit<CreateMatchRequestPayload, 'candidateId'>;
+
 export interface JoinSlotPayload {
   role: SlotParticipantRole;
   candidateId?: string;
   interviewerId?: string;
+  matchRequest?: JoinSlotMatchRequestPayload;
 }
 
 export interface CreateAvailabilityPayload {

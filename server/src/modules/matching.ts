@@ -30,6 +30,7 @@ import type {
   InterviewerSessionDto,
   SlotDto,
   JoinSlotPayload,
+  JoinSlotMatchRequestPayload,
   SlotParticipantRole as SlotParticipantRoleDto
 } from '../../../shared/src/types/matching.js';
 import { calculateMatchingScore } from '../../../shared/src/utils/scoring.js';
@@ -498,6 +499,167 @@ const slotRelations: Prisma.InterviewerAvailabilityInclude = {
   }
 };
 
+type MatchRequestWithOptionalResult = MatchRequest & {
+  result?: (InterviewMatch & {
+    interviewer: InterviewerProfile & { availability: InterviewerAvailability[] };
+    summary?: InterviewSummary | null;
+  }) | null;
+};
+
+const activeMatchRequestStatuses: MatchStatus[] = [
+  MatchStatus.QUEUED,
+  MatchStatus.MATCHED,
+  MatchStatus.SCHEDULED
+];
+
+const MATCH_REQUEST_EXPIRATION_MS = 1000 * 60 * 60 * 48;
+
+const matchRequestInclude = {
+  result: {
+    include: {
+      interviewer: {
+        include: {
+          availability: true
+        }
+      },
+      summary: true
+    }
+  }
+} satisfies Prisma.MatchRequestInclude;
+
+function sanitizeList(values?: string[] | null): string[] {
+  return (values ?? []).map((value) => value.trim()).filter(Boolean);
+}
+
+function resolveMatchRequestPayload(
+  candidate: CandidateProfile,
+  override?: JoinSlotMatchRequestPayload
+): JoinSlotMatchRequestPayload {
+  const preferredRoles = sanitizeList(candidate.preferredRoles);
+  const candidateFocusAreas = sanitizeList(candidate.focusAreas);
+  const candidateLanguages = sanitizeList(candidate.preferredLanguages);
+  const overrideFocusAreas = sanitizeList(override?.focusAreas);
+  const overrideLanguages = sanitizeList(override?.preferredLanguages);
+
+  const targetRole =
+    override?.targetRole?.trim() ||
+    preferredRoles[0] ||
+    'General mock session';
+
+  const focusAreas =
+    overrideFocusAreas.length > 0
+      ? overrideFocusAreas
+      : candidateFocusAreas.length > 0
+        ? candidateFocusAreas
+        : preferredRoles.length > 0
+          ? preferredRoles
+          : [targetRole];
+
+  const preferredLanguages =
+    overrideLanguages.length > 0
+      ? overrideLanguages
+      : candidateLanguages.length > 0
+        ? candidateLanguages
+        : ['English'];
+
+  const sessionFormat = override?.sessionFormat ?? 'CODING';
+  const notes = override?.notes?.trim() || undefined;
+
+  return {
+    targetRole,
+    focusAreas,
+    preferredLanguages,
+    sessionFormat,
+    notes
+  };
+}
+
+function listsEqual(left: string[], right: string[]): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  return left.every((value, index) => value === right[index]);
+}
+
+function shouldUpdateMatchRequest(
+  existing: MatchRequest,
+  next: JoinSlotMatchRequestPayload
+): boolean {
+  if (existing.targetRole !== next.targetRole) {
+    return true;
+  }
+
+  if (!listsEqual(existing.focusAreas, next.focusAreas)) {
+    return true;
+  }
+
+  if (!listsEqual(existing.preferredLanguages, next.preferredLanguages)) {
+    return true;
+  }
+
+  if (existing.sessionFormat !== next.sessionFormat) {
+    return true;
+  }
+
+  const existingNotes = existing.notes ?? undefined;
+  if (existingNotes !== next.notes) {
+    return true;
+  }
+
+  return false;
+}
+
+async function ensureCandidateMatchRequest(
+  tx: Prisma.TransactionClient,
+  candidate: CandidateProfile,
+  override?: JoinSlotMatchRequestPayload
+): Promise<MatchRequestWithOptionalResult> {
+  const payload = resolveMatchRequestPayload(candidate, override);
+
+  const existing = await tx.matchRequest.findFirst({
+    where: {
+      candidateId: candidate.id,
+      status: { in: activeMatchRequestStatuses }
+    },
+    orderBy: { createdAt: 'desc' },
+    include: matchRequestInclude
+  });
+
+  if (existing) {
+    if (shouldUpdateMatchRequest(existing, payload)) {
+      return tx.matchRequest.update({
+        where: { id: existing.id },
+        data: {
+          targetRole: payload.targetRole,
+          focusAreas: payload.focusAreas,
+          preferredLanguages: payload.preferredLanguages,
+          sessionFormat: payload.sessionFormat,
+          notes: payload.notes
+        },
+        include: matchRequestInclude
+      });
+    }
+
+    return existing;
+  }
+
+  const expiresAt = new Date(Date.now() + MATCH_REQUEST_EXPIRATION_MS);
+
+  return tx.matchRequest.create({
+    data: {
+      candidateId: candidate.id,
+      targetRole: payload.targetRole,
+      focusAreas: payload.focusAreas,
+      preferredLanguages: payload.preferredLanguages,
+      sessionFormat: payload.sessionFormat,
+      notes: payload.notes,
+      expiresAt
+    },
+    include: matchRequestInclude
+  });
+}
+
 export async function getSlotById(id: string): Promise<SlotDto | null> {
   const slot = await prisma.interviewerAvailability.findUnique({
     where: { id },
@@ -514,8 +676,8 @@ export async function getSlotById(id: string): Promise<SlotDto | null> {
 export async function joinSlot(
   slotId: string,
   payload: JoinSlotPayload
-): Promise<SlotDto | null> {
-  return prisma.$transaction(async (tx) => {
+): Promise<MatchRequestWithResultDto | null> {
+  const result = await prisma.$transaction(async (tx) => {
     const slot = await tx.interviewerAvailability.findUnique({
       where: { id: slotId },
       include: slotRelations
@@ -529,10 +691,10 @@ export async function joinSlot(
       return null;
     }
 
-    const slotWithRelations = slot as SlotWithRelations;
-
+    let currentSlot = slot as SlotWithRelations;
     let candidate: CandidateProfile | null = null;
     let interviewer: InterviewerProfile | null = null;
+    let shouldRefreshSlot = false;
 
     if (payload.role === 'CANDIDATE') {
       if (!payload.candidateId) {
@@ -547,15 +709,33 @@ export async function joinSlot(
         return null;
       }
 
-      if (
-        slotWithRelations.participants.some(
-          (participant) => participant.candidateId === candidateProfile.id
-        )
-      ) {
-        return mapSlot(slotWithRelations);
-      }
+      const alreadyJoined = currentSlot.participants.some(
+        (participant) => participant.candidateId === candidateProfile.id
+      );
 
       candidate = candidateProfile;
+
+      if (!alreadyJoined) {
+        const activeCount = currentSlot.participants.filter(
+          (participant) => participant.waitlistPosition === null
+        ).length;
+        const waitlistCount = currentSlot.participants.filter(
+          (participant) => participant.waitlistPosition !== null
+        ).length;
+        const waitlistPosition =
+          activeCount >= currentSlot.capacity ? waitlistCount + 1 : null;
+
+        await tx.slotParticipant.create({
+          data: {
+            slotId,
+            role: payload.role as PrismaSlotParticipantRole,
+            candidateId: candidateProfile.id,
+            waitlistPosition
+          }
+        });
+
+        shouldRefreshSlot = true;
+      }
     } else if (payload.role === 'INTERVIEWER') {
       if (!payload.interviewerId) {
         return null;
@@ -569,15 +749,33 @@ export async function joinSlot(
         return null;
       }
 
-      if (
-        slotWithRelations.participants.some(
-          (participant) => participant.interviewerId === interviewerProfile.id
-        )
-      ) {
-        return mapSlot(slotWithRelations);
-      }
+      const alreadyJoined = currentSlot.participants.some(
+        (participant) => participant.interviewerId === interviewerProfile.id
+      );
 
       interviewer = interviewerProfile;
+
+      if (!alreadyJoined) {
+        const activeCount = currentSlot.participants.filter(
+          (participant) => participant.waitlistPosition === null
+        ).length;
+        const waitlistCount = currentSlot.participants.filter(
+          (participant) => participant.waitlistPosition !== null
+        ).length;
+        const waitlistPosition =
+          activeCount >= currentSlot.capacity ? waitlistCount + 1 : null;
+
+        await tx.slotParticipant.create({
+          data: {
+            slotId,
+            role: payload.role as PrismaSlotParticipantRole,
+            interviewerId: interviewerProfile.id,
+            waitlistPosition
+          }
+        });
+
+        shouldRefreshSlot = true;
+      }
     } else if (payload.role === 'OBSERVER') {
       if (payload.candidateId) {
         const candidateProfile = await tx.candidateProfile.findUnique({
@@ -588,15 +786,33 @@ export async function joinSlot(
           return null;
         }
 
-        if (
-          slotWithRelations.participants.some(
-            (participant) => participant.candidateId === candidateProfile.id
-          )
-        ) {
-          return mapSlot(slotWithRelations);
-        }
+        const alreadyJoined = currentSlot.participants.some(
+          (participant) => participant.candidateId === candidateProfile.id
+        );
 
         candidate = candidateProfile;
+
+        if (!alreadyJoined) {
+          const activeCount = currentSlot.participants.filter(
+            (participant) => participant.waitlistPosition === null
+          ).length;
+          const waitlistCount = currentSlot.participants.filter(
+            (participant) => participant.waitlistPosition !== null
+          ).length;
+          const waitlistPosition =
+            activeCount >= currentSlot.capacity ? waitlistCount + 1 : null;
+
+          await tx.slotParticipant.create({
+            data: {
+              slotId,
+              role: payload.role as PrismaSlotParticipantRole,
+              candidateId: candidateProfile.id,
+              waitlistPosition
+            }
+          });
+
+          shouldRefreshSlot = true;
+        }
       }
 
       if (!candidate && payload.interviewerId) {
@@ -608,15 +824,33 @@ export async function joinSlot(
           return null;
         }
 
-        if (
-          slotWithRelations.participants.some(
-            (participant) => participant.interviewerId === interviewerProfile.id
-          )
-        ) {
-          return mapSlot(slotWithRelations);
-        }
+        const alreadyJoined = currentSlot.participants.some(
+          (participant) => participant.interviewerId === interviewerProfile.id
+        );
 
         interviewer = interviewerProfile;
+
+        if (!alreadyJoined) {
+          const activeCount = currentSlot.participants.filter(
+            (participant) => participant.waitlistPosition === null
+          ).length;
+          const waitlistCount = currentSlot.participants.filter(
+            (participant) => participant.waitlistPosition !== null
+          ).length;
+          const waitlistPosition =
+            activeCount >= currentSlot.capacity ? waitlistCount + 1 : null;
+
+          await tx.slotParticipant.create({
+            data: {
+              slotId,
+              role: payload.role as PrismaSlotParticipantRole,
+              interviewerId: interviewerProfile.id,
+              waitlistPosition
+            }
+          });
+
+          shouldRefreshSlot = true;
+        }
       }
 
       if (!candidate && !interviewer) {
@@ -626,36 +860,42 @@ export async function joinSlot(
       return null;
     }
 
-    const activeCount = slotWithRelations.participants.filter(
-      (participant) => participant.waitlistPosition === null
-    ).length;
-    const waitlistCount = slotWithRelations.participants.filter(
-      (participant) => participant.waitlistPosition !== null
-    ).length;
-    const waitlistPosition =
-      activeCount >= slotWithRelations.capacity ? waitlistCount + 1 : null;
+    if (shouldRefreshSlot) {
+      const updatedSlot = await tx.interviewerAvailability.findUnique({
+        where: { id: slotId },
+        include: slotRelations
+      });
 
-    await tx.slotParticipant.create({
-      data: {
-        slotId,
-        role: payload.role as PrismaSlotParticipantRole,
-        candidateId: candidate?.id ?? undefined,
-        interviewerId: interviewer?.id ?? undefined,
-        waitlistPosition
+      if (!updatedSlot) {
+        return null;
       }
-    });
 
-    const updatedSlot = await tx.interviewerAvailability.findUnique({
-      where: { id: slotId },
-      include: slotRelations
-    });
-
-    if (!updatedSlot) {
-      return null;
+      currentSlot = updatedSlot as SlotWithRelations;
     }
 
-    return mapSlot(updatedSlot as SlotWithRelations);
+    let matchRequest: MatchRequestWithOptionalResult | null = null;
+
+    if (candidate) {
+      matchRequest = await ensureCandidateMatchRequest(tx, candidate, payload.matchRequest);
+    }
+
+    return {
+      slot: currentSlot,
+      request: matchRequest
+    };
   });
+
+  if (!result) {
+    return null;
+  }
+
+  emitSlotUpdate({ action: 'updated', slot: mapAvailability(result.slot) });
+
+  if (!result.request) {
+    return null;
+  }
+
+  return mapMatchRequest(result.request);
 }
 
 export async function listInterviewerAvailability(interviewerId: string): Promise<AvailabilitySlotDto[]> {
