@@ -26,6 +26,8 @@ const DURATION_OPTIONS = [30, 45, 60, 90, 120];
 const DEFAULT_LANGUAGE_LABEL = '🇺🇸 English';
 
 function normalizeLanguageLabel(label: string) {
+  // Remove emoji flags and other non-letter characters from the beginning
+  // but preserve the actual language name
   return label.replace(/^[^\p{L}]+/u, '').trim();
 }
 
@@ -248,14 +250,10 @@ export default function InterviewerDashboardPage() {
   const [selectedInterviewerId, setSelectedInterviewerId] = useState('');
   // Initialize with today and next available time slot
   const getInitialDateTime = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
     const now = new Date();
-    const nextSlot = new Date(now.getTime() + 15 * 60 * 1000);
-    nextSlot.setMinutes(Math.ceil(nextSlot.getMinutes() / 15) * 15, 0, 0);
-    const initialDateTime = new Date(today);
-    initialDateTime.setHours(nextSlot.getHours(), nextSlot.getMinutes(), 0, 0);
-    return initialDateTime;
+    const nextSlot = new Date(now.getTime() + 60 * 60 * 1000); // Add 1 hour to current time
+    nextSlot.setMinutes(Math.ceil(nextSlot.getMinutes() / 15) * 15, 0, 0); // Round to next 15 minutes
+    return nextSlot;
   };
 
   const getInitialEndDateTime = (startTime: Date) => {
@@ -554,6 +552,13 @@ export default function InterviewerDashboardPage() {
         return Promise.reject(new Error('Please select start and end date/time'));
       }
 
+      // Check that the slot is in the future (at least 30 minutes from now)
+      const now = new Date();
+      const minFutureTime = new Date(now.getTime() + 30 * 60 * 1000);
+      if (startDateTime <= minFutureTime) {
+        return Promise.reject(new Error('Slot must be at least 30 minutes in the future'));
+      }
+
       // Check minimum duration of 30 minutes
       const minDuration = Math.max(durationMinutes, 30);
       if (durationMinutes < 30) {
@@ -571,11 +576,12 @@ export default function InterviewerDashboardPage() {
         return date.toISOString().replace('Z', offsetString);
       };
 
+      const normalizedLanguage = normalizeLanguageLabel(selectedLanguage);
       const payload = {
-        start: formatDateTimeWithTimezone(startDateTime),
-        end: formatDateTimeWithTimezone(endDateTime),
+        start: startDateTime.toISOString(),
+        end: endDateTime.toISOString(),
         isRecurring,
-        language: normalizeLanguageLabel(selectedLanguage)
+        language: normalizedLanguage
       };
 
       console.log('Creating slot with payload:', {
@@ -583,19 +589,27 @@ export default function InterviewerDashboardPage() {
         ...payload
       });
       console.log('Selected language:', selectedLanguage);
+      console.log('Normalized language:', normalizedLanguage);
       console.log('Start date:', startDateTime);
       console.log('End date:', endDateTime);
+      console.log('Start ISO:', startDateTime.toISOString());
+      console.log('End ISO:', endDateTime.toISOString());
 
       return createInterviewerAvailabilitySlot(selectedInterviewerId, payload);
     },
     onSuccess: () => {
-      const newStart = getInitialDateTime();
+      // Generate new time that's different from the current one
+      const newStart = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours from now
+      newStart.setMinutes(Math.ceil(newStart.getMinutes() / 15) * 15, 0, 0);
+      
       setStartDateTime(newStart);
       setEndDateTime(getInitialEndDateTime(newStart));
       setDurationMinutes(DURATION_OPTIONS[2]);
       setIsRecurring(false);
       setSelectedLanguage(getDefaultLanguageFromUrl(intentLanguage ?? null));
       queryClient.invalidateQueries({ queryKey: ['interviewer', selectedInterviewerId, 'availability'] });
+      
+      console.log('Slot created successfully, form reset with new time:', newStart.toISOString());
     }
   });
 
@@ -1430,7 +1444,19 @@ export default function InterviewerDashboardPage() {
                     Candidate: <span className="font-semibold">{session.candidateId}</span>
                   </p>
                   <p className="text-slate-400">Focus: {session.focusAreas.join(', ') || '—'}</p>
-                  <p className="text-slate-400">Languages: {session.preferredLanguages.join(', ') || '—'}</p>
+                  <p className="text-slate-400">Languages: {(() => {
+                    // Use selected language from form, or fallback to URL parameter, or session data
+                    const currentLanguage = selectedLanguage || getDefaultLanguageFromUrl(intentLanguage ?? null);
+                    const displayLanguage = currentLanguage ? normalizeLanguageLabel(currentLanguage) : (session.preferredLanguages.join(', ') || '—');
+                    console.log('Session language display:', {
+                      sessionId: session.id,
+                      selectedLanguage,
+                      currentLanguage,
+                      displayLanguage,
+                      sessionLanguages: session.preferredLanguages
+                    });
+                    return displayLanguage;
+                  })()}</p>
                   <p className="mt-1 text-slate-400">Effectiveness score: {session.effectivenessScore}</p>
                   {session.summary && (
                     <div className="mt-2 space-y-1 text-slate-300">
