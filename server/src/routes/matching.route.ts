@@ -116,7 +116,11 @@ const joinSlotSchema = z
   .object({
     role: z.enum(['CANDIDATE', 'INTERVIEWER', 'OBSERVER']),
     candidateId: z.string().min(1).optional(),
-    interviewerId: z.string().min(1).optional()
+    interviewerId: z.string().min(1).optional(),
+    matchRequest: createMatchRequestSchema
+      .omit({ candidateId: true })
+      .partial({ notes: true })
+      .optional()
   })
   .superRefine((data, ctx) => {
     if (data.candidateId && data.interviewerId) {
@@ -325,14 +329,14 @@ export function registerMatchingRoutes(app: FastifyInstance, deps: MatchingRoute
       const { id } = requestIdParamsSchema.parse(request.params);
       const payload = joinSlotSchema.parse(request.body);
 
-      const slot = await joinSlot(id, payload);
+      const request = await joinSlot(id, payload);
 
-      if (!slot) {
+      if (!request) {
         reply.code(404);
         throw new Error('Slot or participant not found');
       }
 
-      return slot;
+      return request;
     }
   );
 
