@@ -1,3 +1,5 @@
+import crypto from 'node:crypto';
+
 import {
   MatchStatus,
   Prisma,
@@ -27,6 +29,7 @@ import type {
 import { calculateMatchingScore } from '../../../shared/src/utils/scoring.js';
 import { prisma } from './prisma.js';
 import { emitSlotUpdate } from './realtime/bus.js';
+import type { DailyCoService } from './daily-co.js';
 
 function toInterviewerSummary(
   interviewer: InterviewerProfile & { availability?: InterviewerAvailability[] }
@@ -53,6 +56,8 @@ function mapMatchResult(
     status: result.status,
     scheduledAt: result.scheduledAt?.toISOString() ?? null,
     roomUrl: result.roomUrl ?? null,
+    roomId: result.roomId ?? null,
+    roomToken: result.roomToken ?? null,
     effectivenessScore: result.effectivenessScore,
     interviewer: toInterviewerSummary(result.interviewer),
     completedAt: result.completedAt?.toISOString() ?? null,
@@ -103,6 +108,27 @@ function mapMatchRequest(
     ...base,
     result: null
   };
+}
+
+type ScheduleMatchOptions = {
+  dailyCoService?: DailyCoService | null;
+};
+
+const DAILY_ROOM_NAME_PREFIX = 'supermock-match';
+const DAILY_ROOM_SUFFIX_BYTES = 4;
+const DAILY_ROOM_DEFAULT_DURATION_MINUTES = 90;
+const DAILY_TOKEN_EXTRA_MINUTES = 30;
+
+function generateDailyRoomName(requestId: string): string {
+  const sanitized = requestId.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+  const suffix = crypto.randomBytes(DAILY_ROOM_SUFFIX_BYTES).toString('hex');
+  const base = sanitized.slice(-10) || sanitized || 'session';
+  return `${DAILY_ROOM_NAME_PREFIX}-${base}-${suffix}`.slice(0, 120);
+}
+
+function computeExpirationSeconds(baseDate: Date, offsetMinutes: number): number {
+  const baseTimestamp = Math.max(baseDate.getTime(), Date.now());
+  return Math.floor((baseTimestamp + offsetMinutes * 60 * 1000) / 1000);
 }
 
 export async function getMatchOverview(): Promise<MatchOverviewDto> {
@@ -264,7 +290,8 @@ export async function listInterviewers(): Promise<InterviewerSummaryDto[]> {
 
 export async function scheduleMatch(
   requestId: string,
-  payload: ScheduleMatchPayload
+  payload: ScheduleMatchPayload,
+  options: ScheduleMatchOptions = {}
 ): Promise<MatchRequestWithResultDto | null> {
   const availability = await prisma.interviewerAvailability.findUnique({
     where: { id: payload.availabilityId },
@@ -287,58 +314,108 @@ export async function scheduleMatch(
   }
 
   const scheduledAt = availability.start;
+  const dailyCoService = options.dailyCoService ?? null;
 
-  const updatedRequest = await prisma.$transaction(async (tx) => {
-    await tx.interviewMatch.upsert({
-      where: { requestId },
-      create: {
-        requestId,
-        interviewerId: availability.interviewerId,
-        scheduledAt,
-        roomUrl: payload.roomUrl ?? null,
-        status: MatchStatus.SCHEDULED,
-        effectivenessScore: 0
-      },
-      update: {
-        interviewerId: availability.interviewerId,
-        scheduledAt,
-        roomUrl: payload.roomUrl ?? null,
-        status: MatchStatus.SCHEDULED
-      }
-    });
+  const roomDetails: { roomUrl: string | null; roomId: string | null; roomToken: string | null } = {
+    roomUrl: payload.roomUrl ?? null,
+    roomId: null,
+    roomToken: null
+  };
 
-    await tx.matchRequest.update({
-      where: { id: requestId },
-      data: {
-        status: MatchStatus.SCHEDULED,
-        matchedAt: new Date()
-      }
-    });
+  let createdRoomName: string | null = null;
 
-    await tx.interviewerAvailability.delete({ where: { id: availability.id } });
+  try {
+    if (dailyCoService) {
+      const roomName = generateDailyRoomName(requestId);
+      const room = await dailyCoService.createRoom({
+        name: roomName,
+        privacy: 'private',
+        properties: {
+          exp: computeExpirationSeconds(scheduledAt, DAILY_ROOM_DEFAULT_DURATION_MINUTES),
+          eject_after_elapsed: DAILY_ROOM_DEFAULT_DURATION_MINUTES * 60,
+          enable_knocking: false
+        }
+      });
 
-    return tx.matchRequest.findUnique({
-      where: { id: requestId },
-      include: {
-        result: {
-          include: {
-            interviewer: {
-              include: {
-                availability: true
-              }
-            },
-            summary: true
+      createdRoomName = room.name;
+      roomDetails.roomUrl = room.url;
+      roomDetails.roomId = room.id ?? room.name;
+
+      const token = await dailyCoService.generateToken(room.name, {
+        isOwner: true,
+        exp: computeExpirationSeconds(
+          scheduledAt,
+          DAILY_ROOM_DEFAULT_DURATION_MINUTES + DAILY_TOKEN_EXTRA_MINUTES
+        )
+      });
+
+      roomDetails.roomToken = token.token;
+    }
+
+    const updatedRequest = await prisma.$transaction(async (tx) => {
+      await tx.interviewMatch.upsert({
+        where: { requestId },
+        create: {
+          requestId,
+          interviewerId: availability.interviewerId,
+          scheduledAt,
+          roomUrl: roomDetails.roomUrl,
+          roomId: roomDetails.roomId,
+          roomToken: roomDetails.roomToken,
+          status: MatchStatus.SCHEDULED,
+          effectivenessScore: 0
+        },
+        update: {
+          interviewerId: availability.interviewerId,
+          scheduledAt,
+          roomUrl: roomDetails.roomUrl,
+          roomId: roomDetails.roomId,
+          roomToken: roomDetails.roomToken,
+          status: MatchStatus.SCHEDULED
+        }
+      });
+
+      await tx.matchRequest.update({
+        where: { id: requestId },
+        data: {
+          status: MatchStatus.SCHEDULED,
+          matchedAt: new Date()
+        }
+      });
+
+      await tx.interviewerAvailability.delete({ where: { id: availability.id } });
+
+      return tx.matchRequest.findUnique({
+        where: { id: requestId },
+        include: {
+          result: {
+            include: {
+              interviewer: {
+                include: {
+                  availability: true
+                }
+              },
+              summary: true
+            }
           }
         }
-      }
+      });
     });
-  });
 
-  if (!updatedRequest) {
-    return null;
+    if (!updatedRequest) {
+      if (dailyCoService && createdRoomName) {
+        await dailyCoService.deleteRoom(createdRoomName).catch(() => {});
+      }
+      return null;
+    }
+
+    return mapMatchRequest(updatedRequest);
+  } catch (error) {
+    if (dailyCoService && createdRoomName) {
+      await dailyCoService.deleteRoom(createdRoomName).catch(() => {});
+    }
+    throw error;
   }
-
-  return mapMatchRequest(updatedRequest);
 }
 
 function mapAvailability(slot: InterviewerAvailability): AvailabilitySlotDto {

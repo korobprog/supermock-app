@@ -52,7 +52,7 @@ describe('InterviewerDashboardPage', () => {
 
     expect(screen.getByLabelText('Recurring slot')).toBeChecked();
     expect(
-      (screen.getByLabelText('Show last') as HTMLSelectElement).value
+      (screen.getByLabelText(/Show last/i) as HTMLSelectElement).value
     ).toBe('20');
   });
 });

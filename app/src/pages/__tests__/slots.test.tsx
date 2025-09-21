@@ -10,7 +10,7 @@ describe('SlotDashboardPage CTA', () => {
 
     render(<SlotDashboardPage />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Идут сейчас' }));
+    fireEvent.click(screen.getByRole('button', { name: /Идут сейчас/i }));
     const languageSelect = screen.getByLabelText('Язык') as HTMLSelectElement;
     fireEvent.change(languageSelect, { target: { value: '🇨🇳 Chinese' } });
 
@@ -36,7 +36,7 @@ describe('SlotDashboardPage CTA', () => {
 
     render(<SlotDashboardPage />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Идут сейчас' }));
+    fireEvent.click(screen.getByRole('button', { name: /Идут сейчас/i }));
     const languageSelect = screen.getByLabelText('Язык') as HTMLSelectElement;
     fireEvent.change(languageSelect, { target: { value: '🇨🇳 Chinese' } });
 

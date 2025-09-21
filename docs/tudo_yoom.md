@@ -3,10 +3,11 @@
 ## 📋 Чек-лист интеграции YooMoney
 
 ### 1. Регистрация и настройка в YooMoney
-- [ ] Создать кошелек YooMoney (если нет)
+- [ ] Создать кошелек YooMoney (номер кошелька 41001337976323)
 - [ ] Зарегистрировать приложение в YooMoney
   - [ ] Перейти на https://yoomoney.ru/myservices/new
-  - [ ] Указать название приложения
+  - [ ] Указать название приложения 
+   - [ ] Успешная оплата сделай страницу https://app.supermock.ru/successful-payment
   - [ ] Указать описание сервиса
   - [ ] Получить `client_id` и `client_secret`
 - [ ] Настроить права доступа (scope):
@@ -17,7 +18,8 @@
 
 ### 2. Настройка HTTP-уведомлений
 - [ ] В настройках кошелька включить HTTP-уведомления
-- [ ] Указать URL для уведомлений: `https://ваш-домен.com/api/payments/yoomoney/webhook`
+- [ ] Указать URL для уведомлений: `https://app.supermock.ru/api/payments/yoomoney/webhook`
+В .env уэе есть: YOOMONEY_CLIENT_ID , YOOMONEY_CLIENT_SECRET , YOOMONEY_REDIRECT_URI
 - [ ] Получить секретное слово для проверки подлинности
 - [ ] Протестировать уведомления (кнопка "Протестировать")
 
@@ -161,8 +163,8 @@ function verifyYooMoneyNotification(params, secret) {
   <input type="hidden" name="sum" value="100.00" data-type="number">
   <input type="hidden" name="paymentType" value="AC">
   <input type="hidden" name="label" value="payment_12345">
-  <input type="hidden" name="successURL" value="https://supermock.com/payment/success">
-  <input type="hidden" name="failURL" value="https://supermock.com/payment/fail">
+  <input type="hidden" name="successURL" value="https://app.supermock.ru/payment/success">
+  <input type="hidden" name="failURL" value="https://app.supermock.ru/payment/fail">
   <button type="submit">Оплатить 100 ₽</button>
 </form>
 ```

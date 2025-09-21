@@ -25,6 +25,8 @@ export interface MatchResultDto {
   status: string;
   scheduledAt?: string | null;
   roomUrl?: string | null;
+  roomId?: string | null;
+  roomToken?: string | null;
   effectivenessScore: number;
   interviewer: InterviewerSummaryDto;
   completedAt?: string | null;

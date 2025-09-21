@@ -102,6 +102,8 @@ async function main() {
       effectivenessScore: 82,
       scheduledAt: availabilityStart,
       roomUrl: 'https://meet.supermock.local/rooms/frontend-001',
+      roomId: 'room-frontend-001',
+      roomToken: 'token-frontend-001',
       status: MatchStatus.SCHEDULED
     }
   });
@@ -126,6 +128,7 @@ async function main() {
       effectivenessScore: 88,
       scheduledAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2),
       completedAt: new Date(Date.now() - 1000 * 60 * 60 * 12),
+      roomId: 'room-frontend-historical',
       status: MatchStatus.COMPLETED,
       summary: {
         create: {

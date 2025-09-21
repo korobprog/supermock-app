@@ -110,6 +110,8 @@ model InterviewMatch {
   effectivenessScore Int            @default(0)
   scheduledAt    DateTime?
   roomUrl        String?
+  roomId         String?
+  roomToken      String?
   status         MatchStatus        @default(MATCHED)
   completedAt    DateTime?
   summary        InterviewSummary?
