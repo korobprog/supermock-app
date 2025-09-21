@@ -68,6 +68,24 @@ beforeEach(() => {
   joinSlotMock.mockResolvedValue({ id: 'req-joined' } as any);
 });
 
+beforeEach(() => {
+  vi.clearAllMocks();
+  mockRouter.query = {};
+  fetchSlotDetailsMock.mockReset();
+  joinSlotMock.mockReset();
+  fetchSlotDetailsMock.mockResolvedValue({
+    id: 'slot-default',
+    interviewerId: 'int-1',
+    start: new Date('2024-01-01T10:00:00Z').toISOString(),
+    end: new Date('2024-01-01T11:00:00Z').toISOString(),
+    isRecurring: false,
+    createdAt: new Date('2023-12-31T10:00:00Z').toISOString(),
+    participantCapacity: 2,
+    participantCount: 0
+  });
+  joinSlotMock.mockResolvedValue({ id: 'req-joined' } as any);
+});
+
 describe('InterviewMatchingPage', () => {
   it('prefills form fields from slot intent query parameters', async () => {
     mockRouter.query = {
@@ -127,6 +145,45 @@ describe('InterviewMatchingPage', () => {
     const candidateSelect = screen.getByRole('combobox', { name: /candidate/i }) as HTMLSelectElement;
     expect(candidateSelect).toBeDisabled();
     expect(candidateSelect.value).toBe('');
+
+    expect(screen.getByText(/Slot intent locks this field/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Join slot' })).toBeInTheDocument();
+  });
+
+  it('locks onto the candidate when a slot join intent is present', async () => {
+    fetchSlotDetailsMock.mockResolvedValue({
+      id: 'slot-1',
+      interviewerId: 'int-1',
+      start: '2024-06-01T09:00:00.000Z',
+      end: '2024-06-01T10:00:00.000Z',
+      isRecurring: false,
+      createdAt: '2024-05-30T12:00:00.000Z',
+      participantCapacity: 3,
+      participantCount: 1,
+      candidateId: 'cand-1',
+      language: '🇬🇧 English',
+      profession: 'frontend-developer'
+    });
+
+    mockRouter.query = {
+      slotId: 'slot-1',
+      candidateId: 'cand-1',
+      slotStart: '2024-06-01T09:00:00.000Z',
+      slotEnd: '2024-06-01T10:00:00.000Z',
+      slotLanguage: '🇬🇧 English',
+      slotProfession: 'frontend-developer'
+    };
+
+    renderWithQueryClient(<InterviewMatchingPage />);
+
+    await waitFor(() => expect(fetchSlotDetailsMock).toHaveBeenCalledWith('slot-1'));
+
+    expect(screen.getByText('Joining existing slot')).toBeInTheDocument();
+    expect(screen.getByText(/1 \/ 3 participants/)).toBeInTheDocument();
+
+    const candidateSelect = screen.getByLabelText('Candidate') as HTMLSelectElement;
+    expect(candidateSelect).toBeDisabled();
+    expect(candidateSelect.value).toBe('cand-1');
 
     expect(screen.getByText(/Slot intent locks this field/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Join slot' })).toBeInTheDocument();
