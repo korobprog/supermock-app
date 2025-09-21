@@ -9,6 +9,7 @@ describe('buildConfig', () => {
     expect(config.host).toBe('0.0.0.0');
     expect(config.corsOrigins).toEqual(['http://localhost:3000', 'http://localhost:3001']);
     expect(config.logLevel).toBe('info');
+    expect(config.jwt.secret).toBe('supermock-dev-secret');
   });
 
   it('parses comma separated cors origins', () => {
@@ -17,5 +18,22 @@ describe('buildConfig', () => {
     });
 
     expect(config.corsOrigins).toEqual(['https://example.com', 'https://supermock.ru']);
+  });
+
+  it('throws a helpful error when JWT_SECRET is missing outside development', () => {
+    expect(() =>
+      buildConfig({
+        NODE_ENV: 'production'
+      })
+    ).toThrowError('JWT_SECRET must be provided when NODE_ENV is not "development".');
+  });
+
+  it('uses provided JWT_SECRET when present', () => {
+    const config = buildConfig({
+      NODE_ENV: 'production',
+      JWT_SECRET: ' top-secret '
+    });
+
+    expect(config.jwt.secret).toBe('top-secret');
   });
 });
