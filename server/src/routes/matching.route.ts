@@ -335,14 +335,14 @@ export function registerMatchingRoutes(app: FastifyInstance, deps: MatchingRoute
       const { id } = requestIdParamsSchema.parse(request.params);
       const payload = joinSlotSchema.parse(request.body);
 
-      const request = await joinSlot(id, payload);
+      const result = await joinSlot(id, payload);
 
-      if (!request) {
+      if (!result) {
         reply.code(404);
         throw new Error('Slot or participant not found');
       }
 
-      return request;
+      return result;
     }
   );
 
