@@ -33,38 +33,41 @@ function getDefaultLanguageFromUrl(): string {
   if (typeof window === 'undefined') {
     return '🇺🇸 English';
   }
-  
+
   const urlParams = new URLSearchParams(window.location.search);
   const languageParam = urlParams.get('language');
-  
-  console.log('Language parameter from URL:', languageParam);
-  
-  if (languageParam) {
-    // Decode URL-encoded language parameter
-    const decodedLanguage = decodeURIComponent(languageParam);
-    console.log('Decoded language parameter:', decodedLanguage);
-    
-    // Handle different language formats from slots dashboard
-    if (decodedLanguage.includes('🇷🇺') || decodedLanguage.toLowerCase().includes('russian')) {
-      console.log('Setting language to Russian');
-      return '🇷🇺 Russian';
-    }
-    if (decodedLanguage.includes('🇺🇸') || decodedLanguage.toLowerCase().includes('english')) {
-      console.log('Setting language to English');
-      return '🇺🇸 English';
-    }
-    if (decodedLanguage.includes('🇪🇸') || decodedLanguage.toLowerCase().includes('spanish')) {
-      console.log('Setting language to Spanish');
-      return '🇪🇸 Spanish';
-    }
-    // If it's a different language, default to English
-    console.log('Unknown language, defaulting to English');
+
+  if (!languageParam) {
     return '🇺🇸 English';
   }
-  
-  // Default to English if no language parameter
-  console.log('No language parameter, defaulting to English');
-  return '🇺🇸 English';
+
+  let decodedLanguage = languageParam;
+
+  try {
+    decodedLanguage = decodeURIComponent(languageParam);
+  } catch (error) {
+    console.warn('Failed to decode language parameter', error);
+  }
+
+  const trimmedLanguage = decodedLanguage.trim();
+  if (!trimmedLanguage) {
+    return '🇺🇸 English';
+  }
+
+  const normalizedLabel = normalizeLanguageLabel(trimmedLanguage);
+  if (!normalizedLabel) {
+    return trimmedLanguage;
+  }
+
+  const normalizedIndex = trimmedLanguage.indexOf(normalizedLabel);
+  if (normalizedIndex > 0) {
+    const prefix = trimmedLanguage.slice(0, normalizedIndex).trim();
+    if (prefix) {
+      return `${prefix} ${normalizedLabel}`.trim();
+    }
+  }
+
+  return normalizedLabel;
 }
 
 function toArray(value: string | string[] | undefined) {
