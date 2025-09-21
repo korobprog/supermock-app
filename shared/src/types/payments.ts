@@ -1,14 +1,17 @@
-export type PaymentProvider =
-  | 'STRIPE'
-  | 'PADDLE'
-  | 'PAYPAL'
-  | 'PAYEER'
-  | 'YOOMONEY'
-  | 'TINKOFF'
-  | 'RAZORPAY'
-  | 'PAGSEGURO'
-  | 'FLUTTERWAVE'
-  | 'MERCADOPAGO';
+export const PAYMENT_PROVIDERS = [
+  'STRIPE',
+  'PADDLE',
+  'PAYPAL',
+  'PAYEER',
+  'YOOMONEY',
+  'TINKOFF',
+  'RAZORPAY',
+  'PAGSEGURO',
+  'FLUTTERWAVE',
+  'MERCADOPAGO'
+] as const;
+
+export type PaymentProvider = (typeof PAYMENT_PROVIDERS)[number];
 
 export type SettlementSpeed = 'instant' | 't+1' | 't+2' | 't+3+';
 

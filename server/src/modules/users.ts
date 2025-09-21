@@ -6,8 +6,15 @@ import type {
   PaginatedUsersDto,
   UpdateUserInput,
   UserDto,
-  CreateUserInput
+  CreateUserInput,
+  UserProfileRecord,
+  UserSubscriptionPreferences,
+  SubscriptionPlan,
+  SubscriptionStatus
 } from '../../../shared/src/types/user.js';
+import { SUBSCRIPTION_PLANS, SUBSCRIPTION_STATUSES } from '../../../shared/src/types/user.js';
+import type { PaymentProvider } from '../../../shared/src/types/payments.js';
+import { resolvePaymentRouting } from '../../../shared/src/utils/payments.js';
 import { prisma } from './prisma.js';
 
 const MAX_PAGE_SIZE = 100;
@@ -28,6 +35,152 @@ type ListUsersParams = {
   role?: UserRole;
   search?: string;
 };
+
+const DEFAULT_SUBSCRIPTION_COUNTRY = 'RU';
+const DEFAULT_ROUTING = resolvePaymentRouting(DEFAULT_SUBSCRIPTION_COUNTRY);
+const DEFAULT_SUBSCRIPTION: UserSubscriptionPreferences = {
+  plan: SUBSCRIPTION_PLANS[0],
+  status: SUBSCRIPTION_STATUSES[0],
+  country: DEFAULT_SUBSCRIPTION_COUNTRY,
+  currency: DEFAULT_ROUTING.defaultCurrency,
+  provider: DEFAULT_ROUTING.primary.provider
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function normalizePlan(value: unknown): SubscriptionPlan {
+  if (typeof value === 'string') {
+    const upper = value.trim().toUpperCase();
+    const match = SUBSCRIPTION_PLANS.find((plan) => plan === upper);
+    if (match) {
+      return match;
+    }
+  }
+
+  return DEFAULT_SUBSCRIPTION.plan;
+}
+
+function normalizeStatus(value: unknown): SubscriptionStatus {
+  if (typeof value === 'string') {
+    const lower = value.trim().toLowerCase();
+    const match = SUBSCRIPTION_STATUSES.find((status) => status === lower);
+    if (match) {
+      return match;
+    }
+  }
+
+  return DEFAULT_SUBSCRIPTION.status;
+}
+
+function normalizeCountry(value: unknown): string {
+  if (typeof value === 'string') {
+    const normalized = value.trim().slice(0, 2).toUpperCase();
+    if (normalized.length === 2) {
+      return normalized;
+    }
+  }
+
+  return DEFAULT_SUBSCRIPTION.country;
+}
+
+function normalizeCurrency(value: unknown, fallback: string): string {
+  if (typeof value === 'string') {
+    const normalized = value.trim().toUpperCase();
+    if (normalized.length >= 3) {
+      return normalized.slice(0, 3);
+    }
+  }
+
+  return fallback;
+}
+
+function normalizeProvider(
+  value: unknown,
+  available: PaymentProvider[],
+  fallback: PaymentProvider
+): PaymentProvider {
+  if (typeof value === 'string') {
+    const normalized = value.trim().toUpperCase();
+    const match = available.find((provider) => provider === normalized);
+    if (match) {
+      return match;
+    }
+  }
+
+  return fallback;
+}
+
+function normalizeComplianceAcknowledged(
+  value: unknown,
+  available: string[]
+): string[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const normalized = Array.from(
+    new Set(
+      value
+        .filter((item): item is string => typeof item === 'string')
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0 && available.includes(item))
+    )
+  );
+
+  return normalized.length > 0 ? normalized : undefined;
+}
+
+function normalizeSubscription(raw: unknown): UserSubscriptionPreferences {
+  const record = isRecord(raw) ? raw : undefined;
+  const plan = normalizePlan(record?.plan);
+  const status = normalizeStatus(record?.status);
+  const country = normalizeCountry(record?.country);
+  const preferredCurrency =
+    typeof record?.currency === 'string' ? record.currency.trim().toUpperCase() : undefined;
+  const routing = resolvePaymentRouting(country, { preferredCurrency });
+  const currency = normalizeCurrency(preferredCurrency, routing.defaultCurrency);
+  const availableProviders: PaymentProvider[] = [
+    routing.primary.provider,
+    ...routing.fallbacks.map((profile) => profile.provider)
+  ];
+  const provider = normalizeProvider(record?.provider, availableProviders, routing.primary.provider);
+  const complianceAcknowledged = normalizeComplianceAcknowledged(
+    record?.complianceAcknowledged,
+    routing.complianceChecks
+  );
+  const requestedInvoiceAt =
+    typeof record?.requestedInvoiceAt === 'string' ? record.requestedInvoiceAt : undefined;
+
+  const subscription: UserSubscriptionPreferences = {
+    plan,
+    status,
+    country,
+    currency,
+    provider
+  };
+
+  if (complianceAcknowledged) {
+    subscription.complianceAcknowledged = complianceAcknowledged;
+  }
+
+  if (requestedInvoiceAt) {
+    subscription.requestedInvoiceAt = requestedInvoiceAt;
+  }
+
+  return subscription;
+}
+
+function normalizeUserProfile(
+  profile: Record<string, unknown> | null | undefined
+): UserProfileRecord {
+  const record = isRecord(profile) ? profile : undefined;
+  const normalized: UserProfileRecord = record ? { ...record } : {};
+  const rawSubscription = record && isRecord(record.subscription) ? record.subscription : undefined;
+  normalized.subscription = normalizeSubscription(rawSubscription);
+  return normalized;
+}
 
 function mapCandidateProfile(profile: CandidateProfileRecord | null | undefined): CandidateProfileDto | null {
   if (!profile) {
@@ -82,12 +235,15 @@ function toRecord(value: Prisma.JsonValue | null): Record<string, unknown> | nul
 }
 
 function mapUser(user: UserWithProfiles): UserDto {
+  const rawProfile = toRecord(user.profile);
+  const normalizedProfile = normalizeUserProfile(rawProfile);
+
   return {
     id: user.id,
     email: user.email,
     role: user.role,
     emailVerifiedAt: user.emailVerifiedAt ? user.emailVerifiedAt.toISOString() : null,
-    profile: toRecord(user.profile),
+    profile: normalizedProfile,
     avatarUrl: user.avatarUrl ?? undefined,
     candidateProfile: mapCandidateProfile(user.candidateProfile),
     interviewerProfile: mapInterviewerProfile(user.interviewerProfile),
@@ -97,7 +253,7 @@ function mapUser(user: UserWithProfiles): UserDto {
 }
 
 function sanitizeProfile(
-  profile: Record<string, unknown> | null | undefined
+  profile: UserProfileRecord | null | undefined
 ): Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput | undefined {
   if (profile === undefined) {
     return undefined;
@@ -107,13 +263,15 @@ function sanitizeProfile(
     return Prisma.JsonNull;
   }
 
+  const normalized = normalizeUserProfile(profile);
+
   try {
-    JSON.stringify(profile);
+    JSON.stringify(normalized);
   } catch (error) {
     throw new Error('Profile must be a JSON-serializable object');
   }
 
-  return profile as Prisma.InputJsonValue;
+  return normalized as Prisma.InputJsonValue;
 }
 
 function buildPagination(params?: ListUsersParams) {

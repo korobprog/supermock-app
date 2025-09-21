@@ -24,7 +24,12 @@ import type {
   SessionParticipantDto,
   UpdateRealtimeSessionStatusPayload
 } from '../../../shared/src/types/realtime.js';
-import type { CompleteOnboardingPayload, CompleteOnboardingResponse } from '../../../shared/src/types/user.js';
+import type {
+  CompleteOnboardingPayload,
+  CompleteOnboardingResponse,
+  UpdateUserInput,
+  UserDto
+} from '../../../shared/src/types/user.js';
 import type { InterviewAiInsightDto, PlatformStatsDto } from '../../../shared/src/types/analytics.js';
 import type { OnboardingProfileDraftPayload, OnboardingProfileDraftResponse } from '@/types/onboarding';
 
@@ -208,6 +213,17 @@ export function saveOnboardingProfileDraft(payload: OnboardingProfileDraftPayloa
 export function completeOnboarding(payload: CompleteOnboardingPayload) {
   return request<CompleteOnboardingResponse>('/onboarding/complete', {
     method: 'POST',
+    body: JSON.stringify(payload)
+  });
+}
+
+export function fetchUserById(userId: string) {
+  return request<UserDto>(`/users/${userId}`);
+}
+
+export function updateUserProfile(userId: string, payload: UpdateUserInput) {
+  return request<UserDto>(`/users/${userId}`, {
+    method: 'PUT',
     body: JSON.stringify(payload)
   });
 }

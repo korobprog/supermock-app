@@ -10,8 +10,35 @@ import {
   updateUser
 } from '../modules/users.js';
 import { authenticate, authorizeRoles } from '../utils/auth.js';
+import { PAYMENT_PROVIDERS } from '../../../shared/src/types/payments.js';
+import { SUBSCRIPTION_PLANS, SUBSCRIPTION_STATUSES } from '../../../shared/src/types/user.js';
 
-const profileSchema = z.record(z.any()).nullable().optional();
+const subscriptionSchema = z
+  .object({
+    plan: z.enum(SUBSCRIPTION_PLANS),
+    status: z.enum(SUBSCRIPTION_STATUSES),
+    country: z
+      .string()
+      .trim()
+      .regex(/^[A-Za-z]{2}$/),
+    currency: z
+      .string()
+      .trim()
+      .regex(/^[A-Za-z]{3}$/)
+      .optional(),
+    provider: z.enum(PAYMENT_PROVIDERS),
+    complianceAcknowledged: z.array(z.string().trim().min(1)).optional(),
+    requestedInvoiceAt: z.string().datetime().optional()
+  })
+  .strict();
+
+const profileSchema = z
+  .object({
+    subscription: subscriptionSchema.optional()
+  })
+  .catchall(z.any())
+  .nullable()
+  .optional();
 
 const listUsersQuerySchema = z.object({
   page: z.coerce.number().int().positive().optional(),

@@ -1,4 +1,26 @@
+import type { PaymentProvider } from './payments.js';
+
 export type UserRole = 'CANDIDATE' | 'INTERVIEWER' | 'ADMIN';
+
+export const SUBSCRIPTION_PLANS = ['FREE', 'TEAM', 'PRO'] as const;
+export type SubscriptionPlan = (typeof SUBSCRIPTION_PLANS)[number];
+
+export const SUBSCRIPTION_STATUSES = ['inactive', 'trialing', 'active', 'past_due', 'canceled'] as const;
+export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number];
+
+export interface UserSubscriptionPreferences {
+  plan: SubscriptionPlan;
+  status: SubscriptionStatus;
+  country: string;
+  currency?: string;
+  provider: PaymentProvider;
+  complianceAcknowledged?: string[];
+  requestedInvoiceAt?: string;
+}
+
+export type UserProfileRecord = Record<string, unknown> & {
+  subscription?: UserSubscriptionPreferences;
+};
 
 export type ExperienceLevel = 'JUNIOR' | 'MIDDLE' | 'SENIOR';
 
@@ -88,7 +110,7 @@ export type UserDto = {
   email: string;
   role: UserRole;
   emailVerifiedAt: string | null;
-  profile: Record<string, unknown> | null;
+  profile: UserProfileRecord | null;
   avatarUrl?: string;
   candidateProfile: CandidateProfileDto | null;
   interviewerProfile: InterviewerProfileDto | null;
@@ -101,7 +123,7 @@ export type CreateUserInput = {
   role: UserRole;
   password?: string;
   passwordSaltRounds?: number;
-  profile?: Record<string, unknown> | null;
+  profile?: UserProfileRecord | null;
   avatarUrl?: string | null;
 };
 
@@ -110,7 +132,7 @@ export type UpdateUserInput = {
   role?: UserRole;
   password?: string;
   passwordSaltRounds?: number;
-  profile?: Record<string, unknown> | null;
+  profile?: UserProfileRecord | null;
   avatarUrl?: string | null;
 };
 
