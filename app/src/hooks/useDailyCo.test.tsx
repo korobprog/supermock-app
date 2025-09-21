@@ -98,19 +98,20 @@ describe('useDailyCo', () => {
 
     const { result, rerender } = renderHook((props: Parameters<typeof useDailyCo>[0]) => useDailyCo(props), {
       initialProps: {
-        roomUrl: null,
-        token: null,
-        autoJoin: false
+        roomUrl: null as string | null,
+        token: null as string | null,
+        autoJoin: false,
+        userName: undefined as string | undefined
       }
     });
 
     act(() => {
-      result.current.containerRef.current = container;
+      (result.current.containerRef as any).current = container;
     });
 
     rerender({
-      roomUrl: 'https://example.daily.co/test-room',
-      token: 'token-123',
+      roomUrl: 'https://example.daily.co/test-room' as string | null,
+      token: 'token-123' as string | null,
       autoJoin: false,
       userName: 'Interviewer'
     });
@@ -148,19 +149,20 @@ describe('useDailyCo', () => {
 
     const { result, rerender } = renderHook((props: Parameters<typeof useDailyCo>[0]) => useDailyCo(props), {
       initialProps: {
-        roomUrl: null,
-        token: null,
-        autoJoin: false
+        roomUrl: null as string | null,
+        token: null as string | null,
+        autoJoin: false,
+        userName: undefined as string | undefined
       }
     });
 
     act(() => {
-      result.current.containerRef.current = container;
+      (result.current.containerRef as any).current = container;
     });
 
     rerender({
-      roomUrl: 'https://example.daily.co/test-room',
-      token: 'token-123',
+      roomUrl: 'https://example.daily.co/test-room' as string | null,
+      token: 'token-123' as string | null,
       autoJoin: false,
       userName: 'Host'
     });
