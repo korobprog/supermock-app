@@ -6,6 +6,7 @@ import type {
   MatchPreviewDto,
   MatchRequestWithResultDto,
   ScheduleMatchPayload,
+  MatchTokenResponse,
   AvailabilitySlotDto,
   CreateAvailabilityPayload,
   CompleteMatchPayload,
@@ -29,6 +30,21 @@ import type { OnboardingProfileDraftPayload, OnboardingProfileDraftResponse } fr
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 const USE_NEXT_API = typeof window !== 'undefined'; // Use Next.js API routes on client side
+const NEXT_API_PROXY_PREFIXES = [
+  '/matching/overview',
+  '/matching/candidates',
+  '/matching/interviewers',
+  '/matching/availability',
+  '/matching/sessions/recent',
+  '/matching/requests',
+  '/matching/slots'
+] as const;
+
+function shouldUseNextApi(path: string) {
+  return NEXT_API_PROXY_PREFIXES.some((prefix) =>
+    path === prefix || path.startsWith(`${prefix}/`) || path.startsWith(`${prefix}?`)
+  );
+}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const headers: Record<string, string> = {};
@@ -54,8 +70,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     }
   }
   
-  // Use Next.js API routes on client side for better CORS handling
-  const baseUrl = USE_NEXT_API && path.startsWith('/matching/') ? '/api' : API_BASE_URL;
+  // Use Next.js API routes on client side for better CORS handling when a proxy exists
+  const baseUrl = USE_NEXT_API && shouldUseNextApi(path) ? '/api' : API_BASE_URL;
   
   const response = await fetch(`${baseUrl}${path}`, {
     headers: {
@@ -161,6 +177,12 @@ export function completeMatch(matchId: string, payload: CompleteMatchPayload) {
   return request<MatchRequestWithResultDto>(`/matching/matches/${matchId}/complete`, {
     method: 'POST',
     body: JSON.stringify(payload)
+  });
+}
+
+export function fetchMatchToken(matchId: string) {
+  return request<MatchTokenResponse>(`/matching/matches/${matchId}/token`, {
+    method: 'POST'
   });
 }
 

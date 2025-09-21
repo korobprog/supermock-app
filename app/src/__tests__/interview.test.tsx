@@ -171,7 +171,14 @@ describe('InterviewMatchingPage', () => {
     await waitFor(() =>
       expect(joinSlotMock).toHaveBeenCalledWith('slot-1', {
         role: 'CANDIDATE',
-        candidateId: 'cand-1'
+        candidateId: 'cand-1',
+        matchRequest: {
+          targetRole: 'Frontend Developer',
+          focusAreas: ['Frontend Developer'],
+          preferredLanguages: ['English'],
+          sessionFormat: 'CODING',
+          notes: undefined
+        }
       })
     );
   });

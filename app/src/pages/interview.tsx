@@ -444,7 +444,14 @@ export default function InterviewMatchingPage() {
     if (isSlotJoinIntent) {
       const payload: JoinSlotPayload = {
         role: 'CANDIDATE',
-        candidateId
+        candidateId,
+        matchRequest: {
+          targetRole: targetRole.trim(),
+          focusAreas: parseList(focusAreasInput),
+          preferredLanguages: parseList(languagesInput),
+          sessionFormat,
+          notes: notes.trim() || undefined
+        }
       };
 
       joinSlotMutation.mutate(payload);

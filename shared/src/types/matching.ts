@@ -26,7 +26,6 @@ export interface MatchResultDto {
   scheduledAt?: string | null;
   roomUrl?: string | null;
   roomId?: string | null;
-  roomToken?: string | null;
   effectivenessScore: number;
   interviewer: InterviewerSummaryDto;
   completedAt?: string | null;
@@ -40,6 +39,10 @@ export interface MatchRequestWithResultDto extends MatchRequestDto {
 export interface ScheduleMatchPayload {
   availabilityId: string;
   roomUrl?: string;
+}
+
+export interface MatchTokenResponse {
+  token: string;
 }
 
 export interface CompleteMatchPayload {
@@ -126,10 +129,13 @@ export interface SlotDto {
   waitlistCount: number;
 }
 
+export type JoinSlotMatchRequestPayload = Omit<CreateMatchRequestPayload, 'candidateId'>;
+
 export interface JoinSlotPayload {
   role: SlotParticipantRole;
   candidateId?: string;
   interviewerId?: string;
+  matchRequest?: JoinSlotMatchRequestPayload;
 }
 
 export interface CreateAvailabilityPayload {
