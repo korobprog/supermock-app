@@ -143,7 +143,7 @@ model InterviewSummary {
 }
 
 model AuditLog {
-  id        String   @id
+  id        String   @id @default(cuid())
   userId    String?
   action    String
   ipAddress String?
@@ -156,7 +156,7 @@ model AuditLog {
 }
 
 model EmailVerificationToken {
-  id         String    @id
+  id         String    @id @default(cuid())
   userId     String
   tokenHash  String    @unique
   expiresAt  DateTime
@@ -168,7 +168,7 @@ model EmailVerificationToken {
 }
 
 model PasswordResetToken {
-  id        String    @id
+  id        String    @id @default(cuid())
   userId    String
   tokenHash String    @unique
   expiresAt DateTime
@@ -180,7 +180,7 @@ model PasswordResetToken {
 }
 
 model RefreshToken {
-  id                  String    @id
+  id                  String    @id @default(cuid())
   userId              String
   tokenHash           String    @unique
   expiresAt           DateTime

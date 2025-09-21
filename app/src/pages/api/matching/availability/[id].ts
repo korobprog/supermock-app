@@ -12,6 +12,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const headers: Record<string, string> = {};
     
+    // Forward Authorization header if present
+    if (req.headers.authorization) {
+      headers['Authorization'] = req.headers.authorization;
+      console.log('Forwarding auth header:', req.headers.authorization.substring(0, 20) + '...');
+    } else {
+      console.log('No authorization header found in request:', Object.keys(req.headers));
+    }
+    
     // Only set Content-Type for requests with a body
     if (req.body && Object.keys(req.body).length > 0) {
       headers['Content-Type'] = 'application/json';

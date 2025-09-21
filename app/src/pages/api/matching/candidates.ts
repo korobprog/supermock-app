@@ -4,11 +4,32 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const response = await fetch(`${API_BASE_URL}/matching/candidates`);
+    // Forward authentication headers from the client request
+    const headers: Record<string, string> = {};
+    
+    // Forward Authorization header if present
+    if (req.headers.authorization) {
+      headers['Authorization'] = req.headers.authorization;
+      console.log('Forwarding auth header:', req.headers.authorization.substring(0, 20) + '...');
+    } else {
+      console.log('No authorization header found in request:', Object.keys(req.headers));
+    }
+    
+    // Forward other relevant headers
+    if (req.headers['content-type']) {
+      headers['Content-Type'] = req.headers['content-type'];
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/matching/candidates`, {
+      method: req.method,
+      headers,
+      body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined
+    });
     
     if (!response.ok) {
+      const errorData = await response.text();
       return res.status(response.status).json({ 
-        error: `API request failed with status ${response.status}` 
+        error: errorData || `API request failed with status ${response.status}` 
       });
     }
     

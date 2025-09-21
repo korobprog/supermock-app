@@ -38,6 +38,22 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     headers['Content-Type'] = 'application/json';
   }
   
+  // Add authentication header if available
+  if (typeof window !== 'undefined') {
+    try {
+      const authStore = await import('../store/useAuth');
+      const { accessToken } = authStore.useAuth.getState();
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+        console.log('Adding auth header:', `Bearer ${accessToken.substring(0, 20)}...`);
+      } else {
+        console.log('No access token found in auth store');
+      }
+    } catch (error) {
+      console.error('Error getting auth token:', error);
+    }
+  }
+  
   // Use Next.js API routes on client side for better CORS handling
   const baseUrl = USE_NEXT_API && path.startsWith('/matching/') ? '/api' : API_BASE_URL;
   
@@ -102,7 +118,7 @@ export function fetchInterviewerAvailability(interviewerId: string) {
   return request<AvailabilitySlotDto[]>(`/matching/interviewers/${interviewerId}/availability`);
 }
 
-export interface SlotDetailsDto extends AvailabilitySlotDto {
+export interface SlotDetailsDto extends Omit<AvailabilitySlotDto, 'language'> {
   participantCapacity: number;
   participantCount: number;
   candidateId?: string | null;

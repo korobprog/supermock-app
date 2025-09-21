@@ -10,13 +10,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   
   try {
+    // Forward authentication headers from the client request
+    const headers: Record<string, string> = {};
+    
+    // Forward Authorization header if present
+    if (req.headers.authorization) {
+      headers['Authorization'] = req.headers.authorization;
+      console.log('Forwarding auth header:', req.headers.authorization.substring(0, 20) + '...');
+    } else {
+      console.log('No authorization header found in request:', Object.keys(req.headers));
+    }
+    
+    // Forward other relevant headers
+    if (req.headers['content-type']) {
+      headers['Content-Type'] = req.headers['content-type'];
+    }
+    
     if (req.method === 'GET') {
       // Get availability
-      const response = await fetch(`${API_BASE_URL}/matching/interviewers/${id}/availability`);
+      const response = await fetch(`${API_BASE_URL}/matching/interviewers/${id}/availability`, {
+        headers
+      });
       
       if (!response.ok) {
+        const errorText = await response.text();
         return res.status(response.status).json({ 
-          error: `API request failed with status ${response.status}` 
+          error: errorText || `API request failed with status ${response.status}` 
         });
       }
       
@@ -26,9 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Create availability slot
       const response = await fetch(`${API_BASE_URL}/matching/interviewers/${id}/availability`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(req.body),
       });
       

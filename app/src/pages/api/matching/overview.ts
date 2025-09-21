@@ -15,21 +15,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log('No authorization header found in request:', Object.keys(req.headers));
     }
     
-    // Forward other relevant headers
-    if (req.headers['content-type']) {
-      headers['Content-Type'] = req.headers['content-type'];
-    }
-    
-    const response = await fetch(`${API_BASE_URL}/matching/interviewers`, {
-      method: req.method,
-      headers,
-      body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined
+    const response = await fetch(`${API_BASE_URL}/matching/overview`, {
+      headers
     });
     
     if (!response.ok) {
-      const errorData = await response.text();
+      const errorText = await response.text();
       return res.status(response.status).json({ 
-        error: errorData || `API request failed with status ${response.status}` 
+        error: errorText || `API request failed with status ${response.status}` 
       });
     }
     

@@ -49,13 +49,13 @@ export default function HomePage() {
           </p>
           <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
             <Link
-              href="/interview"
+              href="/slots"
               className="rounded-lg bg-secondary px-5 py-2 text-sm font-semibold text-slate-950 shadow shadow-secondary/40 hover:bg-secondary/90"
             >
-              Open matching console
+              Open slots dashboard
             </Link>
             <span className="text-xs text-slate-500">
-              Tip: create a request, preview interviewers, manage availability and close sessions on `/interview`
+              Tip: browse available slots, filter by language and tools, and join interviews on `/slots`
             </span>
           </div>
         </header>

@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import DateTimePicker from '@/components/DateTimePicker';
+import { useAuth } from '@/store/useAuth';
 
 import {
   createInterviewerAvailabilitySlot,
@@ -230,6 +231,60 @@ function getToggleButtonClass(isActive: boolean) {
 export default function InterviewerDashboardPage() {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const { isAuthenticated, login, user, logout, accessToken } = useAuth();
+  const [loginEmail, setLoginEmail] = useState('interviewer@supermock.io');
+  const [loginPassword, setLoginPassword] = useState('supermock');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+
+  // Debug authentication state
+  useEffect(() => {
+    console.log('Auth state changed:', { isAuthenticated, user: user?.email, hasToken: !!accessToken });
+  }, [isAuthenticated, user, accessToken]);
+
+
+  // Test function to debug API calls
+  const testApiCall = async () => {
+    if (!accessToken) {
+      console.log('No access token available');
+      return;
+    }
+    
+    try {
+      console.log('Making test API call with token:', accessToken.substring(0, 20) + '...');
+      const response = await fetch('/api/matching/interviewers', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('API call successful:', data);
+      } else {
+        const error = await response.text();
+        console.log('API call failed:', response.status, error);
+      }
+    } catch (error) {
+      console.error('API call error:', error);
+    }
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoggingIn(true);
+    setLoginError(null);
+    
+    try {
+      await login(loginEmail, loginPassword);
+      // Stay on interviewer page after successful login
+    } catch (error) {
+      setLoginError(error instanceof Error ? error.message : 'Login failed');
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
   const {
     language: intentLanguage,
     tools: intentTools,
@@ -387,14 +442,21 @@ export default function InterviewerDashboardPage() {
   const interviewersQuery = useQuery({
     queryKey: ['interviewers'],
     queryFn: fetchInterviewers,
-    enabled: typeof window !== 'undefined', // Only run on client side
-    onSuccess: (data) => {
-      console.log('Interviewers loaded:', data);
-    },
-    onError: (error) => {
-      console.error('Failed to load interviewers:', error);
-    }
+    enabled: typeof window !== 'undefined' // Only run on client side
   });
+
+  // Handle success and error side effects
+  useEffect(() => {
+    if (interviewersQuery.isSuccess && interviewersQuery.data) {
+      console.log('Interviewers loaded:', interviewersQuery.data);
+    }
+  }, [interviewersQuery.isSuccess, interviewersQuery.data]);
+
+  useEffect(() => {
+    if (interviewersQuery.isError && interviewersQuery.error) {
+      console.error('Failed to load interviewers:', interviewersQuery.error);
+    }
+  }, [interviewersQuery.isError, interviewersQuery.error]);
 
   const availabilityQuery = useQuery({
     queryKey: ['interviewer', selectedInterviewerId, 'availability'],
@@ -904,7 +966,83 @@ export default function InterviewerDashboardPage() {
           </div>
         </header>
 
-        <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
+        {!isAuthenticated ? (
+          <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
+            <div className="max-w-md mx-auto">
+              <h2 className="text-xl font-semibold text-white mb-4">Login Required</h2>
+              <p className="text-sm text-slate-400 mb-6">
+                Please login with your interviewer credentials to access the dashboard.
+              </p>
+              
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div>
+                  <label className="block text-sm text-slate-400 mb-2">Email</label>
+                  <input
+                    type="email"
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm text-slate-400 mb-2">Password</label>
+                  <input
+                    type="password"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+                    required
+                  />
+                </div>
+                
+                {loginError && (
+                  <div className="text-red-400 text-sm">{loginError}</div>
+                )}
+                
+                <button
+                  type="submit"
+                  disabled={isLoggingIn}
+                  className="w-full rounded-lg bg-secondary px-4 py-2 text-sm font-semibold text-slate-950 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isLoggingIn ? 'Logging in...' : 'Login'}
+                </button>
+              </form>
+              
+              <div className="mt-4 text-xs text-slate-500">
+                <p>Test credentials:</p>
+                <p>Email: interviewer@supermock.io</p>
+                <p>Password: supermock</p>
+              </div>
+            </div>
+          </section>
+        ) : (
+          <>
+            <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-white">Welcome, {user?.email}</h2>
+                  <p className="text-sm text-slate-400">Role: {user?.role}</p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={testApiCall}
+                    className="rounded border border-blue-500/60 px-3 py-1 text-sm font-semibold text-blue-400 transition-colors hover:bg-blue-500/10"
+                  >
+                    Test API
+                  </button>
+                  <button
+                    onClick={logout}
+                    className="rounded border border-red-500/60 px-3 py-1 text-sm font-semibold text-red-400 transition-colors hover:bg-red-500/10"
+                  >
+                    Logout
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <label className="text-sm text-slate-400">
               Interviewer profile
@@ -1485,6 +1623,8 @@ export default function InterviewerDashboardPage() {
             <p className="text-sm text-slate-500">{noSessionsMessage}</p>
           )}
         </section>
+          </>
+        )}
       </main>
     </>
   );
