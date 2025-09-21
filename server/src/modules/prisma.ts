@@ -58,6 +58,11 @@ export const __mockDb = {
     findUnique: jest.fn(),
     delete: jest.fn(),
   },
+  notification: {
+    create: jest.fn(),
+    findMany: jest.fn(),
+    updateMany: jest.fn(),
+  },
   userInvitation: {
     create: jest.fn(),
     findUnique: jest.fn(),

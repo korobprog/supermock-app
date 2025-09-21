@@ -1,5 +1,9 @@
 import { beforeAll, afterAll, vi } from 'vitest';
 
+const jsonNull = Symbol('JsonNull');
+const dbNull = Symbol('DbNull');
+const anyNull = Symbol('AnyNull');
+
 vi.mock('@prisma/client', () => {
   class PrismaClientMock {
     $disconnect = vi.fn().mockResolvedValue(undefined);
@@ -8,24 +12,61 @@ vi.mock('@prisma/client', () => {
     $on = vi.fn();
   }
 
-  const createEnum = (values: string[]) => {
-    return values.reduce<Record<string, string>>((acc, value) => {
-      acc[value] = value;
-      return acc;
-    }, {});
-  };
-
   return {
     PrismaClient: PrismaClientMock,
-    Prisma: {
-      DbNull: Symbol('DbNull'),
-      JsonNull: Symbol('JsonNull'),
-      Null: Symbol('Null')
+    UserRole: {
+      CANDIDATE: 'CANDIDATE',
+      INTERVIEWER: 'INTERVIEWER',
+      ADMIN: 'ADMIN'
     },
-    UserRole: createEnum(['CANDIDATE', 'INTERVIEWER', 'ADMIN']),
-    MatchStatus: createEnum(['QUEUED', 'MATCHED', 'SCHEDULED', 'COMPLETED', 'CANCELLED', 'EXPIRED']),
-    SlotParticipantRole: createEnum(['CANDIDATE', 'INTERVIEWER', 'OBSERVER']),
-    SessionFormat: createEnum(['SYSTEM_DESIGN', 'CODING', 'BEHAVIORAL', 'MIXED'])
+    MatchStatus: {
+      QUEUED: 'QUEUED',
+      MATCHED: 'MATCHED',
+      SCHEDULED: 'SCHEDULED',
+      COMPLETED: 'COMPLETED',
+      CANCELLED: 'CANCELLED',
+      EXPIRED: 'EXPIRED'
+    },
+    SessionFormat: {
+      SYSTEM_DESIGN: 'SYSTEM_DESIGN',
+      CODING: 'CODING',
+      BEHAVIORAL: 'BEHAVIORAL',
+      MIXED: 'MIXED'
+    },
+    SlotParticipantRole: {
+      CANDIDATE: 'CANDIDATE',
+      INTERVIEWER: 'INTERVIEWER',
+      OBSERVER: 'OBSERVER'
+    },
+    RealtimeSessionStatus: {
+      SCHEDULED: 'SCHEDULED',
+      ACTIVE: 'ACTIVE',
+      ENDED: 'ENDED',
+      CANCELLED: 'CANCELLED'
+    },
+    SessionParticipantRole: {
+      HOST: 'HOST',
+      INTERVIEWER: 'INTERVIEWER',
+      CANDIDATE: 'CANDIDATE',
+      OBSERVER: 'OBSERVER'
+    },
+    Prisma: {
+      JsonNull: jsonNull,
+      DbNull: dbNull,
+      AnyNull: anyNull,
+      NullTypes: {
+        JsonNull: jsonNull,
+        DbNull: dbNull,
+        AnyNull: anyNull
+      },
+      PrismaClientKnownRequestError: class PrismaClientKnownRequestError extends Error {
+        code: string;
+        constructor(message: string, options: { code: string }) {
+          super(message);
+          this.code = options.code;
+        }
+      }
+    }
   };
 });
 
