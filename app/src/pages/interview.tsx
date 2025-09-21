@@ -307,7 +307,23 @@ export default function InterviewMatchingPage() {
   const matchRequestQuery = useQuery<MatchRequestWithResultDto | null>({
     queryKey: ['matching', 'request', activeRequestId],
     queryFn: () => fetchMatchRequest(activeRequestId!).catch(() => null),
-    enabled: Boolean(activeRequestId)
+    enabled: Boolean(activeRequestId),
+    refetchInterval: (data) => {
+      if (!activeRequestId) {
+        return false;
+      }
+
+      if (!data) {
+        return 2000;
+      }
+
+      if (data.status === 'QUEUED' || !data.result || data.result.status === 'QUEUED') {
+        return 2000;
+      }
+
+      return false;
+    },
+    refetchIntervalInBackground: true
   });
 
   const matchPreviewsQuery = useQuery<MatchPreviewDto[]>({
@@ -468,7 +484,7 @@ export default function InterviewMatchingPage() {
       ? 'Slot joined — request updated below.'
       : null
     : createRequestMutation.isSuccess
-      ? 'Match request queued — previews updated below.'
+      ? 'Match request created — searching for availability…'
       : null;
 
   return (
@@ -690,6 +706,13 @@ export default function InterviewMatchingPage() {
                 <p className="font-medium text-white">{matchRequestQuery.data.preferredLanguages.join(', ')}</p>
               </div>
             </div>
+
+            {matchRequestQuery.data.status === 'QUEUED' && (
+              <p className="mt-3 text-sm text-slate-400">
+                Auto-matching in progress — new meetings will appear here automatically once we reserve a compatible
+                slot.
+              </p>
+            )}
 
             {matchRequestQuery.data.result && (
               <div className="mt-4 rounded-xl border border-emerald-500/50 bg-emerald-500/10 p-4">

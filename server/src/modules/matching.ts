@@ -36,6 +36,9 @@ import { calculateMatchingScore } from '../../../shared/src/utils/scoring.js';
 import { prisma } from './prisma.js';
 import { emitSlotUpdate } from './realtime/bus.js';
 import type { DailyCoService } from './daily-co.js';
+import { emitMatchRequestCreated } from './matching-events.js';
+import type { MatchSchedulingHooks } from './matching-notifications.js';
+export type { MatchSchedulingHooks } from './matching-notifications.js';
 
 function toInterviewerSummary(
   interviewer: InterviewerProfile & { availability?: InterviewerAvailability[] }
@@ -129,6 +132,7 @@ function mapMatchRequest(
 
 type ScheduleMatchOptions = {
   dailyCoService?: DailyCoService | null;
+  hooks?: MatchSchedulingHooks;
 };
 
 const DAILY_ROOM_NAME_PREFIX = 'supermock-match';
@@ -186,6 +190,8 @@ export async function createMatchRequest(
       expiresAt
     }
   });
+
+  emitMatchRequestCreated(request.id);
 
   return mapMatchRequest(request);
 }
@@ -318,7 +324,12 @@ export async function scheduleMatch(
     return null;
   }
 
-  const existingRequest = await prisma.matchRequest.findUnique({ where: { id: requestId } });
+  const existingRequest = await prisma.matchRequest.findUnique({
+    where: { id: requestId },
+    include: {
+      candidate: true
+    }
+  });
   if (!existingRequest) {
     return null;
   }
@@ -419,7 +430,22 @@ export async function scheduleMatch(
       return null;
     }
 
-    return mapMatchRequest(updatedRequest);
+    const mapped = mapMatchRequest(updatedRequest);
+
+    if (mapped.result && existingRequest.candidate && options.hooks?.onScheduled) {
+      try {
+        await options.hooks.onScheduled({
+          request: mapped,
+          candidate: existingRequest.candidate,
+          interviewer: availability.interviewer,
+          slot: { start: availability.start, end: availability.end }
+        });
+      } catch (hookError) {
+        console.error('Failed to dispatch match scheduling hooks', hookError);
+      }
+    }
+
+    return mapped;
   } catch (error) {
     if (dailyCoService && createdRoomName) {
       await dailyCoService.deleteRoom(createdRoomName).catch(() => {});
