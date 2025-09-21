@@ -1,7 +1,7 @@
 const DEFAULT_PORT = Number(process.env.SERVER_PORT ?? 4000);
 const DEFAULT_HOST = process.env.SERVER_HOST ?? '0.0.0.0';
 const DEFAULT_CORS_ORIGINS = ['http://localhost:3000', 'http://localhost:3001'];
-const DEFAULT_JWT_SECRET = process.env.JWT_SECRET ?? 'supermock-dev-secret';
+const DEVELOPMENT_JWT_SECRET = 'supermock-dev-secret';
 const DEFAULT_JWT_ACCESS_TTL = process.env.JWT_ACCESS_TTL ?? '15m';
 const DEFAULT_JWT_REFRESH_TTL = process.env.JWT_REFRESH_TTL ?? '7d';
 const DEFAULT_BCRYPT_SALT_ROUNDS = process.env.BCRYPT_SALT_ROUNDS ? Number(process.env.BCRYPT_SALT_ROUNDS) : 12;
@@ -46,6 +46,16 @@ export type AppConfig = {
 };
 
 export function buildConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
+  const nodeEnv = env.NODE_ENV ?? 'development';
+  const isDevelopment = nodeEnv === 'development';
+
+  const rawJwtSecret = env.JWT_SECRET ?? (isDevelopment ? DEVELOPMENT_JWT_SECRET : undefined);
+  const jwtSecret = typeof rawJwtSecret === 'string' ? rawJwtSecret.trim() : '';
+
+  if (!jwtSecret) {
+    throw new Error('JWT_SECRET must be provided when NODE_ENV is not "development".');
+  }
+
   const dailyCoApiKey = env.DAILY_CO_API_KEY ?? '';
   const dailyCoDomain = env.DAILY_CO_DOMAIN ?? '';
   const dailyCoEnabled = Boolean(dailyCoApiKey && dailyCoDomain);
@@ -61,7 +71,7 @@ export function buildConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       env.CORS_ORIGIN?.split(',').map((origin) => origin.trim()).filter(Boolean) ?? DEFAULT_CORS_ORIGINS,
     logLevel: (env.LOG_LEVEL as LogLevel) ?? 'info',
     jwt: {
-      secret: env.JWT_SECRET ?? DEFAULT_JWT_SECRET,
+      secret: jwtSecret,
       accessTokenTtl: env.JWT_ACCESS_TTL ?? DEFAULT_JWT_ACCESS_TTL,
       refreshTokenTtl: env.JWT_REFRESH_TTL ?? DEFAULT_JWT_REFRESH_TTL
     },
