@@ -1,16 +1,49 @@
-import { randomUUID } from 'node:crypto';
+import type { Notification, Prisma } from '@prisma/client';
 
 import type {
   CreateNotificationPayload,
   MarkNotificationsReadPayload,
   NotificationDto
 } from '../../../shared/src/types/realtime.js';
+import { prisma } from './prisma.js';
 import { emitNotification } from './realtime/bus.js';
 
-const notifications = new Map<string, NotificationDto>();
+function toJsonObject(
+  value: Record<string, unknown> | undefined,
+  field: 'payload' | 'metadata'
+): Prisma.JsonObject | undefined {
+  if (value == null) {
+    return undefined;
+  }
 
-function nowIso() {
-  return new Date().toISOString();
+  try {
+    JSON.stringify(value);
+  } catch (error) {
+    throw new Error(`Notification ${field} must be JSON-serializable`);
+  }
+
+  return value as Prisma.JsonObject;
+}
+
+function mapNotification(record: Notification): NotificationDto {
+  const payload = record.payload as Record<string, unknown> | null;
+  const metadata = record.metadata as Record<string, unknown> | null;
+
+  return {
+    id: record.id,
+    userId: record.userId,
+    type: record.type,
+    channel: record.channel,
+    payload: payload ?? undefined,
+    readAt: record.readAt ? record.readAt.toISOString() : null,
+    createdAt: record.createdAt.toISOString(),
+    updatedAt: record.updatedAt.toISOString(),
+    metadata: metadata ?? undefined
+  };
+}
+
+function isValidDate(value: Date | null | undefined): value is Date {
+  return value instanceof Date && !Number.isNaN(value.getTime());
 }
 
 export async function listNotifications(
@@ -19,73 +52,57 @@ export async function listNotifications(
 ): Promise<NotificationDto[]> {
   const limit = Math.min(Math.max(options?.limit ?? 50, 1), 200);
 
-  const items = Array.from(notifications.values())
-    .filter((item) => item.userId === userId)
-    .filter((item) => (options?.unreadOnly ? item.readAt == null : true))
-    .filter((item) => (options?.before ? new Date(item.createdAt) < options.before : true))
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .slice(0, limit);
+  const beforeFilter = options?.before && isValidDate(options.before) ? options.before : undefined;
 
-  return items;
+  const notifications = await prisma.notification.findMany({
+    where: {
+      userId,
+      readAt: options?.unreadOnly ? null : undefined,
+      createdAt: beforeFilter ? { lt: beforeFilter } : undefined
+    },
+    orderBy: { createdAt: 'desc' },
+    take: limit
+  });
+
+  return notifications.map(mapNotification);
 }
 
 export async function createNotification(
   payload: CreateNotificationPayload
 ): Promise<NotificationDto> {
-  const id = randomUUID();
-  const timestamp = nowIso();
+  const notification = await prisma.notification.create({
+    data: {
+      userId: payload.userId,
+      type: payload.type,
+      channel: payload.channel ?? null,
+      payload: toJsonObject(payload.payload, 'payload'),
+      metadata: toJsonObject(payload.metadata, 'metadata')
+    }
+  });
 
-  const notification: NotificationDto = {
-    id,
-    userId: payload.userId,
-    type: payload.type,
-    channel: payload.channel ?? null,
-    payload: payload.payload,
-    readAt: null,
-    createdAt: timestamp,
-    updatedAt: timestamp,
-    metadata: payload.metadata
-  };
-
-  notifications.set(id, notification);
-  emitNotification({ notification });
-  return notification;
+  const dto = mapNotification(notification);
+  emitNotification({ notification: dto });
+  return dto;
 }
 
 export async function markNotificationsAsRead(
   userId: string,
   payload: MarkNotificationsReadPayload
 ): Promise<number> {
-  const now = nowIso();
-  let updated = 0;
+  const beforeDate = payload.before ? new Date(payload.before) : null;
+  const createdAtFilter = isValidDate(beforeDate) ? { lt: beforeDate } : undefined;
 
-  notifications.forEach((notification, id) => {
-    if (notification.userId !== userId) {
-      return;
-    }
-
-    if (payload.notificationIds && payload.notificationIds.length > 0) {
-      if (!payload.notificationIds.includes(id)) {
-        return;
-      }
-    }
-
-    if (payload.before) {
-      const before = new Date(payload.before);
-      if (!(before instanceof Date) || Number.isNaN(before.getTime())) {
-        return;
-      }
-      if (new Date(notification.createdAt) >= before) {
-        return;
-      }
-    }
-
-    if (!notification.readAt) {
-      notification.readAt = now;
-      notification.updatedAt = now;
-      updated += 1;
+  const result = await prisma.notification.updateMany({
+    where: {
+      userId,
+      readAt: null,
+      id: payload.notificationIds && payload.notificationIds.length > 0 ? { in: payload.notificationIds } : undefined,
+      createdAt: createdAtFilter
+    },
+    data: {
+      readAt: new Date()
     }
   });
 
-  return updated;
+  return result.count;
 }
