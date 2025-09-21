@@ -10,7 +10,9 @@ import type {
   CreateAvailabilityPayload,
   CompleteMatchPayload,
   CompletedSessionDto,
-  InterviewerSessionDto
+  InterviewerSessionDto,
+  SlotDto,
+  JoinSlotPayload
 } from '../../../shared/src/types/matching.js';
 import type {
   CreateRealtimeSessionPayload,
@@ -88,6 +90,10 @@ export function fetchInterviewerAvailability(interviewerId: string) {
   return request<AvailabilitySlotDto[]>(`/matching/interviewers/${interviewerId}/availability`);
 }
 
+export function fetchSlot(slotId: string) {
+  return request<SlotDto>(`/matching/slots/${slotId}`);
+}
+
 export function createInterviewerAvailabilitySlot(
   interviewerId: string,
   payload: Omit<CreateAvailabilityPayload, 'interviewerId'>
@@ -101,6 +107,13 @@ export function createInterviewerAvailabilitySlot(
 export function deleteInterviewerAvailabilitySlot(slotId: string) {
   return request<void>(`/matching/availability/${slotId}`, {
     method: 'DELETE'
+  });
+}
+
+export function joinSlot(slotId: string, payload: JoinSlotPayload) {
+  return request<SlotDto>(`/matching/slots/${slotId}/join`, {
+    method: 'POST',
+    body: JSON.stringify(payload)
   });
 }
 

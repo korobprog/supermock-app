@@ -16,7 +16,9 @@ import {
   listInterviewers,
   listInterviewerAvailability,
   getInterviewerSessions,
-  scheduleMatch
+  scheduleMatch,
+  getSlotById,
+  joinSlot
 } from '../modules/matching.js';
 
 const createMatchRequestSchema = z.object({
@@ -107,6 +109,46 @@ const createAvailabilitySchema = z.object({
   isRecurring: z.boolean().optional()
 });
 
+const joinSlotSchema = z
+  .object({
+    role: z.enum(['CANDIDATE', 'INTERVIEWER', 'OBSERVER']),
+    candidateId: z.string().min(1).optional(),
+    interviewerId: z.string().min(1).optional()
+  })
+  .superRefine((data, ctx) => {
+    if (data.candidateId && data.interviewerId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Provide either candidateId or interviewerId, not both',
+        path: ['interviewerId']
+      });
+    }
+
+    if (data.role === 'CANDIDATE' && !data.candidateId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'candidateId is required for candidate role',
+        path: ['candidateId']
+      });
+    }
+
+    if (data.role === 'INTERVIEWER' && !data.interviewerId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'interviewerId is required for interviewer role',
+        path: ['interviewerId']
+      });
+    }
+
+    if (data.role === 'OBSERVER' && !data.candidateId && !data.interviewerId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Observer must reference a candidateId or interviewerId',
+        path: ['role']
+      });
+    }
+  });
+
 const completeMatchSchema = z.object({
   effectivenessScore: z.number().min(0).max(100),
   interviewerNotes: z.string().min(3),
@@ -182,6 +224,18 @@ export function registerMatchingRoutes(app: FastifyInstance, deps: MatchingRoute
     return listInterviewerAvailability(id);
   });
 
+  app.get('/matching/slots/:id', async (request, reply) => {
+    const { id } = requestIdParamsSchema.parse(request.params);
+    const slot = await getSlotById(id);
+
+    if (!slot) {
+      reply.code(404);
+      throw new Error('Slot not found');
+    }
+
+    return slot;
+  });
+
   app.get('/matching/interviewers/:id/sessions', async (request) => {
     const { id } = requestIdParamsSchema.parse(request.params);
     const limitParam = (request.query as { limit?: string })?.limit;
@@ -220,6 +274,20 @@ export function registerMatchingRoutes(app: FastifyInstance, deps: MatchingRoute
 
     reply.code(204);
     return null;
+  });
+
+  app.post('/matching/slots/:id/join', async (request, reply) => {
+    const { id } = requestIdParamsSchema.parse(request.params);
+    const payload = joinSlotSchema.parse(request.body);
+
+    const slot = await joinSlot(id, payload);
+
+    if (!slot) {
+      reply.code(404);
+      throw new Error('Slot or participant not found');
+    }
+
+    return slot;
   });
 
   app.post('/matching/matches/:id/complete', async (request) => {
