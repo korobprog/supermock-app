@@ -13,7 +13,7 @@ export type SlotUpdateEvent = {
 };
 
 export type SessionBroadcastEvent = {
-  action: 'created' | 'updated' | 'deleted' | 'heartbeat' | 'participant_joined' | 'participant_left';
+  action: 'created' | 'updated' | 'deleted' | 'heartbeat' | 'participant_joined' | 'participant_left' | 'restored';
   session: RealtimeSessionDto;
   participant?: SessionParticipantDto;
 };
@@ -48,8 +48,20 @@ export function emitSlotUpdate(event: SlotUpdateEvent) {
   realtimeBus.emit('slots:update', event);
 }
 
+const globalStructuredClone = (globalThis as {
+  structuredClone?: <T>(value: T) => T;
+}).structuredClone;
+
+function cloneSessionEvent(event: SessionBroadcastEvent): SessionBroadcastEvent {
+  if (typeof globalStructuredClone === 'function') {
+    return globalStructuredClone(event);
+  }
+
+  return JSON.parse(JSON.stringify(event)) as SessionBroadcastEvent;
+}
+
 export function emitSessionUpdate(event: SessionBroadcastEvent) {
-  realtimeBus.emit('sessions:update', event);
+  realtimeBus.emit('sessions:update', cloneSessionEvent(event));
 }
 
 export function emitNotification(event: NotificationBroadcastEvent) {

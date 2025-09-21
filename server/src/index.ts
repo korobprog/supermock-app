@@ -20,6 +20,7 @@ import { registerNotificationRoutes } from './routes/notifications.route.js';
 import { registerAnalyticsRoutes } from './routes/analytics.route.js';
 import { registerRealtimeWebsocketRoutes } from './routes/realtime.ws.js';
 import { DailyCoService } from './modules/daily-co.js';
+import { restoreRealtimeSessions } from './modules/realtime-sessions.js';
 
 const config = buildConfig();
 const dailyCoService = config.dailyCo.enabled
@@ -65,6 +66,7 @@ async function bootstrap() {
 
   try {
     await app.listen({ port: config.port, host: config.host });
+    await restoreRealtimeSessions();
     app.log.info(`SuperMock API listening on ${config.host}:${config.port}`);
   } catch (error) {
     app.log.error(error);
