@@ -6,6 +6,7 @@ import type {
   MatchPreviewDto,
   MatchRequestWithResultDto,
   ScheduleMatchPayload,
+  MatchTokenResponse,
   AvailabilitySlotDto,
   CreateAvailabilityPayload,
   CompleteMatchPayload,
@@ -176,6 +177,12 @@ export function completeMatch(matchId: string, payload: CompleteMatchPayload) {
   return request<MatchRequestWithResultDto>(`/matching/matches/${matchId}/complete`, {
     method: 'POST',
     body: JSON.stringify(payload)
+  });
+}
+
+export function fetchMatchToken(matchId: string) {
+  return request<MatchTokenResponse>(`/matching/matches/${matchId}/token`, {
+    method: 'POST'
   });
 }
 

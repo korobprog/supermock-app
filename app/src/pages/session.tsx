@@ -30,7 +30,7 @@ import {
   WifiIcon
 } from '@heroicons/react/24/outline';
 import { useDailyCo } from '@/hooks/useDailyCo';
-import { fetchMatchRequest } from '@/lib/api';
+import { fetchMatchRequest, fetchMatchToken } from '@/lib/api';
 import type { MatchRequestWithResultDto } from '../../../shared/src/types/matching.js';
 
 type TimelineCheckpoint = {
@@ -362,6 +362,9 @@ export default function ActiveSessionPage() {
   const [matchData, setMatchData] = useState<MatchRequestWithResultDto | null>(null);
   const [isMatchLoading, setIsMatchLoading] = useState(false);
   const [matchError, setMatchError] = useState<string | null>(null);
+  const [roomToken, setRoomToken] = useState<string | null>(null);
+  const [isFetchingRoomToken, setIsFetchingRoomToken] = useState(false);
+  const [roomTokenError, setRoomTokenError] = useState<string | null>(null);
 
   const [sessionStart] = useState(() => new Date(Date.now() + 12 * 60 * 1000));
   const sessionEnd = useMemo(
@@ -499,10 +502,67 @@ export default function ActiveSessionPage() {
 
   const matchResult = matchData?.result ?? null;
   const roomUrl = matchResult?.roomUrl ?? null;
-  const roomToken = matchResult?.roomToken ?? null;
   const roomId = matchResult?.roomId ?? null;
+  const roomKey = matchResult ? `${matchResult.id}:${matchResult.roomId ?? matchResult.roomUrl ?? ''}` : null;
+  const hasDailyRoom = Boolean(roomUrl);
+  const hasDailyToken = Boolean(roomToken);
+  const hasDailyCredentials = hasDailyRoom && hasDailyToken;
   const dailyUserName = matchResult?.interviewer?.displayName ?? 'SuperMock';
-  const hasDailyCredentials = Boolean(roomUrl && roomToken);
+
+  useEffect(() => {
+    setRoomToken(null);
+    setRoomTokenError(null);
+    setIsFetchingRoomToken(false);
+  }, [roomKey]);
+
+  useEffect(() => {
+    if (!matchIdParam || !hasDailyRoom) {
+      return;
+    }
+
+    if (roomToken || roomTokenError || isFetchingRoomToken) {
+      return;
+    }
+
+    let canceled = false;
+
+    setIsFetchingRoomToken(true);
+    setRoomTokenError(null);
+
+    fetchMatchToken(matchIdParam)
+      .then((response) => {
+        if (canceled) {
+          return;
+        }
+
+        setRoomToken(response.token);
+      })
+      .catch((err) => {
+        if (canceled) {
+          return;
+        }
+
+        const message =
+          err instanceof Error ? err.message : 'Не удалось получить доступ к видеокомнате';
+        setRoomTokenError(message);
+        setRoomToken(null);
+      })
+      .finally(() => {
+        if (!canceled) {
+          setIsFetchingRoomToken(false);
+        }
+      });
+
+    return () => {
+      canceled = true;
+    };
+  }, [matchIdParam, hasDailyRoom, roomToken, roomTokenError, isFetchingRoomToken]);
+
+  const handleRoomTokenRetry = useCallback(() => {
+    setRoomToken(null);
+    setRoomTokenError(null);
+    setIsFetchingRoomToken(false);
+  }, []);
 
   const dailyCo = useDailyCo({
     roomUrl,
@@ -946,6 +1006,49 @@ export default function ActiveSessionPage() {
                       );
                     }
 
+                    if (!hasDailyRoom) {
+                      return (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-950/70 px-6 text-center text-sm text-slate-300">
+                          <VideoCameraIcon className="h-6 w-6 text-slate-400" />
+                          <span>Комната появится автоматически после планирования встречи.</span>
+                        </div>
+                      );
+                    }
+
+                    if (isFetchingRoomToken) {
+                      return (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-950/60 text-sm text-slate-300">
+                          <ArrowPathIcon className="h-6 w-6 animate-spin text-secondary" />
+                          <span>Получаем доступ к видеокомнате…</span>
+                        </div>
+                      );
+                    }
+
+                    if (roomTokenError) {
+                      return (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-950/80 px-6 text-center text-sm text-rose-200">
+                          <ShieldExclamationIcon className="h-6 w-6" />
+                          <span>{roomTokenError}</span>
+                          <button
+                            type="button"
+                            onClick={handleRoomTokenRetry}
+                            className="inline-flex items-center gap-2 rounded-full border border-rose-200/40 bg-rose-200/10 px-3 py-1 text-xs font-semibold text-rose-100 transition hover:bg-rose-200/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-200"
+                          >
+                            <ArrowPathIcon className="h-4 w-4" /> Обновить доступ
+                          </button>
+                        </div>
+                      );
+                    }
+
+                    if (!hasDailyToken) {
+                      return (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-950/60 text-sm text-slate-300">
+                          <VideoCameraIcon className="h-6 w-6 text-slate-400" />
+                          <span>Готовим доступ к комнате Daily.co…</span>
+                        </div>
+                      );
+                    }
+
                     if (dailyCo.error && !dailyCo.isConnected) {
                       return (
                         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-950/80 px-6 text-center text-sm text-rose-200">
@@ -967,15 +1070,6 @@ export default function ActiveSessionPage() {
                         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-950/60 text-sm text-slate-300">
                           <ArrowPathIcon className="h-6 w-6 animate-spin text-secondary" />
                           <span>Подключаемся к Daily.co…</span>
-                        </div>
-                      );
-                    }
-
-                    if (!hasDailyCredentials) {
-                      return (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-950/70 px-6 text-center text-sm text-slate-300">
-                          <VideoCameraIcon className="h-6 w-6 text-slate-400" />
-                          <span>Комната появится автоматически после планирования встречи.</span>
                         </div>
                       );
                     }
@@ -1026,12 +1120,12 @@ export default function ActiveSessionPage() {
                   </div>
                 </div>
 
-                {(matchError || (dailyCo.error && !dailyCo.isConnected)) && (
+                {(matchError || roomTokenError || (dailyCo.error && !dailyCo.isConnected)) && (
                   <div className="rounded-2xl border border-rose-500/40 bg-rose-500/10 p-4 text-sm text-rose-200">
                     <div className="flex items-start gap-3">
                       <ShieldExclamationIcon className="mt-0.5 h-5 w-5" />
                       <div className="space-y-2">
-                        <p>{matchError ?? dailyCo.error}</p>
+                        <p>{matchError ?? roomTokenError ?? dailyCo.error}</p>
                         <div className="flex flex-wrap gap-2">
                           {matchError && (
                             <button
@@ -1040,6 +1134,15 @@ export default function ActiveSessionPage() {
                               className="inline-flex items-center gap-2 rounded-full border border-rose-200/40 bg-rose-200/10 px-3 py-1 text-xs font-semibold text-rose-100 transition hover:bg-rose-200/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-200"
                             >
                               <ArrowPathIcon className="h-4 w-4" /> Обновить данные
+                            </button>
+                          )}
+                          {roomTokenError && (
+                            <button
+                              type="button"
+                              onClick={handleRoomTokenRetry}
+                              className="inline-flex items-center gap-2 rounded-full border border-rose-200/40 bg-rose-200/10 px-3 py-1 text-xs font-semibold text-rose-100 transition hover:bg-rose-200/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-200"
+                            >
+                              <ArrowPathIcon className="h-4 w-4" /> Повторить попытку
                             </button>
                           )}
                           {dailyCo.error && !dailyCo.isConnected && (
@@ -1061,7 +1164,12 @@ export default function ActiveSessionPage() {
                   <button
                     type="button"
                     onClick={dailyCo.join}
-                    disabled={!hasDailyCredentials || dailyCo.isConnected || dailyCo.isLoading}
+                    disabled={
+                      !hasDailyCredentials ||
+                      dailyCo.isConnected ||
+                      dailyCo.isLoading ||
+                      isFetchingRoomToken
+                    }
                     className="inline-flex items-center gap-2 rounded-full border border-secondary/40 bg-secondary/10 px-4 py-2 text-sm font-semibold text-secondary transition hover:bg-secondary/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <PlayIcon className="h-5 w-5" /> Присоединиться
@@ -1103,7 +1211,7 @@ export default function ActiveSessionPage() {
                   <button
                     type="button"
                     onClick={dailyCo.retry}
-                    disabled={!hasDailyCredentials || dailyCo.isLoading}
+                    disabled={!hasDailyCredentials || dailyCo.isLoading || isFetchingRoomToken}
                     className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <ArrowPathIcon className="h-5 w-5" /> Переподключить

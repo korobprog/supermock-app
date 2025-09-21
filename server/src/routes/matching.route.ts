@@ -19,6 +19,7 @@ import {
   getInterviewerSessions,
   scheduleMatch,
   getSlotById,
+  generateMatchToken,
   joinSlot
 } from '../modules/matching.js';
 import { authenticate, authorizeRoles } from '../utils/auth.js';
@@ -354,6 +355,40 @@ export function registerMatchingRoutes(app: FastifyInstance, deps: MatchingRoute
       }
 
       return updated;
+    }
+  );
+
+  app.post(
+    '/matching/matches/:id/token',
+    { preHandler: authorizeRoles(UserRole.CANDIDATE, UserRole.INTERVIEWER, UserRole.ADMIN) },
+    async (request, reply) => {
+      const dailyCoService = deps.dailyCo?.service ?? null;
+
+      if (!dailyCoService) {
+        reply.code(503);
+        throw new Error('Video integration is not enabled');
+      }
+
+      const { id } = requestIdParamsSchema.parse(request.params);
+
+      const actor = request.user as { id: string; role: UserRole };
+
+      try {
+        const token = await generateMatchToken(id, actor, { dailyCoService });
+
+        if (!token) {
+          reply.code(404);
+          throw new Error('Match or video room not found');
+        }
+
+        return { token };
+      } catch (error) {
+        if ((error as { statusCode?: number }).statusCode === 403) {
+          reply.code(403);
+        }
+
+        throw error;
+      }
     }
   );
 

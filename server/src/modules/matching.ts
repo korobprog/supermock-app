@@ -4,6 +4,7 @@ import {
   MatchStatus,
   Prisma,
   SlotParticipantRole as PrismaSlotParticipantRole,
+  UserRole,
   type CandidateProfile,
   type InterviewerProfile,
   type InterviewerAvailability,
@@ -75,7 +76,6 @@ function mapMatchResult(
     scheduledAt: result.scheduledAt?.toISOString() ?? null,
     roomUrl: result.roomUrl ?? null,
     roomId: result.roomId ?? null,
-    roomToken: result.roomToken ?? null,
     effectivenessScore: result.effectivenessScore,
     interviewer: toInterviewerSummary(result.interviewer),
     completedAt: result.completedAt?.toISOString() ?? null,
@@ -129,6 +129,10 @@ function mapMatchRequest(
 }
 
 type ScheduleMatchOptions = {
+  dailyCoService?: DailyCoService | null;
+};
+
+type GenerateMatchTokenOptions = {
   dailyCoService?: DailyCoService | null;
 };
 
@@ -327,10 +331,9 @@ export async function scheduleMatch(
   const scheduledAt = availability.start;
   const dailyCoService = options.dailyCoService ?? null;
 
-  const roomDetails: { roomUrl: string | null; roomId: string | null; roomToken: string | null } = {
+  const roomDetails: { roomUrl: string | null; roomId: string | null } = {
     roomUrl: payload.roomUrl ?? null,
-    roomId: null,
-    roomToken: null
+    roomId: null
   };
 
   let createdRoomName: string | null = null;
@@ -350,17 +353,7 @@ export async function scheduleMatch(
 
       createdRoomName = room.name;
       roomDetails.roomUrl = room.url;
-      roomDetails.roomId = room.id ?? room.name;
-
-      const token = await dailyCoService.generateToken(room.name, {
-        isOwner: true,
-        exp: computeExpirationSeconds(
-          scheduledAt,
-          DAILY_ROOM_DEFAULT_DURATION_MINUTES + DAILY_TOKEN_EXTRA_MINUTES
-        )
-      });
-
-      roomDetails.roomToken = token.token;
+      roomDetails.roomId = room.name;
     }
 
     const updatedRequest = await prisma.$transaction(async (tx) => {
@@ -372,7 +365,6 @@ export async function scheduleMatch(
           scheduledAt,
           roomUrl: roomDetails.roomUrl,
           roomId: roomDetails.roomId,
-          roomToken: roomDetails.roomToken,
           status: MatchStatus.SCHEDULED,
           effectivenessScore: 0
         },
@@ -381,7 +373,6 @@ export async function scheduleMatch(
           scheduledAt,
           roomUrl: roomDetails.roomUrl,
           roomId: roomDetails.roomId,
-          roomToken: roomDetails.roomToken,
           status: MatchStatus.SCHEDULED
         }
       });
@@ -427,6 +418,77 @@ export async function scheduleMatch(
     }
     throw error;
   }
+}
+
+function extractDailyRoomName(roomUrl?: string | null): string | null {
+  if (!roomUrl) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(roomUrl);
+    const slug = parsed.pathname.replace(/^\/+/, '').trim();
+    return slug || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function generateMatchToken(
+  matchId: string,
+  user: { id: string; role: UserRole },
+  options: GenerateMatchTokenOptions = {}
+): Promise<string | null> {
+  const dailyCoService = options.dailyCoService ?? null;
+
+  if (!dailyCoService) {
+    return null;
+  }
+
+  const match = await prisma.interviewMatch.findUnique({
+    where: { id: matchId },
+    include: {
+      interviewer: true,
+      request: {
+        include: {
+          candidate: true
+        }
+      }
+    }
+  });
+
+  if (!match) {
+    return null;
+  }
+
+  const candidateUserId = match.request?.candidate?.userId ?? null;
+  const isInterviewer = match.interviewer.userId === user.id;
+  const isCandidate = candidateUserId === user.id;
+  const isAdmin = user.role === UserRole.ADMIN;
+
+  if (!isInterviewer && !isCandidate && !isAdmin) {
+    const error = new Error('Forbidden');
+    (error as { statusCode?: number }).statusCode = 403;
+    throw error;
+  }
+
+  const roomName = match.roomId ?? extractDailyRoomName(match.roomUrl);
+
+  if (!roomName) {
+    return null;
+  }
+
+  const scheduledAt = match.scheduledAt ?? new Date();
+
+  const token = await dailyCoService.generateToken(roomName, {
+    isOwner: isInterviewer || isAdmin,
+    exp: computeExpirationSeconds(
+      scheduledAt,
+      DAILY_ROOM_DEFAULT_DURATION_MINUTES + DAILY_TOKEN_EXTRA_MINUTES
+    )
+  });
+
+  return token.token;
 }
 
 function mapAvailability(slot: InterviewerAvailability): AvailabilitySlotDto {
