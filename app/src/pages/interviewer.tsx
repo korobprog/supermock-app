@@ -23,48 +23,41 @@ import type {
 
 const DEFAULT_INTERVIEWER_EMAIL = 'interviewer@supermock.io';
 const DURATION_OPTIONS = [30, 45, 60, 90, 120];
+const DEFAULT_LANGUAGE_LABEL = '🇺🇸 English';
 
 function normalizeLanguageLabel(label: string) {
   return label.replace(/^[^\p{L}]+/u, '').trim();
 }
 
-function getDefaultLanguageFromUrl(): string {
-  // Check if we're on the client side
-  if (typeof window === 'undefined') {
-    return '🇺🇸 English';
+function getDefaultLanguageFromUrl(languageParam?: string | string[] | null): string {
+  const queryValue = Array.isArray(languageParam) ? languageParam[0] : languageParam ?? null;
+
+  const valueFromUrl = () => {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    return params.get('language');
+  };
+
+  const rawLanguage = queryValue ?? valueFromUrl();
+
+  if (!rawLanguage) {
+    return DEFAULT_LANGUAGE_LABEL;
   }
-  
-  const urlParams = new URLSearchParams(window.location.search);
-  const languageParam = urlParams.get('language');
-  
-  console.log('Language parameter from URL:', languageParam);
-  
-  if (languageParam) {
-    // Decode URL-encoded language parameter
-    const decodedLanguage = decodeURIComponent(languageParam);
-    console.log('Decoded language parameter:', decodedLanguage);
-    
-    // Handle different language formats from slots dashboard
-    if (decodedLanguage.includes('🇷🇺') || decodedLanguage.toLowerCase().includes('russian')) {
-      console.log('Setting language to Russian');
-      return '🇷🇺 Russian';
-    }
-    if (decodedLanguage.includes('🇺🇸') || decodedLanguage.toLowerCase().includes('english')) {
-      console.log('Setting language to English');
-      return '🇺🇸 English';
-    }
-    if (decodedLanguage.includes('🇪🇸') || decodedLanguage.toLowerCase().includes('spanish')) {
-      console.log('Setting language to Spanish');
-      return '🇪🇸 Spanish';
-    }
-    // If it's a different language, default to English
-    console.log('Unknown language, defaulting to English');
-    return '🇺🇸 English';
+
+  let decodedLanguage = rawLanguage;
+
+  try {
+    decodedLanguage = decodeURIComponent(rawLanguage);
+  } catch (error) {
+    // Keep the raw value if decoding fails
   }
-  
-  // Default to English if no language parameter
-  console.log('No language parameter, defaulting to English');
-  return '🇺🇸 English';
+
+  const trimmedLanguage = decodedLanguage.trim();
+
+  return trimmedLanguage || DEFAULT_LANGUAGE_LABEL;
 }
 
 function toArray(value: string | string[] | undefined) {
@@ -263,7 +256,9 @@ export default function InterviewerDashboardPage() {
   });
   const [durationMinutes, setDurationMinutes] = useState(DURATION_OPTIONS[2]);
   const [isRecurring, setIsRecurring] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState(getDefaultLanguageFromUrl);
+  const [selectedLanguage, setSelectedLanguage] = useState(() =>
+    getDefaultLanguageFromUrl(intentLanguage ?? null)
+  );
   const [sessionLimit, setSessionLimit] = useState(10);
   const [sessionLimitTouched, setSessionLimitTouched] = useState(false);
   const [sessionTab, setSessionTab] = useState<'upcoming' | 'completed' | 'all'>('upcoming');
@@ -286,13 +281,23 @@ export default function InterviewerDashboardPage() {
     if (!router.isReady) {
       return;
     }
-
     if (typeof intentShowUtc === 'string') {
       setShowUtc(intentShowUtc === 'true');
     } else if (intentShowUtc === undefined) {
       setShowUtc(false);
     }
   }, [intentShowUtc, router.isReady]);
+
+  useEffect(() => {
+    if (!router.isReady) {
+      return;
+    }
+
+    const languageFromUrl = getDefaultLanguageFromUrl(intentLanguage ?? null);
+    setSelectedLanguage((current) =>
+      current === languageFromUrl ? current : languageFromUrl
+    );
+  }, [intentLanguage, router.isReady]);
 
   useEffect(() => {
     if (!router.isReady) {
@@ -573,7 +578,7 @@ export default function InterviewerDashboardPage() {
       setEndDateTime(getInitialEndDateTime(newStart));
       setDurationMinutes(DURATION_OPTIONS[2]);
       setIsRecurring(false);
-      setSelectedLanguage(getDefaultLanguageFromUrl());
+      setSelectedLanguage(getDefaultLanguageFromUrl(intentLanguage ?? null));
       queryClient.invalidateQueries({ queryKey: ['interviewer', selectedInterviewerId, 'availability'] });
     }
   });

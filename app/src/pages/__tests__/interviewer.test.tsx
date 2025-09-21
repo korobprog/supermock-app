@@ -39,11 +39,13 @@ import InterviewerDashboardPage from '../interviewer';
 import { mockRouter } from '@/test/router-mock';
 import { renderWithQueryClient } from '@/test/test-utils';
 import { fetchSlotDetails } from '@/data/slots';
-import { joinRealtimeSession } from '@/lib/api';
+import { createInterviewerAvailabilitySlot, joinRealtimeSession } from '@/lib/api';
 
 afterEach(() => {
   vi.mocked(fetchSlotDetails).mockReset();
   vi.mocked(joinRealtimeSession).mockClear();
+  vi.mocked(createInterviewerAvailabilitySlot).mockReset();
+  window.history.replaceState({}, '', '/');
 });
 
 describe('InterviewerDashboardPage', () => {
@@ -67,6 +69,35 @@ describe('InterviewerDashboardPage', () => {
     expect(
       (screen.getByLabelText(/Show last/i) as HTMLSelectElement).value
     ).toBe('20');
+  });
+
+  it('submits normalized language from query when adding availability', async () => {
+    const user = userEvent.setup();
+    const languageValue = '🇩🇪 German';
+    const encodedLanguage = encodeURIComponent(languageValue);
+
+    window.history.replaceState({}, '', `/?language=${encodedLanguage}`);
+    mockRouter.query = { language: languageValue };
+
+    renderWithQueryClient(<InterviewerDashboardPage />);
+
+    await waitFor(() =>
+      expect(
+        (screen.getByLabelText('Interviewer profile') as HTMLSelectElement).value
+      ).toBe('int-2')
+    );
+
+    const addSlotButton = await screen.findByRole('button', { name: 'Add slot' });
+    await waitFor(() => expect(addSlotButton).not.toBeDisabled());
+
+    await user.click(addSlotButton);
+
+    await waitFor(() => expect(createInterviewerAvailabilitySlot).toHaveBeenCalled());
+
+    expect(createInterviewerAvailabilitySlot).toHaveBeenCalledWith(
+      'int-2',
+      expect.objectContaining({ language: 'German' })
+    );
   });
 
   it('renders join summary and posts join intent', async () => {
