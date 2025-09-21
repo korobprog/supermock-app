@@ -1,1 +1,1 @@
-export { buildConfig, type AppConfig } from '../modules/config.js';
+export { buildConfig, type AppConfig, type DailyCoSettings } from '../modules/config.js';

@@ -25,6 +25,8 @@ export interface MatchResultDto {
   status: string;
   scheduledAt?: string | null;
   roomUrl?: string | null;
+  roomId?: string | null;
+  roomToken?: string | null;
   effectivenessScore: number;
   interviewer: InterviewerSummaryDto;
   completedAt?: string | null;
@@ -92,6 +94,41 @@ export interface AvailabilitySlotDto {
   end: string;
   isRecurring: boolean;
   createdAt: string;
+}
+
+export type SlotParticipantRole = 'CANDIDATE' | 'INTERVIEWER' | 'OBSERVER';
+
+export interface SlotParticipantDto {
+  id: string;
+  role: SlotParticipantRole;
+  waitlistPosition: number | null;
+  joinedAt: string;
+  candidate?: CandidateSummaryDto;
+  interviewer?: InterviewerSummaryDto;
+}
+
+export interface SlotHostDto {
+  profile: InterviewerSummaryDto;
+  name: string;
+}
+
+export interface SlotDto {
+  id: string;
+  interviewerId: string;
+  start: string;
+  end: string;
+  isRecurring: boolean;
+  capacity: number;
+  createdAt: string;
+  host: SlotHostDto;
+  participants: SlotParticipantDto[];
+  waitlistCount: number;
+}
+
+export interface JoinSlotPayload {
+  role: SlotParticipantRole;
+  candidateId?: string;
+  interviewerId?: string;
 }
 
 export interface CreateAvailabilityPayload {

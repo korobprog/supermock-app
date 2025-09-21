@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import {
   ArrowPathIcon,
   ArrowUpRightIcon,
@@ -15,6 +16,7 @@ import {
   CommandLineIcon,
   FlagIcon,
   LifebuoyIcon,
+  MicrophoneIcon,
   MapPinIcon,
   MoonIcon,
   PaperAirplaneIcon,
@@ -23,8 +25,13 @@ import {
   ShieldExclamationIcon,
   SparklesIcon,
   SunIcon,
+  UserGroupIcon,
+  VideoCameraIcon,
   WifiIcon
 } from '@heroicons/react/24/outline';
+import { useDailyCo } from '@/hooks/useDailyCo';
+import { fetchMatchRequest } from '@/lib/api';
+import type { MatchRequestWithResultDto } from '../../../shared/src/types/matching.js';
 
 type TimelineCheckpoint = {
   id: string;
@@ -350,6 +357,12 @@ function createMilestoneState(): Record<number, boolean> {
 }
 
 export default function ActiveSessionPage() {
+  const router = useRouter();
+  const matchIdParam = typeof router.query.matchId === 'string' ? router.query.matchId : null;
+  const [matchData, setMatchData] = useState<MatchRequestWithResultDto | null>(null);
+  const [isMatchLoading, setIsMatchLoading] = useState(false);
+  const [matchError, setMatchError] = useState<string | null>(null);
+
   const [sessionStart] = useState(() => new Date(Date.now() + 12 * 60 * 1000));
   const sessionEnd = useMemo(
     () => new Date(sessionStart.getTime() + 60 * 60 * 1000),
@@ -410,6 +423,56 @@ export default function ActiveSessionPage() {
   const [safetyActions, setSafetyActions] = useState<SafetyActionState[]>([]);
 
   useEffect(() => {
+    if (!router.isReady || !matchIdParam) {
+      return;
+    }
+
+    let canceled = false;
+
+    setIsMatchLoading(true);
+    setMatchError(null);
+
+    fetchMatchRequest(matchIdParam)
+      .then((response) => {
+        if (!canceled) {
+          setMatchData(response);
+        }
+      })
+      .catch((err) => {
+        if (!canceled) {
+          setMatchError(err instanceof Error ? err.message : 'Не удалось загрузить данные матча');
+        }
+      })
+      .finally(() => {
+        if (!canceled) {
+          setIsMatchLoading(false);
+        }
+      });
+
+    return () => {
+      canceled = true;
+    };
+  }, [matchIdParam, router.isReady]);
+
+  const handleMatchReload = useCallback(async () => {
+    if (!matchIdParam) {
+      return;
+    }
+
+    setIsMatchLoading(true);
+    setMatchError(null);
+
+    try {
+      const response = await fetchMatchRequest(matchIdParam);
+      setMatchData(response);
+    } catch (err) {
+      setMatchError(err instanceof Error ? err.message : 'Не удалось загрузить данные матча');
+    } finally {
+      setIsMatchLoading(false);
+    }
+  }, [matchIdParam]);
+
+  useEffect(() => {
     const interval = setInterval(() => {
       setNow(new Date());
     }, 1000);
@@ -433,6 +496,21 @@ export default function ActiveSessionPage() {
   const seconds = Math.floor(totalSecondsUntilStart % 60)
     .toString()
     .padStart(2, '0');
+
+  const matchResult = matchData?.result ?? null;
+  const roomUrl = matchResult?.roomUrl ?? null;
+  const roomToken = matchResult?.roomToken ?? null;
+  const roomId = matchResult?.roomId ?? null;
+  const dailyUserName = matchResult?.interviewer?.displayName ?? 'SuperMock';
+  const hasDailyCredentials = Boolean(roomUrl && roomToken);
+
+  const dailyCo = useDailyCo({
+    roomUrl,
+    token: roomToken ?? undefined,
+    userName: dailyUserName,
+    autoJoin: hasDailyCredentials && isLobbyOpen,
+    maxReconnectionAttempts: 3
+  });
 
   useEffect(() => {
     if (!hasStarted) {
@@ -837,6 +915,215 @@ export default function ActiveSessionPage() {
       </Head>
       <main className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900 px-6 py-12 text-slate-100">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-10">
+          <section className="rounded-3xl border border-slate-800 bg-slate-900/80 p-8 shadow-xl shadow-slate-950/40">
+            <div className="flex flex-col gap-6 xl:flex-row">
+              <div className="xl:w-2/3">
+                <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/60 shadow-inner shadow-slate-950/30">
+                  <div ref={dailyCo.containerRef} className="absolute inset-0 h-full w-full" />
+                  {(() => {
+                    if (isMatchLoading) {
+                      return (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-950/70 text-sm text-slate-300">
+                          <ArrowPathIcon className="h-6 w-6 animate-spin text-secondary" />
+                          <span>Загружаем данные встречи…</span>
+                        </div>
+                      );
+                    }
+
+                    if (matchError) {
+                      return (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-950/80 px-6 text-center text-sm text-rose-200">
+                          <ShieldExclamationIcon className="h-6 w-6" />
+                          <span>{matchError}</span>
+                          <button
+                            type="button"
+                            onClick={handleMatchReload}
+                            className="inline-flex items-center gap-2 rounded-full border border-rose-200/40 bg-rose-200/10 px-3 py-1 text-xs font-semibold text-rose-100 transition hover:bg-rose-200/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-200"
+                          >
+                            <ArrowPathIcon className="h-4 w-4" /> Обновить данные
+                          </button>
+                        </div>
+                      );
+                    }
+
+                    if (dailyCo.error && !dailyCo.isConnected) {
+                      return (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-950/80 px-6 text-center text-sm text-rose-200">
+                          <ShieldExclamationIcon className="h-6 w-6" />
+                          <span>{dailyCo.error}</span>
+                          <button
+                            type="button"
+                            onClick={dailyCo.retry}
+                            className="inline-flex items-center gap-2 rounded-full border border-rose-200/40 bg-rose-200/10 px-3 py-1 text-xs font-semibold text-rose-100 transition hover:bg-rose-200/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-200"
+                          >
+                            <ArrowPathIcon className="h-4 w-4" /> Повторить подключение
+                          </button>
+                        </div>
+                      );
+                    }
+
+                    if (dailyCo.isLoading && !dailyCo.isConnected) {
+                      return (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-950/60 text-sm text-slate-300">
+                          <ArrowPathIcon className="h-6 w-6 animate-spin text-secondary" />
+                          <span>Подключаемся к Daily.co…</span>
+                        </div>
+                      );
+                    }
+
+                    if (!hasDailyCredentials) {
+                      return (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-950/70 px-6 text-center text-sm text-slate-300">
+                          <VideoCameraIcon className="h-6 w-6 text-slate-400" />
+                          <span>Комната появится автоматически после планирования встречи.</span>
+                        </div>
+                      );
+                    }
+
+                    if (!dailyCo.isConnected) {
+                      return (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-950/60 text-sm text-slate-300">
+                          <WifiIcon className="h-6 w-6 text-slate-400" />
+                          <span>Ждём начала — подключение откроется в момент старта.</span>
+                        </div>
+                      );
+                    }
+
+                    return null;
+                  })()}
+                </div>
+              </div>
+              <div className="flex flex-1 flex-col gap-6">
+                <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-5">
+                  <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Видео-сессия</p>
+                  <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-300">
+                    <span
+                      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
+                        dailyCo.isConnected
+                          ? 'border-emerald-400/60 bg-emerald-500/20 text-emerald-200'
+                          : 'border-slate-700 bg-slate-900/70 text-slate-300'
+                      }`}
+                    >
+                      <WifiIcon className="h-4 w-4" /> {dailyCo.isConnected ? 'В эфире' : dailyCo.isLoading ? 'Подключаемся' : 'Ожидание'}
+                    </span>
+                    <span className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1 text-xs text-slate-300">
+                      <UserGroupIcon className="h-4 w-4" /> {dailyCo.participantsCount} участник{dailyCo.participantsCount === 1 ? '' : 'ов'}
+                    </span>
+                    <span
+                      className={`inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1 text-xs ${
+                        dailyCo.cameraEnabled ? 'text-emerald-200' : 'text-slate-400'
+                      }`}
+                    >
+                      <VideoCameraIcon className="h-4 w-4" /> {dailyCo.cameraEnabled ? 'Камера активна' : 'Камера выключена'}
+                    </span>
+                    <span
+                      className={`inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1 text-xs ${
+                        dailyCo.microphoneEnabled ? 'text-emerald-200' : 'text-slate-400'
+                      }`}
+                    >
+                      <MicrophoneIcon className="h-4 w-4" /> {dailyCo.microphoneEnabled ? 'Микрофон включён' : 'Микрофон выключен'}
+                    </span>
+                  </div>
+                </div>
+
+                {(matchError || (dailyCo.error && !dailyCo.isConnected)) && (
+                  <div className="rounded-2xl border border-rose-500/40 bg-rose-500/10 p-4 text-sm text-rose-200">
+                    <div className="flex items-start gap-3">
+                      <ShieldExclamationIcon className="mt-0.5 h-5 w-5" />
+                      <div className="space-y-2">
+                        <p>{matchError ?? dailyCo.error}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {matchError && (
+                            <button
+                              type="button"
+                              onClick={handleMatchReload}
+                              className="inline-flex items-center gap-2 rounded-full border border-rose-200/40 bg-rose-200/10 px-3 py-1 text-xs font-semibold text-rose-100 transition hover:bg-rose-200/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-200"
+                            >
+                              <ArrowPathIcon className="h-4 w-4" /> Обновить данные
+                            </button>
+                          )}
+                          {dailyCo.error && !dailyCo.isConnected && (
+                            <button
+                              type="button"
+                              onClick={dailyCo.retry}
+                              className="inline-flex items-center gap-2 rounded-full border border-rose-200/40 bg-rose-200/10 px-3 py-1 text-xs font-semibold text-rose-100 transition hover:bg-rose-200/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-200"
+                            >
+                              <ArrowPathIcon className="h-4 w-4" /> Повторить подключение
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={dailyCo.join}
+                    disabled={!hasDailyCredentials || dailyCo.isConnected || dailyCo.isLoading}
+                    className="inline-flex items-center gap-2 rounded-full border border-secondary/40 bg-secondary/10 px-4 py-2 text-sm font-semibold text-secondary transition hover:bg-secondary/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <PlayIcon className="h-5 w-5" /> Присоединиться
+                  </button>
+                  <button
+                    type="button"
+                    onClick={dailyCo.leaveCall}
+                    disabled={!dailyCo.isConnected || dailyCo.isLoading}
+                    className="inline-flex items-center gap-2 rounded-full border border-rose-200/40 bg-rose-500/20 px-4 py-2 text-sm font-semibold text-rose-100 transition hover:bg-rose-500/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-200 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <PauseIcon className="h-5 w-5" /> Завершить
+                  </button>
+                  <button
+                    type="button"
+                    onClick={dailyCo.toggleCamera}
+                    disabled={!dailyCo.isConnected}
+                    className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                      dailyCo.cameraEnabled
+                        ? 'border-emerald-400/60 bg-emerald-500/20 text-emerald-200 focus-visible:outline-emerald-300'
+                        : 'border-slate-700 bg-slate-900/70 text-slate-300 hover:bg-slate-900 focus-visible:outline-secondary'
+                    } disabled:cursor-not-allowed disabled:opacity-50`}
+                  >
+                    <VideoCameraIcon className="h-5 w-5" />
+                    {dailyCo.cameraEnabled ? 'Выключить камеру' : 'Включить камеру'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={dailyCo.toggleMicrophone}
+                    disabled={!dailyCo.isConnected}
+                    className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                      dailyCo.microphoneEnabled
+                        ? 'border-emerald-400/60 bg-emerald-500/20 text-emerald-200 focus-visible:outline-emerald-300'
+                        : 'border-slate-700 bg-slate-900/70 text-slate-300 hover:bg-slate-900 focus-visible:outline-secondary'
+                    } disabled:cursor-not-allowed disabled:opacity-50`}
+                  >
+                    <MicrophoneIcon className="h-5 w-5" />
+                    {dailyCo.microphoneEnabled ? 'Выключить микрофон' : 'Включить микрофон'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={dailyCo.retry}
+                    disabled={!hasDailyCredentials || dailyCo.isLoading}
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <ArrowPathIcon className="h-5 w-5" /> Переподключить
+                  </button>
+                </div>
+
+                <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 text-xs text-slate-400">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span>Комната Daily.co:</span>
+                    {roomId ? (
+                      <code className="rounded bg-slate-900/80 px-2 py-1 text-slate-200">{roomId}</code>
+                    ) : (
+                      <span className="text-slate-500">ещё не создана</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
           <header className="rounded-3xl border border-slate-800 bg-slate-900/70 p-8 shadow-xl shadow-slate-950/40">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
               <div className="space-y-3">

@@ -19,8 +19,12 @@ import { registerRealtimeSessionRoutes } from './routes/sessions.route.js';
 import { registerNotificationRoutes } from './routes/notifications.route.js';
 import { registerAnalyticsRoutes } from './routes/analytics.route.js';
 import { registerRealtimeWebsocketRoutes } from './routes/realtime.ws.js';
+import { DailyCoService } from './modules/daily-co.js';
 
 const config = buildConfig();
+const dailyCoService = config.dailyCo.enabled
+  ? new DailyCoService({ apiKey: config.dailyCo.apiKey, domain: config.dailyCo.domain })
+  : null;
 
 async function bootstrap() {
   const app = fastify({
@@ -39,7 +43,13 @@ async function bootstrap() {
 
   registerCoreRoutes(app);
   registerHealthRoute(app);
-  registerMatchingRoutes(app);
+  registerMatchingRoutes(app, {
+    dailyCo: {
+      service: dailyCoService,
+      domain: config.dailyCo.domain,
+      enabled: config.dailyCo.enabled
+    }
+  });
   registerPaymentRoutes(app);
   registerAuthRoutes(app, config);
   registerUserRoutes(app, { passwordSaltRounds: config.password.saltRounds });

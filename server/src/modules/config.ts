@@ -18,6 +18,12 @@ export type PasswordConfig = {
   saltRounds: number;
 };
 
+export type DailyCoSettings = {
+  enabled: boolean;
+  apiKey: string;
+  domain: string;
+};
+
 export type AppConfig = {
   port: number;
   host: string;
@@ -25,9 +31,14 @@ export type AppConfig = {
   logLevel: LogLevel;
   jwt: JwtConfig;
   password: PasswordConfig;
+  dailyCo: DailyCoSettings;
 };
 
 export function buildConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
+  const dailyCoApiKey = env.DAILY_CO_API_KEY ?? '';
+  const dailyCoDomain = env.DAILY_CO_DOMAIN ?? '';
+  const dailyCoEnabled = Boolean(dailyCoApiKey && dailyCoDomain);
+
   return {
     port: env.SERVER_PORT ? Number(env.SERVER_PORT) : DEFAULT_PORT,
     host: env.SERVER_HOST ?? DEFAULT_HOST,
@@ -41,6 +52,11 @@ export function buildConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     },
     password: {
       saltRounds: env.BCRYPT_SALT_ROUNDS ? Number(env.BCRYPT_SALT_ROUNDS) : DEFAULT_BCRYPT_SALT_ROUNDS
+    },
+    dailyCo: {
+      enabled: dailyCoEnabled,
+      apiKey: dailyCoApiKey,
+      domain: dailyCoDomain
     }
   };
 }

@@ -105,9 +105,18 @@ interface SlotCardProps {
   showUtc: boolean;
   isFavourite: boolean;
   onToggleFavourite: () => void;
+  onJoin: (slot: Slot) => void;
 }
 
-function SlotCard({ slot, isExpanded, onToggleExpand, showUtc, isFavourite, onToggleFavourite }: SlotCardProps) {
+function SlotCard({
+  slot,
+  isExpanded,
+  onToggleExpand,
+  showUtc,
+  isFavourite,
+  onToggleFavourite,
+  onJoin
+}: SlotCardProps) {
   const startDate = useMemo(() => new Date(slot.start), [slot.start]);
   const endDate = useMemo(() => new Date(slot.end), [slot.end]);
 
@@ -267,7 +276,11 @@ function SlotCard({ slot, isExpanded, onToggleExpand, showUtc, isFavourite, onTo
             </ul>
 
             <div className="flex flex-wrap gap-2">
-              <button className="rounded-lg bg-secondary px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-secondary/90">
+              <button
+                type="button"
+                onClick={() => onJoin(slot)}
+                className="rounded-lg bg-secondary px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-secondary/90"
+              >
                 Присоединиться
               </button>
               <button className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 hover:border-slate-500">
@@ -483,6 +496,26 @@ export default function SlotDashboardPage() {
       void router.push({ pathname, query });
     },
     [router, slotIntent]
+  );
+
+  const handleJoinSlot = useCallback(
+    (slot: Slot) => {
+      const role = desiredRole;
+      const pathname = role === 'interviewer' ? '/interviewer' : '/interview';
+      const query: Record<string, string | string[]> = {
+        ...slotIntent,
+        role,
+        slotId: slot.id,
+        slotStart: slot.start,
+        slotEnd: slot.end,
+        slotLanguage: slot.language,
+        slotProfessionId: slot.professionId,
+        slotTools: slot.tools
+      };
+
+      void router.push({ pathname, query });
+    },
+    [desiredRole, router, slotIntent]
   );
 
   const hasResults = slotsInActiveTab.length > 0;
@@ -779,6 +812,7 @@ export default function SlotDashboardPage() {
                     showUtc={showUtc}
                     isFavourite={favourites.includes(slot.id)}
                     onToggleFavourite={() => toggleFavourite(slot.id)}
+                    onJoin={handleJoinSlot}
                   />
                 ))}
               </div>

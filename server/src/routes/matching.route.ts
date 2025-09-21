@@ -1,6 +1,8 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 
+import type { DailyCoService } from '../modules/daily-co.js';
+
 import {
   createInterviewerAvailability,
   createMatchRequest,
@@ -14,7 +16,9 @@ import {
   listInterviewers,
   listInterviewerAvailability,
   getInterviewerSessions,
-  scheduleMatch
+  scheduleMatch,
+  getSlotById,
+  joinSlot
 } from '../modules/matching.js';
 
 const createMatchRequestSchema = z.object({
@@ -30,16 +34,120 @@ const requestIdParamsSchema = z.object({
   id: z.string().min(1)
 });
 
-const scheduleMatchSchema = z.object({
-  availabilityId: z.string().min(1, 'availabilityId is required'),
-  roomUrl: z.string().url().optional()
-});
+type MatchingRouteDependencies = {
+  dailyCo?: {
+    service: DailyCoService | null;
+    domain?: string;
+    enabled?: boolean;
+  };
+};
+
+function normalizeDailyDomain(domain?: string | null): string | null {
+  if (!domain) {
+    return null;
+  }
+
+  const trimmed = domain.trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`);
+    return parsed.host.toLowerCase();
+  } catch {
+    return trimmed.replace(/^https?:\/\//, '').toLowerCase();
+  }
+}
+
+function isValidDailyUrl(value: string, domain?: string | null): boolean {
+  if (!value) {
+    return false;
+  }
+
+  try {
+    const url = new URL(value);
+    const normalizedHost = normalizeDailyDomain(domain);
+
+    if (normalizedHost) {
+      return url.host.toLowerCase() === normalizedHost && url.pathname.length > 1;
+    }
+
+    return url.hostname.endsWith('.daily.co') && url.pathname.length > 1;
+  } catch {
+    return false;
+  }
+}
+
+function createScheduleMatchSchema(domain?: string | null, enabled?: boolean) {
+  const base = {
+    availabilityId: z.string().min(1, 'availabilityId is required'),
+    roomUrl: z
+      .string()
+      .url()
+      .optional()
+  };
+
+  const normalizedDomain = normalizeDailyDomain(domain);
+  const shouldEnforceDaily = Boolean(enabled ?? normalizedDomain);
+
+  return z.object({
+    ...base,
+    roomUrl: shouldEnforceDaily
+      ? base.roomUrl?.refine(
+          (value) => !value || isValidDailyUrl(value, normalizedDomain),
+          'Room URL must belong to the configured Daily.co domain'
+        )
+      : base.roomUrl
+  });
+}
 
 const createAvailabilitySchema = z.object({
   start: z.string().datetime({ offset: true }),
   end: z.string().datetime({ offset: true }),
   isRecurring: z.boolean().optional()
 });
+
+const joinSlotSchema = z
+  .object({
+    role: z.enum(['CANDIDATE', 'INTERVIEWER', 'OBSERVER']),
+    candidateId: z.string().min(1).optional(),
+    interviewerId: z.string().min(1).optional()
+  })
+  .superRefine((data, ctx) => {
+    if (data.candidateId && data.interviewerId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Provide either candidateId or interviewerId, not both',
+        path: ['interviewerId']
+      });
+    }
+
+    if (data.role === 'CANDIDATE' && !data.candidateId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'candidateId is required for candidate role',
+        path: ['candidateId']
+      });
+    }
+
+    if (data.role === 'INTERVIEWER' && !data.interviewerId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'interviewerId is required for interviewer role',
+        path: ['interviewerId']
+      });
+    }
+
+    if (data.role === 'OBSERVER' && !data.candidateId && !data.interviewerId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Observer must reference a candidateId or interviewerId',
+        path: ['role']
+      });
+    }
+  });
 
 const completeMatchSchema = z.object({
   effectivenessScore: z.number().min(0).max(100),
@@ -51,7 +159,9 @@ const completeMatchSchema = z.object({
   aiHighlights: z.record(z.any()).optional()
 });
 
-export function registerMatchingRoutes(app: FastifyInstance) {
+export function registerMatchingRoutes(app: FastifyInstance, deps: MatchingRouteDependencies = {}) {
+  const scheduleMatchSchema = createScheduleMatchSchema(deps.dailyCo?.domain, deps.dailyCo?.enabled);
+
   app.get('/matching/overview', async () => getMatchOverview());
 
   app.get('/matching/candidates', async () => listCandidateSummaries());
@@ -100,7 +210,7 @@ export function registerMatchingRoutes(app: FastifyInstance) {
     const { id } = requestIdParamsSchema.parse(request.params);
     const payload = scheduleMatchSchema.parse(request.body);
 
-    const updated = await scheduleMatch(id, payload);
+    const updated = await scheduleMatch(id, payload, { dailyCoService: deps.dailyCo?.service ?? null });
 
     if (!updated) {
       throw new Error('Match request or availability not found');
@@ -112,6 +222,18 @@ export function registerMatchingRoutes(app: FastifyInstance) {
   app.get('/matching/interviewers/:id/availability', async (request) => {
     const { id } = requestIdParamsSchema.parse(request.params);
     return listInterviewerAvailability(id);
+  });
+
+  app.get('/matching/slots/:id', async (request, reply) => {
+    const { id } = requestIdParamsSchema.parse(request.params);
+    const slot = await getSlotById(id);
+
+    if (!slot) {
+      reply.code(404);
+      throw new Error('Slot not found');
+    }
+
+    return slot;
   });
 
   app.get('/matching/interviewers/:id/sessions', async (request) => {
@@ -152,6 +274,20 @@ export function registerMatchingRoutes(app: FastifyInstance) {
 
     reply.code(204);
     return null;
+  });
+
+  app.post('/matching/slots/:id/join', async (request, reply) => {
+    const { id } = requestIdParamsSchema.parse(request.params);
+    const payload = joinSlotSchema.parse(request.body);
+
+    const slot = await joinSlot(id, payload);
+
+    if (!slot) {
+      reply.code(404);
+      throw new Error('Slot or participant not found');
+    }
+
+    return slot;
   });
 
   app.post('/matching/matches/:id/complete', async (request) => {

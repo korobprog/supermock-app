@@ -1,11 +1,16 @@
+import crypto from 'node:crypto';
+
 import {
   MatchStatus,
   Prisma,
+  SlotParticipantRole as PrismaSlotParticipantRole,
+  type CandidateProfile,
   type InterviewerProfile,
   type InterviewerAvailability,
   type InterviewMatch,
   type InterviewSummary,
-  type MatchRequest
+  type MatchRequest,
+  type SlotParticipant
 } from '@prisma/client';
 
 import type {
@@ -22,11 +27,15 @@ import type {
   CreateAvailabilityPayload,
   CompleteMatchPayload,
   CompletedSessionDto,
-  InterviewerSessionDto
+  InterviewerSessionDto,
+  SlotDto,
+  JoinSlotPayload,
+  SlotParticipantRole as SlotParticipantRoleDto
 } from '../../../shared/src/types/matching.js';
 import { calculateMatchingScore } from '../../../shared/src/utils/scoring.js';
 import { prisma } from './prisma.js';
 import { emitSlotUpdate } from './realtime/bus.js';
+import type { DailyCoService } from './daily-co.js';
 
 function toInterviewerSummary(
   interviewer: InterviewerProfile & { availability?: InterviewerAvailability[] }
@@ -42,6 +51,17 @@ function toInterviewerSummary(
   };
 }
 
+function toCandidateSummary(candidate: CandidateProfile): CandidateSummaryDto {
+  return {
+    id: candidate.id,
+    displayName: candidate.displayName,
+    timezone: candidate.timezone,
+    experienceYears: candidate.experienceYears,
+    preferredRoles: candidate.preferredRoles,
+    preferredLanguages: candidate.preferredLanguages
+  };
+}
+
 function mapMatchResult(
   result: InterviewMatch & {
     interviewer: InterviewerProfile & { availability: InterviewerAvailability[] };
@@ -53,6 +73,8 @@ function mapMatchResult(
     status: result.status,
     scheduledAt: result.scheduledAt?.toISOString() ?? null,
     roomUrl: result.roomUrl ?? null,
+    roomId: result.roomId ?? null,
+    roomToken: result.roomToken ?? null,
     effectivenessScore: result.effectivenessScore,
     interviewer: toInterviewerSummary(result.interviewer),
     completedAt: result.completedAt?.toISOString() ?? null,
@@ -103,6 +125,27 @@ function mapMatchRequest(
     ...base,
     result: null
   };
+}
+
+type ScheduleMatchOptions = {
+  dailyCoService?: DailyCoService | null;
+};
+
+const DAILY_ROOM_NAME_PREFIX = 'supermock-match';
+const DAILY_ROOM_SUFFIX_BYTES = 4;
+const DAILY_ROOM_DEFAULT_DURATION_MINUTES = 90;
+const DAILY_TOKEN_EXTRA_MINUTES = 30;
+
+function generateDailyRoomName(requestId: string): string {
+  const sanitized = requestId.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+  const suffix = crypto.randomBytes(DAILY_ROOM_SUFFIX_BYTES).toString('hex');
+  const base = sanitized.slice(-10) || sanitized || 'session';
+  return `${DAILY_ROOM_NAME_PREFIX}-${base}-${suffix}`.slice(0, 120);
+}
+
+function computeExpirationSeconds(baseDate: Date, offsetMinutes: number): number {
+  const baseTimestamp = Math.max(baseDate.getTime(), Date.now());
+  return Math.floor((baseTimestamp + offsetMinutes * 60 * 1000) / 1000);
 }
 
 export async function getMatchOverview(): Promise<MatchOverviewDto> {
@@ -239,14 +282,7 @@ export async function listCandidateSummaries(): Promise<CandidateSummaryDto[]> {
     orderBy: { createdAt: 'asc' }
   });
 
-  return candidates.map((candidate) => ({
-    id: candidate.id,
-    displayName: candidate.displayName,
-    timezone: candidate.timezone,
-    experienceYears: candidate.experienceYears,
-    preferredRoles: candidate.preferredRoles,
-    preferredLanguages: candidate.preferredLanguages
-  }));
+  return candidates.map((candidate) => toCandidateSummary(candidate));
 }
 
 export async function listInterviewers(): Promise<InterviewerSummaryDto[]> {
@@ -264,7 +300,8 @@ export async function listInterviewers(): Promise<InterviewerSummaryDto[]> {
 
 export async function scheduleMatch(
   requestId: string,
-  payload: ScheduleMatchPayload
+  payload: ScheduleMatchPayload,
+  options: ScheduleMatchOptions = {}
 ): Promise<MatchRequestWithResultDto | null> {
   const availability = await prisma.interviewerAvailability.findUnique({
     where: { id: payload.availabilityId },
@@ -287,58 +324,108 @@ export async function scheduleMatch(
   }
 
   const scheduledAt = availability.start;
+  const dailyCoService = options.dailyCoService ?? null;
 
-  const updatedRequest = await prisma.$transaction(async (tx) => {
-    await tx.interviewMatch.upsert({
-      where: { requestId },
-      create: {
-        requestId,
-        interviewerId: availability.interviewerId,
-        scheduledAt,
-        roomUrl: payload.roomUrl ?? null,
-        status: MatchStatus.SCHEDULED,
-        effectivenessScore: 0
-      },
-      update: {
-        interviewerId: availability.interviewerId,
-        scheduledAt,
-        roomUrl: payload.roomUrl ?? null,
-        status: MatchStatus.SCHEDULED
-      }
-    });
+  const roomDetails: { roomUrl: string | null; roomId: string | null; roomToken: string | null } = {
+    roomUrl: payload.roomUrl ?? null,
+    roomId: null,
+    roomToken: null
+  };
 
-    await tx.matchRequest.update({
-      where: { id: requestId },
-      data: {
-        status: MatchStatus.SCHEDULED,
-        matchedAt: new Date()
-      }
-    });
+  let createdRoomName: string | null = null;
 
-    await tx.interviewerAvailability.delete({ where: { id: availability.id } });
+  try {
+    if (dailyCoService) {
+      const roomName = generateDailyRoomName(requestId);
+      const room = await dailyCoService.createRoom({
+        name: roomName,
+        privacy: 'private',
+        properties: {
+          exp: computeExpirationSeconds(scheduledAt, DAILY_ROOM_DEFAULT_DURATION_MINUTES),
+          eject_after_elapsed: DAILY_ROOM_DEFAULT_DURATION_MINUTES * 60,
+          enable_knocking: false
+        }
+      });
 
-    return tx.matchRequest.findUnique({
-      where: { id: requestId },
-      include: {
-        result: {
-          include: {
-            interviewer: {
-              include: {
-                availability: true
-              }
-            },
-            summary: true
+      createdRoomName = room.name;
+      roomDetails.roomUrl = room.url;
+      roomDetails.roomId = room.id ?? room.name;
+
+      const token = await dailyCoService.generateToken(room.name, {
+        isOwner: true,
+        exp: computeExpirationSeconds(
+          scheduledAt,
+          DAILY_ROOM_DEFAULT_DURATION_MINUTES + DAILY_TOKEN_EXTRA_MINUTES
+        )
+      });
+
+      roomDetails.roomToken = token.token;
+    }
+
+    const updatedRequest = await prisma.$transaction(async (tx) => {
+      await tx.interviewMatch.upsert({
+        where: { requestId },
+        create: {
+          requestId,
+          interviewerId: availability.interviewerId,
+          scheduledAt,
+          roomUrl: roomDetails.roomUrl,
+          roomId: roomDetails.roomId,
+          roomToken: roomDetails.roomToken,
+          status: MatchStatus.SCHEDULED,
+          effectivenessScore: 0
+        },
+        update: {
+          interviewerId: availability.interviewerId,
+          scheduledAt,
+          roomUrl: roomDetails.roomUrl,
+          roomId: roomDetails.roomId,
+          roomToken: roomDetails.roomToken,
+          status: MatchStatus.SCHEDULED
+        }
+      });
+
+      await tx.matchRequest.update({
+        where: { id: requestId },
+        data: {
+          status: MatchStatus.SCHEDULED,
+          matchedAt: new Date()
+        }
+      });
+
+      await tx.interviewerAvailability.delete({ where: { id: availability.id } });
+
+      return tx.matchRequest.findUnique({
+        where: { id: requestId },
+        include: {
+          result: {
+            include: {
+              interviewer: {
+                include: {
+                  availability: true
+                }
+              },
+              summary: true
+            }
           }
         }
-      }
+      });
     });
-  });
 
-  if (!updatedRequest) {
-    return null;
+    if (!updatedRequest) {
+      if (dailyCoService && createdRoomName) {
+        await dailyCoService.deleteRoom(createdRoomName).catch(() => {});
+      }
+      return null;
+    }
+
+    return mapMatchRequest(updatedRequest);
+  } catch (error) {
+    if (dailyCoService && createdRoomName) {
+      await dailyCoService.deleteRoom(createdRoomName).catch(() => {});
+    }
+    throw error;
   }
-
-  return mapMatchRequest(updatedRequest);
 }
 
 function mapAvailability(slot: InterviewerAvailability): AvailabilitySlotDto {
@@ -350,6 +437,224 @@ function mapAvailability(slot: InterviewerAvailability): AvailabilitySlotDto {
     isRecurring: slot.isRecurring,
     createdAt: slot.createdAt.toISOString()
   };
+}
+
+type SlotWithRelations = InterviewerAvailability & {
+  interviewer: InterviewerProfile;
+  host?: InterviewerProfile | null;
+  participants: (SlotParticipant & {
+    candidate?: CandidateProfile | null;
+    interviewer?: InterviewerProfile | null;
+  })[];
+};
+
+function mapSlot(slot: SlotWithRelations): SlotDto {
+  const hostProfile = slot.host ?? slot.interviewer;
+  const hostSummary = toInterviewerSummary({ ...hostProfile, availability: [] });
+
+  const participantDtos = slot.participants.map((participant) => ({
+    id: participant.id,
+    role: participant.role as SlotParticipantRoleDto,
+    waitlistPosition: participant.waitlistPosition ?? null,
+    joinedAt: participant.createdAt.toISOString(),
+    candidate: participant.candidate
+      ? toCandidateSummary(participant.candidate)
+      : undefined,
+    interviewer: participant.interviewer
+      ? toInterviewerSummary({ ...participant.interviewer, availability: [] })
+      : undefined
+  }));
+
+  return {
+    id: slot.id,
+    interviewerId: slot.interviewerId,
+    start: slot.start.toISOString(),
+    end: slot.end.toISOString(),
+    isRecurring: slot.isRecurring,
+    capacity: slot.capacity,
+    createdAt: slot.createdAt.toISOString(),
+    host: {
+      profile: hostSummary,
+      name: slot.hostName ?? hostSummary.displayName
+    },
+    participants: participantDtos,
+    waitlistCount: participantDtos.filter((participant) => participant.waitlistPosition !== null).length
+  };
+}
+
+const slotRelations: Prisma.InterviewerAvailabilityInclude = {
+  interviewer: true,
+  host: true,
+  participants: {
+    include: {
+      candidate: true,
+      interviewer: true
+    },
+    orderBy: [
+      { waitlistPosition: 'asc' },
+      { createdAt: 'asc' }
+    ]
+  }
+};
+
+export async function getSlotById(id: string): Promise<SlotDto | null> {
+  const slot = await prisma.interviewerAvailability.findUnique({
+    where: { id },
+    include: slotRelations
+  });
+
+  if (!slot) {
+    return null;
+  }
+
+  return mapSlot(slot as SlotWithRelations);
+}
+
+export async function joinSlot(
+  slotId: string,
+  payload: JoinSlotPayload
+): Promise<SlotDto | null> {
+  return prisma.$transaction(async (tx) => {
+    const slot = await tx.interviewerAvailability.findUnique({
+      where: { id: slotId },
+      include: slotRelations
+    });
+
+    if (!slot) {
+      return null;
+    }
+
+    if (payload.candidateId && payload.interviewerId) {
+      return null;
+    }
+
+    const slotWithRelations = slot as SlotWithRelations;
+
+    let candidate: CandidateProfile | null = null;
+    let interviewer: InterviewerProfile | null = null;
+
+    if (payload.role === 'CANDIDATE') {
+      if (!payload.candidateId) {
+        return null;
+      }
+
+      const candidateProfile = await tx.candidateProfile.findUnique({
+        where: { id: payload.candidateId }
+      });
+
+      if (!candidateProfile) {
+        return null;
+      }
+
+      if (
+        slotWithRelations.participants.some(
+          (participant) => participant.candidateId === candidateProfile.id
+        )
+      ) {
+        return mapSlot(slotWithRelations);
+      }
+
+      candidate = candidateProfile;
+    } else if (payload.role === 'INTERVIEWER') {
+      if (!payload.interviewerId) {
+        return null;
+      }
+
+      const interviewerProfile = await tx.interviewerProfile.findUnique({
+        where: { id: payload.interviewerId }
+      });
+
+      if (!interviewerProfile) {
+        return null;
+      }
+
+      if (
+        slotWithRelations.participants.some(
+          (participant) => participant.interviewerId === interviewerProfile.id
+        )
+      ) {
+        return mapSlot(slotWithRelations);
+      }
+
+      interviewer = interviewerProfile;
+    } else if (payload.role === 'OBSERVER') {
+      if (payload.candidateId) {
+        const candidateProfile = await tx.candidateProfile.findUnique({
+          where: { id: payload.candidateId }
+        });
+
+        if (!candidateProfile) {
+          return null;
+        }
+
+        if (
+          slotWithRelations.participants.some(
+            (participant) => participant.candidateId === candidateProfile.id
+          )
+        ) {
+          return mapSlot(slotWithRelations);
+        }
+
+        candidate = candidateProfile;
+      }
+
+      if (!candidate && payload.interviewerId) {
+        const interviewerProfile = await tx.interviewerProfile.findUnique({
+          where: { id: payload.interviewerId }
+        });
+
+        if (!interviewerProfile) {
+          return null;
+        }
+
+        if (
+          slotWithRelations.participants.some(
+            (participant) => participant.interviewerId === interviewerProfile.id
+          )
+        ) {
+          return mapSlot(slotWithRelations);
+        }
+
+        interviewer = interviewerProfile;
+      }
+
+      if (!candidate && !interviewer) {
+        return null;
+      }
+    } else {
+      return null;
+    }
+
+    const activeCount = slotWithRelations.participants.filter(
+      (participant) => participant.waitlistPosition === null
+    ).length;
+    const waitlistCount = slotWithRelations.participants.filter(
+      (participant) => participant.waitlistPosition !== null
+    ).length;
+    const waitlistPosition =
+      activeCount >= slotWithRelations.capacity ? waitlistCount + 1 : null;
+
+    await tx.slotParticipant.create({
+      data: {
+        slotId,
+        role: payload.role as PrismaSlotParticipantRole,
+        candidateId: candidate?.id ?? undefined,
+        interviewerId: interviewer?.id ?? undefined,
+        waitlistPosition
+      }
+    });
+
+    const updatedSlot = await tx.interviewerAvailability.findUnique({
+      where: { id: slotId },
+      include: slotRelations
+    });
+
+    if (!updatedSlot) {
+      return null;
+    }
+
+    return mapSlot(updatedSlot as SlotWithRelations);
+  });
 }
 
 export async function listInterviewerAvailability(interviewerId: string): Promise<AvailabilitySlotDto[]> {
