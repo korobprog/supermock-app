@@ -12,6 +12,7 @@ export const mockRouter: NextRouter = {
   replace: vi.fn(() => Promise.resolve(true)),
   reload: vi.fn(),
   back: vi.fn(),
+  forward: vi.fn(),
   prefetch: vi.fn(() => Promise.resolve()),
   beforePopState: vi.fn(),
   events: {
@@ -38,13 +39,14 @@ export function resetMockRouter() {
   mockRouter.asPath = '/';
   mockRouter.pathname = '/';
   mockRouter.route = '/';
-  mockRouter.push.mockClear();
-  mockRouter.replace.mockClear();
-  mockRouter.prefetch.mockClear();
-  mockRouter.beforePopState.mockClear();
-  mockRouter.back.mockClear();
-  mockRouter.reload.mockClear();
-  mockRouter.events.on.mockClear();
-  mockRouter.events.off.mockClear();
-  mockRouter.events.emit.mockClear();
+  (mockRouter.push as any).mockClear();
+  (mockRouter.replace as any).mockClear();
+  (mockRouter.prefetch as any).mockClear();
+  (mockRouter.beforePopState as any).mockClear();
+  (mockRouter.back as any).mockClear();
+  (mockRouter.forward as any).mockClear();
+  (mockRouter.reload as any).mockClear();
+  (mockRouter.events.on as any).mockClear();
+  (mockRouter.events.off as any).mockClear();
+  (mockRouter.events.emit as any).mockClear();
 }

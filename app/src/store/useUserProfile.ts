@@ -134,7 +134,17 @@ export const useUserProfile = create<UserProfileState>()(
     }),
     {
       name: 'supermock-onboarding-profile',
-      storage: createJSONStorage(() => (typeof window !== 'undefined' ? window.localStorage : undefined)),
+      storage: createJSONStorage(() => {
+        if (typeof window !== 'undefined') {
+          return window.localStorage;
+        }
+        // Return a no-op storage for SSR
+        return {
+          getItem: () => null,
+          setItem: () => {},
+          removeItem: () => {},
+        };
+      }),
       partialize: (state) => ({ profile: state.profile })
     }
   )

@@ -19,6 +19,7 @@ import {
   getInterviewerSessions,
   scheduleMatch,
   getSlotById,
+  generateMatchToken,
   joinSlot,
   type MatchSchedulingHooks
 } from '../modules/matching.js';
@@ -118,7 +119,11 @@ const joinSlotSchema = z
   .object({
     role: z.enum(['CANDIDATE', 'INTERVIEWER', 'OBSERVER']),
     candidateId: z.string().min(1).optional(),
-    interviewerId: z.string().min(1).optional()
+    interviewerId: z.string().min(1).optional(),
+    matchRequest: createMatchRequestSchema
+      .omit({ candidateId: true })
+      .partial({ notes: true })
+      .optional()
   })
   .superRefine((data, ctx) => {
     if (data.candidateId && data.interviewerId) {
@@ -330,14 +335,14 @@ export function registerMatchingRoutes(app: FastifyInstance, deps: MatchingRoute
       const { id } = requestIdParamsSchema.parse(request.params);
       const payload = joinSlotSchema.parse(request.body);
 
-      const slot = await joinSlot(id, payload);
+      const result = await joinSlot(id, payload);
 
-      if (!slot) {
+      if (!result) {
         reply.code(404);
         throw new Error('Slot or participant not found');
       }
 
-      return slot;
+      return result;
     }
   );
 
@@ -355,6 +360,40 @@ export function registerMatchingRoutes(app: FastifyInstance, deps: MatchingRoute
       }
 
       return updated;
+    }
+  );
+
+  app.post(
+    '/matching/matches/:id/token',
+    { preHandler: authorizeRoles(UserRole.CANDIDATE, UserRole.INTERVIEWER, UserRole.ADMIN) },
+    async (request, reply) => {
+      const dailyCoService = deps.dailyCo?.service ?? null;
+
+      if (!dailyCoService) {
+        reply.code(503);
+        throw new Error('Video integration is not enabled');
+      }
+
+      const { id } = requestIdParamsSchema.parse(request.params);
+
+      const actor = request.user as { id: string; role: UserRole };
+
+      try {
+        const token = await generateMatchToken(id, actor, { dailyCoService });
+
+        if (!token) {
+          reply.code(404);
+          throw new Error('Match or video room not found');
+        }
+
+        return { token };
+      } catch (error) {
+        if ((error as { statusCode?: number }).statusCode === 403) {
+          reply.code(403);
+        }
+
+        throw error;
+      }
     }
   );
 

@@ -560,7 +560,6 @@ export default function InterviewerDashboardPage() {
       : sessionTab === 'upcoming'
         ? 'No upcoming sessions yet.'
         : 'No sessions to show.';
-  const candidateSummaries = candidatesQuery.data ?? [];
   const normalizedIntentLanguageLabel = useMemo(() => {
     if (typeof intentLanguage !== 'string') {
       return null;
@@ -578,6 +577,8 @@ export default function InterviewerDashboardPage() {
     return normalized.length > 0 ? normalized : null;
   }, [intentLanguage]);
   const candidateSummariesOrdered = useMemo(() => {
+    const candidateSummaries = candidatesQuery.data ?? [];
+    
     if (!normalizedIntentLanguageLabel) {
       return candidateSummaries;
     }
@@ -598,7 +599,7 @@ export default function InterviewerDashboardPage() {
     });
 
     return [...matches, ...rest];
-  }, [candidateSummaries, normalizedIntentLanguageLabel]);
+  }, [candidatesQuery.data, normalizedIntentLanguageLabel]);
   const visibleCandidateSummaries = useMemo(
     () => candidateSummariesOrdered.slice(0, 6),
     [candidateSummariesOrdered]

@@ -308,11 +308,12 @@ export default function InterviewMatchingPage() {
     queryKey: ['matching', 'request', activeRequestId],
     queryFn: () => fetchMatchRequest(activeRequestId!).catch(() => null),
     enabled: Boolean(activeRequestId),
-    refetchInterval: (data) => {
+    refetchInterval: (query) => {
       if (!activeRequestId) {
         return false;
       }
 
+      const data = query.state.data;
       if (!data) {
         return 2000;
       }
@@ -443,7 +444,14 @@ export default function InterviewMatchingPage() {
     if (isSlotJoinIntent) {
       const payload: JoinSlotPayload = {
         role: 'CANDIDATE',
-        candidateId
+        candidateId,
+        matchRequest: {
+          targetRole: targetRole.trim(),
+          focusAreas: parseList(focusAreasInput),
+          preferredLanguages: parseList(languagesInput),
+          sessionFormat,
+          notes: notes.trim() || undefined
+        }
       };
 
       joinSlotMutation.mutate(payload);

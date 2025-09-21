@@ -120,7 +120,7 @@ export default function SkillProfileStep() {
 
   const draftTimestamp = formatDraftTimestamp(profile.draftUpdatedAt, profile.locale);
   const handleSyncDraft = () => {
-    saveDraftMutation.mutate();
+    saveDraftMutation.mutate(undefined);
   };
 
   return (

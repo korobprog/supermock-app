@@ -10,7 +10,6 @@ vi.mock('next/router', () => ({
 }));
 
 // Ensure JSX runtime finds React during tests
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (globalThis as any).React = React;
 
 afterEach(() => {

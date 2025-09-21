@@ -61,7 +61,7 @@ export default function RoleSelectionStep() {
     if (!overviewQuery.data) {
       return {
         label: 'Собираем статистику',
-        role: null as const,
+        role: null,
         explanation: 'Как только данные загрузятся, мы подскажем, кому выгода выше прямо сейчас.'
       };
     }

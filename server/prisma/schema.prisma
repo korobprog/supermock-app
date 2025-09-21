@@ -123,7 +123,6 @@ model InterviewMatch {
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
   roomId             String?
-  roomToken          String?
   interviewer        InterviewerProfile @relation(fields: [interviewerId], references: [id], onDelete: Cascade)
   request            MatchRequest       @relation(fields: [requestId], references: [id], onDelete: Cascade)
   summary            InterviewSummary?

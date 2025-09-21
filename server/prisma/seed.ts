@@ -103,7 +103,6 @@ async function main() {
       scheduledAt: availabilityStart,
       roomUrl: 'https://meet.supermock.local/rooms/frontend-001',
       roomId: 'room-frontend-001',
-      roomToken: 'token-frontend-001',
       status: MatchStatus.SCHEDULED
     }
   });

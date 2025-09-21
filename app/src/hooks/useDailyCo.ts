@@ -201,7 +201,7 @@ export function useDailyCo(options: UseDailyCoOptions): UseDailyCoResult {
   }, [scheduleReconnect, updateParticipantState]);
 
   const handleError = useCallback(
-    (event: DailyEventObject<'error'>) => {
+    (event: any) => {
       const message = event?.error?.message ?? 'Не удалось подключиться к видео-сессии';
       setError(message);
       setIsConnected(false);
@@ -339,9 +339,7 @@ export function useDailyCo(options: UseDailyCoOptions): UseDailyCoResult {
             borderRadius: '24px',
             backgroundColor: '#0f172a'
           },
-          dailyConfig: {
-            subscribeToTracksAutomatically: true
-          }
+          dailyConfig: {}
         });
 
         callObjectRef.current = callObject;
