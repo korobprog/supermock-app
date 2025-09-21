@@ -90,7 +90,6 @@ export function fetchInterviewerAvailability(interviewerId: string) {
   return request<AvailabilitySlotDto[]>(`/matching/interviewers/${interviewerId}/availability`);
 }
 
-<<<<<<< HEAD
 export interface SlotDetailsDto extends AvailabilitySlotDto {
   participantCapacity: number;
   participantCount: number;
@@ -101,10 +100,10 @@ export interface SlotDetailsDto extends AvailabilitySlotDto {
 
 export function fetchSlotDetails(slotId: string) {
   return request<SlotDetailsDto>(`/matching/slots/${slotId}`);
-=======
+}
+
 export function fetchSlot(slotId: string) {
   return request<SlotDto>(`/matching/slots/${slotId}`);
->>>>>>> origin/codex/extend-slot-model-with-participants-and-capacity
 }
 
 export function createInterviewerAvailabilitySlot(
@@ -123,13 +122,8 @@ export function deleteInterviewerAvailabilitySlot(slotId: string) {
   });
 }
 
-<<<<<<< HEAD
-export function joinSlot(slotId: string, payload: CreateMatchRequestPayload) {
-  return request<MatchRequestWithResultDto>(`/matching/slots/${slotId}/join`, {
-=======
 export function joinSlot(slotId: string, payload: JoinSlotPayload) {
-  return request<SlotDto>(`/matching/slots/${slotId}/join`, {
->>>>>>> origin/codex/extend-slot-model-with-participants-and-capacity
+  return request<MatchRequestWithResultDto>(`/matching/slots/${slotId}/join`, {
     method: 'POST',
     body: JSON.stringify(payload)
   });
