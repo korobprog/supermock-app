@@ -1,5 +1,13 @@
 import { randomUUID } from 'node:crypto';
 
+import {
+  Prisma,
+  RealtimeSessionStatus as PrismaRealtimeSessionStatus,
+  type RealtimeSession,
+  type RealtimeSessionParticipant,
+  type SessionParticipantRole as PrismaSessionParticipantRole
+} from '@prisma/client';
+
 import type {
   CreateRealtimeSessionPayload,
   HeartbeatPayload,
@@ -7,43 +15,30 @@ import type {
   RealtimeSessionDto,
   RealtimeSessionListQuery,
   SessionParticipantDto,
-  SessionParticipantRole,
-  UpdateRealtimeSessionStatusPayload,
-  RealtimeSessionStatus
+  UpdateRealtimeSessionStatusPayload
 } from '../../../shared/src/types/realtime.js';
+import { prisma } from './prisma.js';
 import { emitSessionUpdate } from './realtime/bus.js';
 
 const HEARTBEAT_GRACE_MS = 30_000;
 
-interface InternalParticipant {
-  id: string;
-  sessionId: string;
-  userId?: string | null;
-  role: SessionParticipantRole;
-  joinedAt: Date;
-  lastSeenAt: Date;
-  leftAt?: Date | null;
-  connectionId?: string | null;
-  metadata?: Record<string, unknown>;
+type SessionWithParticipants = RealtimeSession & { participants: RealtimeSessionParticipant[] };
+
+let realtimePrisma = prisma;
+
+export function __setRealtimePrismaClient(client: typeof prisma) {
+  realtimePrisma = client;
 }
 
-interface InternalSession {
-  id: string;
-  matchId?: string | null;
-  hostId: string;
-  status: RealtimeSessionStatus;
-  startedAt: Date;
-  endedAt?: Date | null;
-  lastHeartbeat?: Date | null;
-  metadata?: Record<string, unknown>;
-  createdAt: Date;
-  updatedAt: Date;
-  participants: Map<string, InternalParticipant>;
+function toRecord(value: Prisma.JsonValue | null | undefined): Record<string, unknown> | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return undefined;
+  }
+
+  return value as Record<string, unknown>;
 }
 
-const sessions = new Map<string, InternalSession>();
-
-function cloneParticipant(participant: InternalParticipant): SessionParticipantDto {
+function toParticipantDto(participant: RealtimeSessionParticipant): SessionParticipantDto {
   return {
     id: participant.id,
     sessionId: participant.sessionId,
@@ -53,11 +48,11 @@ function cloneParticipant(participant: InternalParticipant): SessionParticipantD
     lastSeenAt: participant.lastSeenAt.toISOString(),
     leftAt: participant.leftAt ? participant.leftAt.toISOString() : null,
     connectionId: participant.connectionId ?? null,
-    metadata: participant.metadata
+    metadata: toRecord(participant.metadata)
   };
 }
 
-function cloneSession(session: InternalSession): RealtimeSessionDto {
+function toSessionDto(session: SessionWithParticipants): RealtimeSessionDto {
   return {
     id: session.id,
     matchId: session.matchId ?? null,
@@ -66,82 +61,74 @@ function cloneSession(session: InternalSession): RealtimeSessionDto {
     startedAt: session.startedAt.toISOString(),
     endedAt: session.endedAt ? session.endedAt.toISOString() : null,
     lastHeartbeat: session.lastHeartbeat ? session.lastHeartbeat.toISOString() : null,
-    metadata: session.metadata,
-    participants: Array.from(session.participants.values()).map(cloneParticipant),
+    metadata: toRecord(session.metadata),
+    participants: session.participants.map(toParticipantDto),
     createdAt: session.createdAt.toISOString(),
     updatedAt: session.updatedAt.toISOString()
   };
 }
 
-function ensureSessionExists(id: string) {
-  const session = sessions.get(id);
-  if (!session) {
-    throw new Error('Session not found');
-  }
-  return session;
-}
-
-function updateSessionTimestamp(session: InternalSession) {
-  session.updatedAt = new Date();
-}
-
 export async function getRealtimeSessionById(id: string): Promise<RealtimeSessionDto | null> {
-  const session = sessions.get(id);
-  return session ? cloneSession(session) : null;
+  const session = await realtimePrisma.realtimeSession.findUnique({
+    where: { id },
+    include: { participants: true }
+  });
+  return session ? toSessionDto(session) : null;
 }
 
 export async function listRealtimeSessions(
   query: RealtimeSessionListQuery
 ): Promise<RealtimeSessionDto[]> {
-  const now = Date.now();
-  const result: RealtimeSessionDto[] = [];
+  const where: Prisma.RealtimeSessionWhereInput = {};
 
-  sessions.forEach((session) => {
-    if (query.status && session.status !== query.status) {
-      return;
-    }
+  if (query.status) {
+    where.status = query.status as PrismaRealtimeSessionStatus;
+  }
 
-    if (query.hostId && session.hostId !== query.hostId) {
-      return;
-    }
+  if (query.hostId) {
+    where.hostId = query.hostId;
+  }
 
-    if (query.matchId && session.matchId !== query.matchId) {
-      return;
-    }
+  if (query.matchId) {
+    where.matchId = query.matchId;
+  }
 
-    if (query.activeOnly) {
-      const lastBeat = session.lastHeartbeat?.getTime() ?? 0;
-      if (session.status !== 'ACTIVE' && now - lastBeat > HEARTBEAT_GRACE_MS) {
-        return;
-      }
-    }
+  if (query.activeOnly) {
+    const graceDate = new Date(Date.now() - HEARTBEAT_GRACE_MS);
+    where.OR = [
+      { status: PrismaRealtimeSessionStatus.ACTIVE },
+      { lastHeartbeat: { gte: graceDate } }
+    ];
+  }
 
-    result.push(cloneSession(session));
+  const sessions = await realtimePrisma.realtimeSession.findMany({
+    where,
+    include: { participants: true },
+    orderBy: { createdAt: 'desc' }
   });
 
-  return result.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  return sessions.map(toSessionDto);
 }
 
 export async function createRealtimeSession(
   payload: CreateRealtimeSessionPayload
 ): Promise<RealtimeSessionDto> {
   const now = new Date();
-  const id = randomUUID();
+  const sessionId = randomUUID();
 
-  const session: InternalSession = {
-    id,
-    matchId: payload.matchId ?? null,
-    hostId: payload.hostId,
-    status: payload.status ?? 'SCHEDULED',
-    startedAt: now,
-    createdAt: now,
-    updatedAt: now,
-    metadata: payload.metadata,
-    participants: new Map<string, InternalParticipant>()
-  };
+  const session = await realtimePrisma.realtimeSession.create({
+    data: {
+      id: sessionId,
+      matchId: payload.matchId ?? null,
+      hostId: payload.hostId,
+      status: (payload.status ?? 'SCHEDULED') as PrismaRealtimeSessionStatus,
+      startedAt: now,
+      metadata: (payload.metadata as Prisma.JsonValue) ?? undefined
+    },
+    include: { participants: true }
+  });
 
-  sessions.set(id, session);
-  const dto = cloneSession(session);
+  const dto = toSessionDto(session);
   emitSessionUpdate({ action: 'created', session: dto });
   return dto;
 }
@@ -150,53 +137,109 @@ export async function joinRealtimeSession(
   sessionId: string,
   payload: JoinRealtimeSessionPayload
 ): Promise<SessionParticipantDto | null> {
-  const session = sessions.get(sessionId);
-  if (!session) {
+  const result = await realtimePrisma.$transaction(async (tx) => {
+    const session = await tx.realtimeSession.findUnique({ where: { id: sessionId } });
+    if (!session) {
+      return null;
+    }
+
+    const now = new Date();
+    const participantId = randomUUID();
+
+    const updatedSession = await tx.realtimeSession.update({
+      where: { id: sessionId },
+      data: {
+        lastHeartbeat: now,
+        status:
+          session.status === PrismaRealtimeSessionStatus.SCHEDULED
+            ? PrismaRealtimeSessionStatus.ACTIVE
+            : session.status,
+        participants: {
+          create: {
+            id: participantId,
+            userId: payload.userId ?? null,
+            role: (payload.role ?? 'OBSERVER') as PrismaSessionParticipantRole,
+            joinedAt: now,
+            lastSeenAt: now,
+            connectionId: payload.connectionId ?? null,
+            metadata: (payload.metadata as Prisma.JsonValue) ?? undefined
+          }
+        }
+      },
+      include: { participants: true }
+    });
+
+    const participant = updatedSession.participants.find((item) => item.id === participantId);
+    if (!participant) {
+      throw new Error('Failed to create session participant');
+    }
+
+    return { session: updatedSession, participant };
+  });
+
+  if (!result) {
     return null;
   }
 
-  const now = new Date();
-  const participant: InternalParticipant = {
-    id: randomUUID(),
-    sessionId,
-    userId: payload.userId ?? null,
-    role: payload.role ?? 'OBSERVER',
-    joinedAt: now,
-    lastSeenAt: now,
-    connectionId: payload.connectionId ?? null,
-    metadata: payload.metadata
-  };
+  const participantDto = toParticipantDto(result.participant);
+  emitSessionUpdate({
+    action: 'participant_joined',
+    session: toSessionDto(result.session),
+    participant: participantDto
+  });
 
-  session.participants.set(participant.id, participant);
-  session.lastHeartbeat = now;
-  session.status = session.status === 'SCHEDULED' ? 'ACTIVE' : session.status;
-  updateSessionTimestamp(session);
-
-  const dto = cloneParticipant(participant);
-  emitSessionUpdate({ action: 'participant_joined', session: cloneSession(session), participant: dto });
-  return dto;
+  return participantDto;
 }
 
 export async function leaveRealtimeSession(
   sessionId: string,
   participantId: string
 ): Promise<boolean> {
-  const session = sessions.get(sessionId);
-  if (!session) {
+  const result = await realtimePrisma.$transaction(async (tx) => {
+    const participant = await tx.realtimeSessionParticipant.findFirst({
+      where: { id: participantId, sessionId }
+    });
+
+    if (!participant) {
+      return null;
+    }
+
+    const now = new Date();
+    const updatedParticipant = await tx.realtimeSessionParticipant.update({
+      where: { id: participantId },
+      data: {
+        lastSeenAt: now,
+        leftAt: now
+      }
+    });
+
+    const session = await tx.realtimeSession.findUnique({ where: { id: sessionId } });
+    if (!session) {
+      throw new Error('Session not found while processing leave');
+    }
+
+    const updatedSession = await tx.realtimeSession.update({
+      where: { id: sessionId },
+      data: {
+        status: session.status,
+        lastHeartbeat: session.lastHeartbeat
+      },
+      include: { participants: true }
+    });
+
+    return { session: updatedSession, participant: updatedParticipant };
+  });
+
+  if (!result) {
     return false;
   }
 
-  const participant = session.participants.get(participantId);
-  if (!participant) {
-    return false;
-  }
+  emitSessionUpdate({
+    action: 'participant_left',
+    session: toSessionDto(result.session),
+    participant: toParticipantDto(result.participant)
+  });
 
-  const now = new Date();
-  participant.leftAt = now;
-  participant.lastSeenAt = now;
-  updateSessionTimestamp(session);
-
-  emitSessionUpdate({ action: 'participant_left', session: cloneSession(session), participant: cloneParticipant(participant) });
   return true;
 }
 
@@ -204,25 +247,39 @@ export async function heartbeatRealtimeSession(
   sessionId: string,
   payload: HeartbeatPayload
 ): Promise<RealtimeSessionDto | null> {
-  const session = sessions.get(sessionId);
+  const session = await realtimePrisma.$transaction(async (tx) => {
+    const existing = await tx.realtimeSession.findUnique({ where: { id: sessionId } });
+    if (!existing) {
+      return null;
+    }
+
+    const timestamp = payload.timestamp ? new Date(payload.timestamp) : new Date();
+
+    if (payload.participantId) {
+      await tx.realtimeSessionParticipant.updateMany({
+        where: { id: payload.participantId, sessionId },
+        data: { lastSeenAt: timestamp, leftAt: null }
+      });
+    }
+
+    return tx.realtimeSession.update({
+      where: { id: sessionId },
+      data: {
+        lastHeartbeat: timestamp,
+        status:
+          existing.status === PrismaRealtimeSessionStatus.SCHEDULED
+            ? PrismaRealtimeSessionStatus.ACTIVE
+            : existing.status
+      },
+      include: { participants: true }
+    });
+  });
+
   if (!session) {
     return null;
   }
 
-  const timestamp = payload.timestamp ? new Date(payload.timestamp) : new Date();
-  session.lastHeartbeat = timestamp;
-  session.status = session.status === 'SCHEDULED' ? 'ACTIVE' : session.status;
-  updateSessionTimestamp(session);
-
-  if (payload.participantId) {
-    const participant = session.participants.get(payload.participantId);
-    if (participant) {
-      participant.lastSeenAt = timestamp;
-      participant.leftAt = null;
-    }
-  }
-
-  const dto = cloneSession(session);
+  const dto = toSessionDto(session);
   emitSessionUpdate({ action: 'heartbeat', session: dto });
   return dto;
 }
@@ -231,57 +288,86 @@ export async function updateRealtimeSessionStatus(
   sessionId: string,
   payload: UpdateRealtimeSessionStatusPayload
 ): Promise<RealtimeSessionDto | null> {
-  const session = sessions.get(sessionId);
+  const session = await realtimePrisma.$transaction(async (tx) => {
+    const existing = await tx.realtimeSession.findUnique({ where: { id: sessionId } });
+    if (!existing) {
+      return null;
+    }
+
+    const endedAt = payload.endedAt ? new Date(payload.endedAt) : existing.endedAt;
+    const shouldFinalize = payload.status === 'ENDED';
+
+    return tx.realtimeSession.update({
+      where: { id: sessionId },
+      data: {
+        status: payload.status as PrismaRealtimeSessionStatus,
+        endedAt: shouldFinalize && !payload.endedAt ? new Date() : endedAt,
+        metadata:
+          payload.metadata !== undefined
+            ? (payload.metadata as Prisma.JsonValue)
+            : existing.metadata,
+        lastHeartbeat: shouldFinalize ? null : existing.lastHeartbeat
+      },
+      include: { participants: true }
+    });
+  });
+
   if (!session) {
     return null;
   }
 
-  session.status = payload.status;
-  session.endedAt = payload.endedAt ? new Date(payload.endedAt) : payload.status === 'ENDED' ? new Date() : session.endedAt;
-  session.metadata = payload.metadata ?? session.metadata;
-  if (payload.status === 'ENDED') {
-    session.lastHeartbeat = new Date();
-  }
-  updateSessionTimestamp(session);
-
-  const dto = cloneSession(session);
+  const dto = toSessionDto(session);
   emitSessionUpdate({ action: 'updated', session: dto });
   return dto;
 }
 
 export async function removeRealtimeSession(sessionId: string): Promise<boolean> {
-  const session = sessions.get(sessionId);
-  if (!session) {
+  let session: SessionWithParticipants;
+  try {
+    session = await realtimePrisma.realtimeSession.delete({
+      where: { id: sessionId },
+      include: { participants: true }
+    });
+  } catch (error) {
     return false;
   }
 
-  sessions.delete(sessionId);
-  emitSessionUpdate({ action: 'deleted', session: cloneSession(session) });
+  emitSessionUpdate({ action: 'deleted', session: toSessionDto(session) });
   return true;
 }
 
-export function getActiveSessionCount(): number {
-  const now = Date.now();
-  let count = 0;
-  sessions.forEach((session) => {
-    const lastBeat = session.lastHeartbeat?.getTime() ?? 0;
-    if (session.status === 'ACTIVE' || now - lastBeat <= HEARTBEAT_GRACE_MS) {
-      count += 1;
+export async function getActiveSessionCount(): Promise<number> {
+  const graceDate = new Date(Date.now() - HEARTBEAT_GRACE_MS);
+  return realtimePrisma.realtimeSession.count({
+    where: {
+      OR: [
+        { status: PrismaRealtimeSessionStatus.ACTIVE },
+        { lastHeartbeat: { gte: graceDate } }
+      ]
     }
   });
-  return count;
 }
 
-export function getCompletedSessionCount(): number {
-  let count = 0;
-  sessions.forEach((session) => {
-    if (session.status === 'ENDED') {
-      count += 1;
-    }
+export async function getCompletedSessionCount(): Promise<number> {
+  return realtimePrisma.realtimeSession.count({
+    where: { status: PrismaRealtimeSessionStatus.ENDED }
   });
-  return count;
 }
 
-export function getAllSessionsSnapshot(): RealtimeSessionDto[] {
-  return Array.from(sessions.values()).map(cloneSession);
+export async function getAllSessionsSnapshot(): Promise<RealtimeSessionDto[]> {
+  const sessions = await realtimePrisma.realtimeSession.findMany({
+    include: { participants: true },
+    orderBy: { createdAt: 'desc' }
+  });
+  return sessions.map(toSessionDto);
+}
+
+export async function restoreRealtimeSessions(): Promise<void> {
+  const sessions = await realtimePrisma.realtimeSession.findMany({
+    include: { participants: true }
+  });
+
+  for (const session of sessions) {
+    emitSessionUpdate({ action: 'restored', session: toSessionDto(session) });
+  }
 }

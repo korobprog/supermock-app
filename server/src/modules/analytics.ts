@@ -142,8 +142,10 @@ export async function getPlatformStats(): Promise<PlatformStatsDto> {
 
   const topFocusAreas = focusAreaCounts.length > 0 ? focusAreaCounts : specializationCounts;
 
-  const activeRealtimeSessions = getActiveSessionCount();
-  const completedRealtimeSessions = getCompletedSessionCount();
+  const [activeRealtimeSessions, completedRealtimeSessions] = await Promise.all([
+    getActiveSessionCount(),
+    getCompletedSessionCount()
+  ]);
 
   return {
     totalUsers,
