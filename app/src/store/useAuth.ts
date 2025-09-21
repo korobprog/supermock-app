@@ -13,6 +13,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   setAuthData: (accessToken: string, user: AuthState['user']) => void;
+  updateUser: (user: AuthState['user']) => void;
 }
 
 export const useAuth = create<AuthState>()(
@@ -57,13 +58,20 @@ export const useAuth = create<AuthState>()(
           isAuthenticated: false,
         });
       },
-      
+
       setAuthData: (accessToken: string, user: AuthState['user']) => {
         set({
           accessToken,
           user,
           isAuthenticated: true,
         });
+      },
+
+      updateUser: (user: AuthState['user']) => {
+        set((state) => ({
+          user,
+          isAuthenticated: user ? true : state.isAuthenticated && Boolean(state.accessToken),
+        }));
       },
     }),
     {

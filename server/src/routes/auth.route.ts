@@ -13,6 +13,11 @@ import {
   verifyEmail,
   getUserProfile
 } from '../modules/auth.js';
+import {
+  findSessionById,
+  listAccountSecurity,
+  revokeSessionById
+} from '../modules/account.js';
 import { authenticate, authorizeRoles } from '../utils/auth.js';
 import { getRequestIp } from '../utils/request-ip.js';
 
@@ -44,9 +49,24 @@ const verifySchema = z.object({
   token: z.string().min(32)
 });
 
+const sessionQuerySchema = z.object({
+  userId: z.string().min(1).optional()
+});
+
+const sessionParamsSchema = z.object({
+  id: z.string().min(1)
+});
+
 type RequestMetadata = {
   ipAddress: string;
   userAgent?: string;
+};
+
+type AuthenticatedRequest = FastifyRequest & {
+  user: {
+    id: string;
+    role: UserRole;
+  };
 };
 
 const roleMap: Record<'candidate' | 'interviewer', UserRole> = {
@@ -88,6 +108,17 @@ function mapAuthError(reply: FastifyReply, error: unknown) {
   }
 
   return error;
+}
+
+function ensureSelfOrAdmin(request: AuthenticatedRequest, reply: FastifyReply, targetUserId: string) {
+  if (request.user.role === UserRole.ADMIN) {
+    return;
+  }
+
+  if (request.user.id !== targetUserId) {
+    reply.code(403);
+    throw new Error('Forbidden');
+  }
 }
 
 export function registerAuthRoutes(app: FastifyInstance, config: AppConfig) {
@@ -212,6 +243,37 @@ export function registerAuthRoutes(app: FastifyInstance, config: AppConfig) {
     }
 
     return { user };
+  });
+
+  app.get('/auth/sessions', { preHandler: [authenticate] }, async (request, reply) => {
+    const query = sessionQuerySchema.parse(request.query ?? {});
+    const targetUserId = query.userId ?? request.user.id;
+
+    ensureSelfOrAdmin(request as AuthenticatedRequest, reply, targetUserId);
+
+    const data = await listAccountSecurity(targetUserId);
+    return data;
+  });
+
+  app.delete('/auth/sessions/:id', { preHandler: [authenticate] }, async (request, reply) => {
+    const params = sessionParamsSchema.parse(request.params ?? {});
+    const session = await findSessionById(params.id);
+
+    if (!session) {
+      reply.code(404);
+      throw new Error('Session not found');
+    }
+
+    ensureSelfOrAdmin(request as AuthenticatedRequest, reply, session.userId);
+
+    const metadata = extractMetadata(request);
+    const result = await revokeSessionById(params.id, {
+      ipAddress: metadata.ipAddress,
+      userAgent: metadata.userAgent,
+      actorUserId: request.user.id
+    });
+
+    return { revoked: true, session: result };
   });
 
   app.get(

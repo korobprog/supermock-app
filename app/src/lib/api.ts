@@ -24,7 +24,16 @@ import type {
   SessionParticipantDto,
   UpdateRealtimeSessionStatusPayload
 } from '../../../shared/src/types/realtime.js';
-import type { CompleteOnboardingPayload, CompleteOnboardingResponse } from '../../../shared/src/types/user.js';
+import type {
+  CompleteOnboardingPayload,
+  CompleteOnboardingResponse,
+  UserDto
+} from '../../../shared/src/types/user.js';
+import type {
+  AccountSecurityOverviewDto,
+  AuthSessionDto,
+  AuthUserDto
+} from '../../../shared/src/types/auth.js';
 import type { InterviewAiInsightDto, PlatformStatsDto } from '../../../shared/src/types/analytics.js';
 import type { OnboardingProfileDraftPayload, OnboardingProfileDraftResponse } from '@/types/onboarding';
 
@@ -332,4 +341,38 @@ export function fetchInterviewAiInsights(matchId: string) {
 
 export function fetchPlatformStats() {
   return request<PlatformStatsDto>('/analytics/overview');
+}
+
+export function listSessions(userId?: string) {
+  const search = new URLSearchParams();
+
+  if (userId) {
+    search.set('userId', userId);
+  }
+
+  const suffix = search.toString() ? `?${search.toString()}` : '';
+  return request<AccountSecurityOverviewDto>(`/auth/sessions${suffix}`);
+}
+
+export function revokeSession(sessionId: string) {
+  return request<{ revoked: boolean; session: AuthSessionDto }>(`/auth/sessions/${sessionId}`, {
+    method: 'DELETE'
+  });
+}
+
+export function requestEmailVerification(token: string) {
+  return request<{ verified: boolean; user: AuthUserDto; tokens: { accessToken: string } }>(
+    '/auth/verify-email',
+    {
+      method: 'POST',
+      body: JSON.stringify({ token })
+    }
+  );
+}
+
+export function changePassword(userId: string, password: string) {
+  return request<UserDto>(`/users/${userId}`, {
+    method: 'PUT',
+    body: JSON.stringify({ password })
+  });
 }
