@@ -41,6 +41,12 @@ enum SessionFormat {
   MIXED
 }
 
+enum SlotParticipantRole {
+  CANDIDATE
+  INTERVIEWER
+  OBSERVER
+}
+
 model CandidateProfile {
   id                 String         @id @default(cuid())
   userId             String         @unique
@@ -55,6 +61,7 @@ model CandidateProfile {
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
   matchRequests      MatchRequest[]
+  slotParticipants   SlotParticipant[] @relation("SlotParticipantCandidate")
 }
 
 model InterviewerProfile {
@@ -71,6 +78,8 @@ model InterviewerProfile {
   createdAt        DateTime                @default(now())
   updatedAt        DateTime                @updatedAt
   availability     InterviewerAvailability[]
+  hostedSlots      InterviewerAvailability[] @relation("AvailabilityHost")
+  slotParticipants SlotParticipant[]         @relation("SlotParticipantInterviewer")
   matches          InterviewMatch[]
 }
 
@@ -78,10 +87,32 @@ model InterviewerAvailability {
   id             String             @id @default(cuid())
   interviewerId  String
   interviewer    InterviewerProfile @relation(fields: [interviewerId], references: [id], onDelete: Cascade)
+  hostId         String?
+  host           InterviewerProfile? @relation("AvailabilityHost", fields: [hostId], references: [id], onDelete: SetNull)
+  hostName       String?
+  capacity       Int                @default(1)
   start          DateTime
   end            DateTime
   isRecurring    Boolean            @default(false)
   createdAt      DateTime           @default(now())
+  participants   SlotParticipant[]
+}
+
+model SlotParticipant {
+  id               String                @id @default(cuid())
+  slotId           String
+  slot             InterviewerAvailability @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  role             SlotParticipantRole
+  candidateId      String?
+  candidate        CandidateProfile?   @relation("SlotParticipantCandidate", fields: [candidateId], references: [id], onDelete: Cascade)
+  interviewerId    String?
+  interviewer      InterviewerProfile? @relation("SlotParticipantInterviewer", fields: [interviewerId], references: [id], onDelete: Cascade)
+  waitlistPosition Int?
+  createdAt        DateTime            @default(now())
+
+  @@index([slotId, waitlistPosition])
+  @@unique([slotId, candidateId])
+  @@unique([slotId, interviewerId])
 }
 
 model MatchRequest {
