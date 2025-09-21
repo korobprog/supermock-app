@@ -22,7 +22,8 @@
       "@/data/*": ["src/data/*"],
       "@/store/*": ["src/store/*"],
       "@/styles/*": ["src/styles/*"],
-      "@/types/*": ["src/types/*"]
+      "@/types/*": ["src/types/*"],
+      "@/test/*": ["src/test/*"]
     }
   },
   "include": ["next-env.d.ts", "src/**/*.ts", "src/**/*.tsx"],
