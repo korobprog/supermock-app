@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify';
+import { UserRole } from '@prisma/client';
 import { z } from 'zod';
 
 import type { DailyCoService } from '../modules/daily-co.js';
@@ -20,6 +21,7 @@ import {
   getSlotById,
   joinSlot
 } from '../modules/matching.js';
+import { authenticate, authorizeRoles } from '../utils/auth.js';
 
 const createMatchRequestSchema = z.object({
   candidateId: z.string().min(1, 'candidateId is required'),
@@ -163,26 +165,38 @@ const completeMatchSchema = z.object({
 export function registerMatchingRoutes(app: FastifyInstance, deps: MatchingRouteDependencies = {}) {
   const scheduleMatchSchema = createScheduleMatchSchema(deps.dailyCo?.domain, deps.dailyCo?.enabled);
 
-  app.get('/matching/overview', async () => getMatchOverview());
+  app.get('/matching/overview', { preHandler: authenticate }, async () => getMatchOverview());
 
-  app.get('/matching/candidates', async () => listCandidateSummaries());
+  app.get(
+    '/matching/candidates',
+    { preHandler: authorizeRoles(UserRole.INTERVIEWER, UserRole.ADMIN) },
+    async () => listCandidateSummaries()
+  );
 
-  app.get('/matching/interviewers', async () => listInterviewers());
+  app.get(
+    '/matching/interviewers',
+    { preHandler: authorizeRoles(UserRole.INTERVIEWER, UserRole.ADMIN) },
+    async () => listInterviewers()
+  );
 
-  app.post('/matching/requests', async (request, reply) => {
-    const payload = createMatchRequestSchema.parse(request.body);
-    const result = await createMatchRequest(payload);
+  app.post(
+    '/matching/requests',
+    { preHandler: authorizeRoles(UserRole.INTERVIEWER, UserRole.ADMIN) },
+    async (request, reply) => {
+      const payload = createMatchRequestSchema.parse(request.body);
+      const result = await createMatchRequest(payload);
 
-    if (!result) {
-      reply.code(404);
-      throw new Error('Candidate profile not found');
+      if (!result) {
+        reply.code(404);
+        throw new Error('Candidate profile not found');
+      }
+
+      reply.code(201);
+      return result;
     }
+  );
 
-    reply.code(201);
-    return result;
-  });
-
-  app.get('/matching/requests/:id', async (request) => {
+  app.get('/matching/requests/:id', { preHandler: authenticate }, async (request) => {
     const { id } = requestIdParamsSchema.parse(request.params);
     const matchRequest = await getMatchRequestById(id);
 
@@ -193,39 +207,47 @@ export function registerMatchingRoutes(app: FastifyInstance, deps: MatchingRoute
     return matchRequest;
   });
 
-  app.get('/matching/requests/:id/previews', async (request) => {
-    const { id } = requestIdParamsSchema.parse(request.params);
-    const previews = await getMatchPreviews(id);
+  app.get(
+    '/matching/requests/:id/previews',
+    { preHandler: authorizeRoles(UserRole.INTERVIEWER, UserRole.ADMIN) },
+    async (request) => {
+      const { id } = requestIdParamsSchema.parse(request.params);
+      const previews = await getMatchPreviews(id);
 
-    if (!previews) {
-      throw new Error('Match request not found');
+      if (!previews) {
+        throw new Error('Match request not found');
     }
 
     return {
       requestId: id,
       previews
     };
-  });
-
-  app.post('/matching/requests/:id/schedule', async (request) => {
-    const { id } = requestIdParamsSchema.parse(request.params);
-    const payload = scheduleMatchSchema.parse(request.body);
-
-    const updated = await scheduleMatch(id, payload, { dailyCoService: deps.dailyCo?.service ?? null });
-
-    if (!updated) {
-      throw new Error('Match request or availability not found');
     }
+  );
 
-    return updated;
-  });
+  app.post(
+    '/matching/requests/:id/schedule',
+    { preHandler: authorizeRoles(UserRole.INTERVIEWER, UserRole.ADMIN) },
+    async (request) => {
+      const { id } = requestIdParamsSchema.parse(request.params);
+      const payload = scheduleMatchSchema.parse(request.body);
 
-  app.get('/matching/interviewers/:id/availability', async (request) => {
+      const updated = await scheduleMatch(id, payload, { dailyCoService: deps.dailyCo?.service ?? null });
+
+      if (!updated) {
+        throw new Error('Match request or availability not found');
+      }
+
+      return updated;
+    }
+  );
+
+  app.get('/matching/interviewers/:id/availability', { preHandler: authenticate }, async (request) => {
     const { id } = requestIdParamsSchema.parse(request.params);
     return listInterviewerAvailability(id);
   });
 
-  app.get('/matching/slots/:id', async (request, reply) => {
+  app.get('/matching/slots/:id', { preHandler: authenticate }, async (request, reply) => {
     const { id } = requestIdParamsSchema.parse(request.params);
     const slot = await getSlotById(id);
 
@@ -237,81 +259,101 @@ export function registerMatchingRoutes(app: FastifyInstance, deps: MatchingRoute
     return slot;
   });
 
-  app.get('/matching/interviewers/:id/sessions', async (request) => {
-    const { id } = requestIdParamsSchema.parse(request.params);
-    const limitParam = (request.query as { limit?: string })?.limit;
-    const limit = limitParam ? Math.min(Math.max(Number(limitParam), 1), 50) : 10;
-    return getInterviewerSessions(id, limit);
-  });
-
-  app.post('/matching/interviewers/:id/availability', async (request, reply) => {
-    console.log('Received request to create availability slot');
-    const { id } = requestIdParamsSchema.parse(request.params);
-    console.log('Interviewer ID:', id);
-    
-    const payload = createAvailabilitySchema.parse(request.body);
-    console.log('Parsed payload:', payload);
-
-    const slot = await createInterviewerAvailability({
-      interviewerId: id,
-      start: payload.start,
-      end: payload.end,
-      isRecurring: payload.isRecurring,
-      language: payload.language
-    });
-
-    if (!slot) {
-      console.log('Slot creation failed - returning 400');
-      reply.code(400);
-      throw new Error('Failed to create availability slot');
+  app.get(
+    '/matching/interviewers/:id/sessions',
+    { preHandler: authorizeRoles(UserRole.INTERVIEWER, UserRole.ADMIN) },
+    async (request) => {
+      const { id } = requestIdParamsSchema.parse(request.params);
+      const limitParam = (request.query as { limit?: string })?.limit;
+      const limit = limitParam ? Math.min(Math.max(Number(limitParam), 1), 50) : 10;
+      return getInterviewerSessions(id, limit);
     }
+  );
 
-    console.log('Slot created successfully, returning 201');
-    reply.code(201);
-    return slot;
-  });
+  app.post(
+    '/matching/interviewers/:id/availability',
+    { preHandler: authorizeRoles(UserRole.INTERVIEWER, UserRole.ADMIN) },
+    async (request, reply) => {
+      console.log('Received request to create availability slot');
+      const { id } = requestIdParamsSchema.parse(request.params);
+      console.log('Interviewer ID:', id);
 
-  app.delete('/matching/availability/:id', async (request, reply) => {
-    const { id } = requestIdParamsSchema.parse(request.params);
-    const removed = await deleteInterviewerAvailability(id);
+      const payload = createAvailabilitySchema.parse(request.body);
+      console.log('Parsed payload:', payload);
 
-    if (!removed) {
-      reply.code(404);
-      throw new Error('Availability slot not found');
+      const slot = await createInterviewerAvailability({
+        interviewerId: id,
+        start: payload.start,
+        end: payload.end,
+        isRecurring: payload.isRecurring,
+        language: payload.language
+      });
+
+      if (!slot) {
+        console.log('Slot creation failed - returning 400');
+        reply.code(400);
+        throw new Error('Failed to create availability slot');
+      }
+
+      console.log('Slot created successfully, returning 201');
+      reply.code(201);
+      return slot;
     }
+  );
 
-    reply.code(204);
-    return null;
-  });
+  app.delete(
+    '/matching/availability/:id',
+    { preHandler: authorizeRoles(UserRole.INTERVIEWER, UserRole.ADMIN) },
+    async (request, reply) => {
+      const { id } = requestIdParamsSchema.parse(request.params);
+      const removed = await deleteInterviewerAvailability(id);
 
-  app.post('/matching/slots/:id/join', async (request, reply) => {
-    const { id } = requestIdParamsSchema.parse(request.params);
-    const payload = joinSlotSchema.parse(request.body);
+      if (!removed) {
+        reply.code(404);
+        throw new Error('Availability slot not found');
+      }
 
-    const slot = await joinSlot(id, payload);
-
-    if (!slot) {
-      reply.code(404);
-      throw new Error('Slot or participant not found');
+      reply.code(204);
+      return null;
     }
+  );
 
-    return slot;
-  });
+  app.post(
+    '/matching/slots/:id/join',
+    { preHandler: authorizeRoles(UserRole.CANDIDATE, UserRole.INTERVIEWER, UserRole.ADMIN) },
+    async (request, reply) => {
+      const { id } = requestIdParamsSchema.parse(request.params);
+      const payload = joinSlotSchema.parse(request.body);
 
-  app.post('/matching/matches/:id/complete', async (request) => {
-    const { id } = requestIdParamsSchema.parse(request.params);
-    const payload = completeMatchSchema.parse(request.body);
+      const slot = await joinSlot(id, payload);
 
-    const updated = await completeMatch(id, payload);
+      if (!slot) {
+        reply.code(404);
+        throw new Error('Slot or participant not found');
+      }
 
-    if (!updated) {
-      throw new Error('Match not found');
+      return slot;
     }
+  );
 
-    return updated;
-  });
+  app.post(
+    '/matching/matches/:id/complete',
+    { preHandler: authorizeRoles(UserRole.INTERVIEWER, UserRole.ADMIN) },
+    async (request) => {
+      const { id } = requestIdParamsSchema.parse(request.params);
+      const payload = completeMatchSchema.parse(request.body);
 
-  app.get('/matching/sessions/recent', async (request) => {
+      const updated = await completeMatch(id, payload);
+
+      if (!updated) {
+        throw new Error('Match not found');
+      }
+
+      return updated;
+    }
+  );
+
+  app.get('/matching/sessions/recent', { preHandler: authenticate }, async (request) => {
     const limitParam = (request.query as { limit?: string })?.limit;
     const limit = limitParam ? Math.min(Math.max(Number(limitParam), 1), 50) : 10;
     return listRecentSessions(limit);

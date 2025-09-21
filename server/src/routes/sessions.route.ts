@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify';
+import { UserRole } from '@prisma/client';
 import { z } from 'zod';
 
 import {
@@ -11,6 +12,7 @@ import {
   removeRealtimeSession,
   updateRealtimeSessionStatus
 } from '../modules/realtime-sessions.js';
+import { authenticate, authorizeRoles } from '../utils/auth.js';
 
 const realtimeStatusValues = ['SCHEDULED', 'ACTIVE', 'ENDED', 'CANCELLED'] as const;
 const participantRoleValues = ['HOST', 'INTERVIEWER', 'CANDIDATE', 'OBSERVER'] as const;
@@ -54,17 +56,21 @@ const listSessionsQuerySchema = z.object({
 });
 
 export function registerRealtimeSessionRoutes(app: FastifyInstance) {
-  app.get('/sessions', async (request) => {
-    const query = listSessionsQuerySchema.parse(request.query ?? {});
-    return listRealtimeSessions({
-      status: query.status,
-      hostId: query.hostId,
-      matchId: query.matchId,
-      activeOnly: query.activeOnly
-    });
-  });
+  app.get(
+    '/sessions',
+    { preHandler: authorizeRoles(UserRole.INTERVIEWER, UserRole.ADMIN) },
+    async (request) => {
+      const query = listSessionsQuerySchema.parse(request.query ?? {});
+      return listRealtimeSessions({
+        status: query.status,
+        hostId: query.hostId,
+        matchId: query.matchId,
+        activeOnly: query.activeOnly
+      });
+    }
+  );
 
-  app.get('/sessions/:id', async (request, reply) => {
+  app.get('/sessions/:id', { preHandler: authenticate }, async (request, reply) => {
     const { id } = sessionIdParamsSchema.parse(request.params);
     const session = await getRealtimeSessionById(id);
 
@@ -76,99 +82,123 @@ export function registerRealtimeSessionRoutes(app: FastifyInstance) {
     return session;
   });
 
-  app.post('/sessions', async (request, reply) => {
-    const payload = createSessionSchema.parse(request.body ?? {});
-    const session = await createRealtimeSession({
-      matchId: payload.matchId,
-      hostId: payload.hostId,
-      status: payload.status,
-      metadata: payload.metadata
-    });
-    reply.code(201);
-    return session;
-  });
-
-  app.post('/sessions/:id/join', async (request, reply) => {
-    const { id } = sessionIdParamsSchema.parse(request.params);
-    const payload = joinSessionSchema.parse(request.body ?? {});
-
-    const participant = await joinRealtimeSession(id, {
-      userId: payload.userId,
-      role: payload.role,
-      connectionId: payload.connectionId,
-      metadata: payload.metadata
-    });
-
-    if (!participant) {
-      reply.code(404);
-      throw new Error('Session not found');
+  app.post(
+    '/sessions',
+    { preHandler: authorizeRoles(UserRole.INTERVIEWER, UserRole.ADMIN) },
+    async (request, reply) => {
+      const payload = createSessionSchema.parse(request.body ?? {});
+      const session = await createRealtimeSession({
+        matchId: payload.matchId,
+        hostId: payload.hostId,
+        status: payload.status,
+        metadata: payload.metadata
+      });
+      reply.code(201);
+      return session;
     }
+  );
 
-    reply.code(201);
-    return participant;
-  });
+  app.post(
+    '/sessions/:id/join',
+    { preHandler: authorizeRoles(UserRole.CANDIDATE, UserRole.INTERVIEWER, UserRole.ADMIN) },
+    async (request, reply) => {
+      const { id } = sessionIdParamsSchema.parse(request.params);
+      const payload = joinSessionSchema.parse(request.body ?? {});
 
-  app.post('/sessions/:id/leave', async (request, reply) => {
-    const { id } = sessionIdParamsSchema.parse(request.params);
-    const { participantId } = z
-      .object({ participantId: z.string().min(1) })
-      .parse(request.body ?? {});
+      const participant = await joinRealtimeSession(id, {
+        userId: payload.userId,
+        role: payload.role,
+        connectionId: payload.connectionId,
+        metadata: payload.metadata
+      });
 
-    const success = await leaveRealtimeSession(id, participantId);
+      if (!participant) {
+        reply.code(404);
+        throw new Error('Session not found');
+      }
 
-    if (!success) {
-      reply.code(404);
-      throw new Error('Session or participant not found');
+      reply.code(201);
+      return participant;
     }
+  );
 
-    return { success };
-  });
+  app.post(
+    '/sessions/:id/leave',
+    { preHandler: authorizeRoles(UserRole.CANDIDATE, UserRole.INTERVIEWER, UserRole.ADMIN) },
+    async (request, reply) => {
+      const { id } = sessionIdParamsSchema.parse(request.params);
+      const { participantId } = z
+        .object({ participantId: z.string().min(1) })
+        .parse(request.body ?? {});
 
-  app.post('/sessions/:id/heartbeat', async (request, reply) => {
-    const { id } = sessionIdParamsSchema.parse(request.params);
-    const payload = heartbeatSchema.parse(request.body ?? {});
+      const success = await leaveRealtimeSession(id, participantId);
 
-    const session = await heartbeatRealtimeSession(id, {
-      participantId: payload.participantId,
-      timestamp: payload.timestamp
-    });
+      if (!success) {
+        reply.code(404);
+        throw new Error('Session or participant not found');
+      }
 
-    if (!session) {
-      reply.code(404);
-      throw new Error('Session not found');
+      return { success };
     }
+  );
 
-    return session;
-  });
+  app.post(
+    '/sessions/:id/heartbeat',
+    { preHandler: authorizeRoles(UserRole.CANDIDATE, UserRole.INTERVIEWER, UserRole.ADMIN) },
+    async (request, reply) => {
+      const { id } = sessionIdParamsSchema.parse(request.params);
+      const payload = heartbeatSchema.parse(request.body ?? {});
 
-  app.patch('/sessions/:id/status', async (request, reply) => {
-    const { id } = sessionIdParamsSchema.parse(request.params);
-    const payload = updateStatusSchema.parse(request.body ?? {});
+      const session = await heartbeatRealtimeSession(id, {
+        participantId: payload.participantId,
+        timestamp: payload.timestamp
+      });
 
-    const session = await updateRealtimeSessionStatus(id, {
-      status: payload.status,
-      endedAt: payload.endedAt,
-      metadata: payload.metadata
-    });
+      if (!session) {
+        reply.code(404);
+        throw new Error('Session not found');
+      }
 
-    if (!session) {
-      reply.code(404);
-      throw new Error('Session not found');
+      return session;
     }
+  );
 
-    return session;
-  });
+  app.patch(
+    '/sessions/:id/status',
+    { preHandler: authorizeRoles(UserRole.INTERVIEWER, UserRole.ADMIN) },
+    async (request, reply) => {
+      const { id } = sessionIdParamsSchema.parse(request.params);
+      const payload = updateStatusSchema.parse(request.body ?? {});
 
-  app.delete('/sessions/:id', async (request, reply) => {
-    const { id } = sessionIdParamsSchema.parse(request.params);
-    const removed = await removeRealtimeSession(id);
+      const session = await updateRealtimeSessionStatus(id, {
+        status: payload.status,
+        endedAt: payload.endedAt,
+        metadata: payload.metadata
+      });
 
-    if (!removed) {
-      reply.code(404);
-      throw new Error('Session not found');
+      if (!session) {
+        reply.code(404);
+        throw new Error('Session not found');
+      }
+
+      return session;
     }
+  );
 
-    reply.code(204);
-    return null;
-  });
+  app.delete(
+    '/sessions/:id',
+    { preHandler: authorizeRoles(UserRole.INTERVIEWER, UserRole.ADMIN) },
+    async (request, reply) => {
+      const { id } = sessionIdParamsSchema.parse(request.params);
+      const removed = await removeRealtimeSession(id);
+
+      if (!removed) {
+        reply.code(404);
+        throw new Error('Session not found');
+      }
+
+      reply.code(204);
+      return null;
+    }
+  );
 }
