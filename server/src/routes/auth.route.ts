@@ -14,6 +14,7 @@ import {
   getUserProfile
 } from '../modules/auth.js';
 import { authenticate, authorizeRoles } from '../utils/auth.js';
+import { getRequestIp } from '../utils/request-ip.js';
 
 const signupSchema = z.object({
   email: z.string().trim().toLowerCase().email(),
@@ -56,7 +57,7 @@ const roleMap: Record<'candidate' | 'interviewer', UserRole> = {
 function extractMetadata(request: FastifyRequest): RequestMetadata {
   const userAgentHeader = request.headers['user-agent'];
   return {
-    ipAddress: request.ip,
+    ipAddress: getRequestIp(request),
     userAgent: typeof userAgentHeader === 'string' ? userAgentHeader : undefined
   };
 }

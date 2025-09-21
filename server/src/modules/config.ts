@@ -5,6 +5,13 @@ const DEFAULT_JWT_SECRET = process.env.JWT_SECRET ?? 'supermock-dev-secret';
 const DEFAULT_JWT_ACCESS_TTL = process.env.JWT_ACCESS_TTL ?? '15m';
 const DEFAULT_JWT_REFRESH_TTL = process.env.JWT_REFRESH_TTL ?? '7d';
 const DEFAULT_BCRYPT_SALT_ROUNDS = process.env.BCRYPT_SALT_ROUNDS ? Number(process.env.BCRYPT_SALT_ROUNDS) : 12;
+const DEFAULT_RATE_LIMIT_MAX = process.env.RATE_LIMIT_MAX ? Number(process.env.RATE_LIMIT_MAX) : 100;
+const DEFAULT_RATE_LIMIT_WINDOW = process.env.RATE_LIMIT_WINDOW ?? '1 minute';
+
+type RateLimitSettings = {
+  max: number;
+  timeWindow: string;
+};
 
 type LogLevel = 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace' | 'silent';
 
@@ -32,12 +39,20 @@ export type AppConfig = {
   jwt: JwtConfig;
   password: PasswordConfig;
   dailyCo: DailyCoSettings;
+  rateLimit: {
+    global: RateLimitSettings;
+    critical: RateLimitSettings;
+  };
 };
 
 export function buildConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const dailyCoApiKey = env.DAILY_CO_API_KEY ?? '';
   const dailyCoDomain = env.DAILY_CO_DOMAIN ?? '';
   const dailyCoEnabled = Boolean(dailyCoApiKey && dailyCoDomain);
+  const parseMax = (value: string | undefined, fallback: number) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+  };
 
   return {
     port: env.SERVER_PORT ? Number(env.SERVER_PORT) : DEFAULT_PORT,
@@ -57,6 +72,16 @@ export function buildConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       enabled: dailyCoEnabled,
       apiKey: dailyCoApiKey,
       domain: dailyCoDomain
+    },
+    rateLimit: {
+      global: {
+        max: parseMax(env.RATE_LIMIT_MAX, DEFAULT_RATE_LIMIT_MAX),
+        timeWindow: env.RATE_LIMIT_WINDOW ?? DEFAULT_RATE_LIMIT_WINDOW
+      },
+      critical: {
+        max: parseMax(env.RATE_LIMIT_CRITICAL_MAX, parseMax(env.RATE_LIMIT_MAX, DEFAULT_RATE_LIMIT_MAX)),
+        timeWindow: env.RATE_LIMIT_CRITICAL_WINDOW ?? env.RATE_LIMIT_WINDOW ?? DEFAULT_RATE_LIMIT_WINDOW
+      }
     }
   };
 }
