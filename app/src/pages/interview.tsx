@@ -896,9 +896,16 @@ export default function InterviewMatchingPage() {
                     key={slot.id}
                     className="flex items-center justify-between rounded border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-200"
                   >
-                    <span>
-                      {new Date(slot.start).toLocaleString()} → {new Date(slot.end).toLocaleTimeString()}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span>
+                        {new Date(slot.start).toLocaleString()} → {new Date(slot.end).toLocaleTimeString()}
+                      </span>
+                      {slot.language && (
+                        <span className="rounded-full bg-slate-800/80 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-300">
+                          {slot.language}
+                        </span>
+                      )}
+                    </div>
                     <button
                       type="button"
                       className="rounded border border-red-500/60 px-2 py-1 font-semibold text-red-400 hover:bg-red-500/10 disabled:opacity-60"

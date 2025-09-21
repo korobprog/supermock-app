@@ -25,8 +25,8 @@ const getCurrentLocale = (): string => {
     }
   }
   
-  // Fallback на русский (дефолтная локаль)
-  return 'ru';
+  // Fallback на английский (дефолтная локаль)
+  return 'en';
 };
 
 // Функция для загрузки переводов

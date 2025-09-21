@@ -435,6 +435,7 @@ function mapAvailability(slot: InterviewerAvailability): AvailabilitySlotDto {
     start: slot.start.toISOString(),
     end: slot.end.toISOString(),
     isRecurring: slot.isRecurring,
+    language: slot.language,
     createdAt: slot.createdAt.toISOString()
   };
 }
@@ -669,33 +670,45 @@ export async function listInterviewerAvailability(interviewerId: string): Promis
 export async function createInterviewerAvailability(
   payload: CreateAvailabilityPayload
 ): Promise<AvailabilitySlotDto | null> {
+  console.log('Creating availability slot with payload:', payload);
+  
   const interviewer = await prisma.interviewerProfile.findUnique({
     where: { id: payload.interviewerId }
   });
 
+  console.log('Found interviewer:', interviewer ? 'Yes' : 'No');
+  
   if (!interviewer) {
+    console.log('Interviewer not found with ID:', payload.interviewerId);
     return null;
   }
 
   const start = new Date(payload.start);
   const end = new Date(payload.end);
 
+  console.log('Parsed dates - Start:', start, 'End:', end);
+  console.log('Start valid:', !Number.isNaN(start.getTime()), 'End valid:', !Number.isNaN(end.getTime()));
+
   if (!(start instanceof Date) || Number.isNaN(start.getTime()) || !(end instanceof Date) || Number.isNaN(end.getTime())) {
+    console.log('Invalid dates detected');
     return null;
   }
 
   if (end <= start) {
+    console.log('End time is not after start time');
     return null;
   }
 
   const overlap = await prisma.interviewerAvailability.findFirst({
     where: {
       interviewerId: payload.interviewerId,
-      OR: [
+      AND: [
         {
           start: {
             lt: end
-          },
+          }
+        },
+        {
           end: {
             gt: start
           }
@@ -704,19 +717,24 @@ export async function createInterviewerAvailability(
     }
   });
 
+  console.log('Overlap check - Found overlap:', overlap ? 'Yes' : 'No');
   if (overlap) {
+    console.log('Overlapping slot found:', overlap);
     return null;
   }
 
+  console.log('Creating slot in database with language:', payload.language ?? '🇺🇸 English');
   const slot = await prisma.interviewerAvailability.create({
     data: {
       interviewerId: payload.interviewerId,
       start,
       end,
-      isRecurring: payload.isRecurring ?? false
+      isRecurring: payload.isRecurring ?? false,
+      language: payload.language ?? '🇺🇸 English'
     }
   });
 
+  console.log('Slot created successfully:', slot.id, 'with language:', slot.language);
   const mapped = mapAvailability(slot);
   emitSlotUpdate({ action: 'created', slot: mapped });
 

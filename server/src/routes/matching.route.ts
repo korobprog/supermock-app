@@ -106,7 +106,8 @@ function createScheduleMatchSchema(domain?: string | null, enabled?: boolean) {
 const createAvailabilitySchema = z.object({
   start: z.string().datetime({ offset: true }),
   end: z.string().datetime({ offset: true }),
-  isRecurring: z.boolean().optional()
+  isRecurring: z.boolean().optional(),
+  language: z.string().optional()
 });
 
 const joinSlotSchema = z
@@ -244,21 +245,28 @@ export function registerMatchingRoutes(app: FastifyInstance, deps: MatchingRoute
   });
 
   app.post('/matching/interviewers/:id/availability', async (request, reply) => {
+    console.log('Received request to create availability slot');
     const { id } = requestIdParamsSchema.parse(request.params);
+    console.log('Interviewer ID:', id);
+    
     const payload = createAvailabilitySchema.parse(request.body);
+    console.log('Parsed payload:', payload);
 
     const slot = await createInterviewerAvailability({
       interviewerId: id,
       start: payload.start,
       end: payload.end,
-      isRecurring: payload.isRecurring
+      isRecurring: payload.isRecurring,
+      language: payload.language
     });
 
     if (!slot) {
+      console.log('Slot creation failed - returning 400');
       reply.code(400);
       throw new Error('Failed to create availability slot');
     }
 
+    console.log('Slot created successfully, returning 201');
     reply.code(201);
     return slot;
   });

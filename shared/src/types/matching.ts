@@ -93,6 +93,7 @@ export interface AvailabilitySlotDto {
   start: string;
   end: string;
   isRecurring: boolean;
+  language?: string;
   createdAt: string;
 }
 
@@ -136,6 +137,7 @@ export interface CreateAvailabilityPayload {
   start: string; // ISO string
   end: string; // ISO string
   isRecurring?: boolean;
+  language?: string;
 }
 
 export interface InterviewSummaryDto {

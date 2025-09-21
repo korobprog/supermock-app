@@ -28,11 +28,22 @@ import type { InterviewAiInsightDto, PlatformStatsDto } from '../../../shared/sr
 import type { OnboardingProfileDraftPayload, OnboardingProfileDraftResponse } from '@/types/onboarding';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+const USE_NEXT_API = typeof window !== 'undefined'; // Use Next.js API routes on client side
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const headers: Record<string, string> = {};
+  
+  // Only set Content-Type for requests with a body
+  if (init?.body) {
+    headers['Content-Type'] = 'application/json';
+  }
+  
+  // Use Next.js API routes on client side for better CORS handling
+  const baseUrl = USE_NEXT_API && path.startsWith('/matching/') ? '/api' : API_BASE_URL;
+  
+  const response = await fetch(`${baseUrl}${path}`, {
     headers: {
-      'Content-Type': 'application/json',
+      ...headers,
       ...init?.headers
     },
     ...init
@@ -59,6 +70,7 @@ export function fetchCandidateSummaries() {
 }
 
 export function fetchInterviewers() {
+  console.log('Fetching interviewers from:', `${API_BASE_URL}/matching/interviewers`);
   return request<InterviewerSummaryDto[]>('/matching/interviewers');
 }
 

@@ -8,15 +8,190 @@ datasource db {
 }
 
 model User {
-  id                 String              @id @default(cuid())
-  email              String              @unique
-  passwordHash       String?
-  role               UserRole            @default(CANDIDATE)
-  profile            Json?
-  candidateProfile   CandidateProfile?
-  interviewerProfile InterviewerProfile?
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
+  id                     String                   @id @default(cuid())
+  email                  String                   @unique
+  passwordHash           String?
+  role                   UserRole                 @default(CANDIDATE)
+  profile                Json?
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  emailVerifiedAt        DateTime?
+  AuditLog               AuditLog[]
+  candidateProfile       CandidateProfile?
+  EmailVerificationToken EmailVerificationToken[]
+  interviewerProfile     InterviewerProfile?
+  PasswordResetToken     PasswordResetToken[]
+  RefreshToken           RefreshToken[]
+}
+
+model CandidateProfile {
+  id                 String            @id @default(cuid())
+  userId             String            @unique
+  displayName        String
+  timezone           String
+  experienceYears    Int
+  preferredRoles     String[]
+  preferredLanguages String[]
+  focusAreas         String[]
+  bio                String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matchRequests      MatchRequest[]
+  slotParticipants   SlotParticipant[] @relation("SlotParticipantCandidate")
+}
+
+model InterviewerProfile {
+  id               String                    @id @default(cuid())
+  userId           String                    @unique
+  displayName      String
+  timezone         String
+  experienceYears  Int
+  languages        String[]
+  specializations  String[]
+  bio              String?
+  rating           Float                     @default(0)
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+  matches          InterviewMatch[]
+  hostedSlots      InterviewerAvailability[] @relation("AvailabilityHost")
+  availability     InterviewerAvailability[]
+  user             User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slotParticipants SlotParticipant[]         @relation("SlotParticipantInterviewer")
+}
+
+model InterviewerAvailability {
+  id            String              @id @default(cuid())
+  interviewerId String
+  start         DateTime
+  end           DateTime
+  isRecurring   Boolean             @default(false)
+  createdAt     DateTime            @default(now())
+  capacity      Int                 @default(1)
+  hostId        String?
+  hostName      String?
+  language      String?             @default("🇺🇸 English")
+  host          InterviewerProfile? @relation("AvailabilityHost", fields: [hostId], references: [id])
+  interviewer   InterviewerProfile  @relation(fields: [interviewerId], references: [id], onDelete: Cascade)
+  participants  SlotParticipant[]
+}
+
+model SlotParticipant {
+  id               String                  @id @default(cuid())
+  slotId           String
+  role             SlotParticipantRole
+  candidateId      String?
+  interviewerId    String?
+  waitlistPosition Int?
+  createdAt        DateTime                @default(now())
+  candidate        CandidateProfile?       @relation("SlotParticipantCandidate", fields: [candidateId], references: [id], onDelete: Cascade)
+  interviewer      InterviewerProfile?     @relation("SlotParticipantInterviewer", fields: [interviewerId], references: [id], onDelete: Cascade)
+  slot             InterviewerAvailability @relation(fields: [slotId], references: [id], onDelete: Cascade)
+
+  @@unique([slotId, candidateId])
+  @@unique([slotId, interviewerId])
+  @@index([slotId, waitlistPosition])
+}
+
+model MatchRequest {
+  id                 String           @id @default(cuid())
+  candidateId        String
+  targetRole         String
+  focusAreas         String[]
+  preferredLanguages String[]
+  sessionFormat      SessionFormat
+  notes              String?
+  status             MatchStatus      @default(QUEUED)
+  matchedAt          DateTime?
+  expiresAt          DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  result             InterviewMatch?
+  candidate          CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+}
+
+model InterviewMatch {
+  id                 String             @id @default(cuid())
+  requestId          String             @unique
+  interviewerId      String
+  effectivenessScore Int                @default(0)
+  scheduledAt        DateTime?
+  roomUrl            String?
+  status             MatchStatus        @default(MATCHED)
+  completedAt        DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  roomId             String?
+  roomToken          String?
+  interviewer        InterviewerProfile @relation(fields: [interviewerId], references: [id], onDelete: Cascade)
+  request            MatchRequest       @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  summary            InterviewSummary?
+}
+
+model InterviewSummary {
+  id               String         @id @default(cuid())
+  matchId          String         @unique
+  interviewerNotes String
+  candidateNotes   String?
+  aiHighlights     Json?
+  rating           Int            @default(0)
+  strengths        String[]       @default([])
+  improvements     String[]       @default([])
+  createdAt        DateTime       @default(now())
+  match            InterviewMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id        String   @id
+  userId    String?
+  action    String
+  ipAddress String?
+  userAgent String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  User      User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model EmailVerificationToken {
+  id         String    @id
+  userId     String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  verifiedAt DateTime?
+  User       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String    @id
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  usedAt    DateTime?
+  User      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model RefreshToken {
+  id                  String    @id
+  userId              String
+  tokenHash           String    @unique
+  expiresAt           DateTime
+  createdAt           DateTime  @default(now())
+  createdByIp         String?
+  userAgent           String?
+  revokedAt           DateTime?
+  revokedByIp         String?
+  replacedByTokenHash String?
+  User                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 enum UserRole {
@@ -45,120 +220,4 @@ enum SlotParticipantRole {
   CANDIDATE
   INTERVIEWER
   OBSERVER
-}
-
-model CandidateProfile {
-  id                 String            @id @default(cuid())
-  userId             String            @unique
-  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  displayName        String
-  timezone           String
-  experienceYears    Int
-  preferredRoles     String[]
-  preferredLanguages String[]
-  focusAreas         String[]
-  bio                String?
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
-  matchRequests      MatchRequest[]
-  slotParticipants   SlotParticipant[] @relation("SlotParticipantCandidate")
-}
-
-model InterviewerProfile {
-  id               String                    @id @default(cuid())
-  userId           String                    @unique
-  user             User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  displayName      String
-  timezone         String
-  experienceYears  Int
-  languages        String[]
-  specializations  String[]
-  bio              String?
-  rating           Float                     @default(0)
-  createdAt        DateTime                  @default(now())
-  updatedAt        DateTime                  @updatedAt
-  availability     InterviewerAvailability[]
-  hostedSlots      InterviewerAvailability[] @relation("AvailabilityHost")
-  slotParticipants SlotParticipant[]         @relation("SlotParticipantInterviewer")
-  matches          InterviewMatch[]
-}
-
-model InterviewerAvailability {
-  id            String              @id @default(cuid())
-  interviewerId String
-  interviewer   InterviewerProfile  @relation(fields: [interviewerId], references: [id], onDelete: Cascade)
-  hostId        String?
-  host          InterviewerProfile? @relation("AvailabilityHost", fields: [hostId], references: [id], onDelete: SetNull)
-  hostName      String?
-  capacity      Int                 @default(1)
-  start         DateTime
-  end           DateTime
-  isRecurring   Boolean             @default(false)
-  createdAt     DateTime            @default(now())
-  participants  SlotParticipant[]
-}
-
-model SlotParticipant {
-  id               String                  @id @default(cuid())
-  slotId           String
-  slot             InterviewerAvailability @relation(fields: [slotId], references: [id], onDelete: Cascade)
-  role             SlotParticipantRole
-  candidateId      String?
-  candidate        CandidateProfile?       @relation("SlotParticipantCandidate", fields: [candidateId], references: [id], onDelete: Cascade)
-  interviewerId    String?
-  interviewer      InterviewerProfile?     @relation("SlotParticipantInterviewer", fields: [interviewerId], references: [id], onDelete: Cascade)
-  waitlistPosition Int?
-  createdAt        DateTime                @default(now())
-
-  @@unique([slotId, candidateId])
-  @@unique([slotId, interviewerId])
-  @@index([slotId, waitlistPosition])
-}
-
-model MatchRequest {
-  id                 String           @id @default(cuid())
-  candidateId        String
-  candidate          CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  targetRole         String
-  focusAreas         String[]
-  preferredLanguages String[]
-  sessionFormat      SessionFormat
-  notes              String?
-  status             MatchStatus      @default(QUEUED)
-  matchedAt          DateTime?
-  expiresAt          DateTime?
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
-  result             InterviewMatch?
-}
-
-model InterviewMatch {
-  id                 String             @id @default(cuid())
-  requestId          String             @unique
-  request            MatchRequest       @relation(fields: [requestId], references: [id], onDelete: Cascade)
-  interviewerId      String
-  interviewer        InterviewerProfile @relation(fields: [interviewerId], references: [id], onDelete: Cascade)
-  effectivenessScore Int                @default(0)
-  scheduledAt        DateTime?
-  roomUrl            String?
-  roomId             String?
-  roomToken          String?
-  status             MatchStatus        @default(MATCHED)
-  completedAt        DateTime?
-  summary            InterviewSummary?
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
-}
-
-model InterviewSummary {
-  id               String         @id @default(cuid())
-  matchId          String         @unique
-  match            InterviewMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  interviewerNotes String
-  candidateNotes   String?
-  aiHighlights     Json?
-  rating           Int            @default(0)
-  strengths        String[]       @default([])
-  improvements     String[]       @default([])
-  createdAt        DateTime       @default(now())
 }

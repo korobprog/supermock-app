@@ -452,6 +452,98 @@ export const SLOT_DATA: Slot[] = [
     focusAreas: ['Career planning', 'Leadership'],
     tools: ['Notion', 'Miro'],
     hostName: 'Coach: Yuchen Li'
+  },
+  {
+    id: 'slot-russian-frontend-16',
+    title: 'Frontend разработка на React',
+    status: 'upcoming',
+    language: '🇷🇺 Russian',
+    professionId: 'frontend-developer',
+    start: '2024-07-30T14:00:00Z',
+    end: '2024-07-30T15:30:00Z',
+    sessionFormat: 'Live coding (React + TypeScript)',
+    capacity: 3,
+    participants: [
+      {
+        id: 'participant-alexey',
+        name: 'Алексей Петров',
+        role: 'interviewer',
+        stack: ['React', 'TypeScript', 'Next.js'],
+        timezone: 'Europe/Moscow',
+        avatarColor: 'bg-blue-500'
+      },
+      {
+        id: 'participant-maria',
+        name: 'Мария Сидорова',
+        role: 'candidate',
+        stack: ['React', 'Redux', 'Jest'],
+        timezone: 'Europe/Moscow',
+        avatarColor: 'bg-pink-500'
+      }
+    ],
+    focusAreas: ['React hooks', 'Performance optimization', 'Testing'],
+    tools: ['React', 'TypeScript', 'Jest', 'Storybook'],
+    hostName: 'Ментор: Дмитрий Козлов',
+    notes: 'Практическое занятие по современным паттернам React разработки.',
+    waitlistCount: 2
+  },
+  {
+    id: 'slot-russian-backend-17',
+    title: 'Backend архитектура на Node.js',
+    status: 'live',
+    language: '🇷🇺 Russian',
+    professionId: 'backend-developer',
+    start: '2024-07-19T12:00:00Z',
+    end: '2024-07-19T13:30:00Z',
+    sessionFormat: 'System design interview',
+    capacity: 2,
+    participants: [
+      {
+        id: 'participant-sergey',
+        name: 'Сергей Волков',
+        role: 'interviewer',
+        stack: ['Node.js', 'PostgreSQL', 'Redis'],
+        timezone: 'Europe/Moscow',
+        avatarColor: 'bg-green-500'
+      }
+    ],
+    focusAreas: ['API design', 'Database optimization', 'Caching'],
+    tools: ['Node.js', 'Express', 'PostgreSQL', 'Redis'],
+    hostName: 'Архитектор: Андрей Морозов',
+    waitlistCount: 1
+  },
+  {
+    id: 'slot-russian-data-18',
+    title: 'Data Science с Python',
+    status: 'upcoming',
+    language: '🇷🇺 Russian',
+    professionId: 'data-scientist',
+    start: '2024-07-31T10:00:00Z',
+    end: '2024-07-31T11:30:00Z',
+    sessionFormat: 'ML case study',
+    capacity: 3,
+    participants: [
+      {
+        id: 'participant-elena',
+        name: 'Елена Новикова',
+        role: 'candidate',
+        stack: ['Python', 'Pandas', 'Scikit-learn'],
+        timezone: 'Europe/Moscow',
+        avatarColor: 'bg-purple-500'
+      },
+      {
+        id: 'participant-vladimir',
+        name: 'Владимир Соколов',
+        role: 'observer',
+        stack: ['Python', 'TensorFlow', 'MLOps'],
+        timezone: 'Europe/Moscow',
+        avatarColor: 'bg-orange-500'
+      }
+    ],
+    focusAreas: ['Feature engineering', 'Model evaluation', 'MLOps'],
+    tools: ['Python', 'Pandas', 'Scikit-learn', 'Docker'],
+    hostName: 'Data Lead: Игорь Лебедев',
+    notes: 'Разбор реального кейса машинного обучения для e-commerce.'
   }
 ];
 

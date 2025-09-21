@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import DateTimePicker from '@/components/DateTimePicker';
 
 import {
   createInterviewerAvailabilitySlot,
@@ -21,9 +22,49 @@ import type {
 } from '../../../shared/src/types/matching.js';
 
 const DEFAULT_INTERVIEWER_EMAIL = 'interviewer@supermock.io';
+const DURATION_OPTIONS = [30, 45, 60, 90, 120];
 
 function normalizeLanguageLabel(label: string) {
   return label.replace(/^[^\p{L}]+/u, '').trim();
+}
+
+function getDefaultLanguageFromUrl(): string {
+  // Check if we're on the client side
+  if (typeof window === 'undefined') {
+    return '🇺🇸 English';
+  }
+  
+  const urlParams = new URLSearchParams(window.location.search);
+  const languageParam = urlParams.get('language');
+  
+  console.log('Language parameter from URL:', languageParam);
+  
+  if (languageParam) {
+    // Decode URL-encoded language parameter
+    const decodedLanguage = decodeURIComponent(languageParam);
+    console.log('Decoded language parameter:', decodedLanguage);
+    
+    // Handle different language formats from slots dashboard
+    if (decodedLanguage.includes('🇷🇺') || decodedLanguage.toLowerCase().includes('russian')) {
+      console.log('Setting language to Russian');
+      return '🇷🇺 Russian';
+    }
+    if (decodedLanguage.includes('🇺🇸') || decodedLanguage.toLowerCase().includes('english')) {
+      console.log('Setting language to English');
+      return '🇺🇸 English';
+    }
+    if (decodedLanguage.includes('🇪🇸') || decodedLanguage.toLowerCase().includes('spanish')) {
+      console.log('Setting language to Spanish');
+      return '🇪🇸 Spanish';
+    }
+    // If it's a different language, default to English
+    console.log('Unknown language, defaulting to English');
+    return '🇺🇸 English';
+  }
+  
+  // Default to English if no language parameter
+  console.log('No language parameter, defaulting to English');
+  return '🇺🇸 English';
 }
 
 function toArray(value: string | string[] | undefined) {
@@ -38,6 +79,143 @@ function formatParticipantRole(role: SlotParticipant['role']) {
   return role.charAt(0).toUpperCase() + role.slice(1);
 }
 
+function safeFormat(date: Date, options: Intl.DateTimeFormatOptions, timeZone?: string) {
+  try {
+    return new Intl.DateTimeFormat(undefined, { ...options, timeZone }).format(date);
+  } catch {
+    return new Intl.DateTimeFormat(undefined, options).format(date);
+  }
+}
+
+function safeFormatToParts(
+  date: Date,
+  options: Intl.DateTimeFormatOptions,
+  timeZone?: string
+) {
+  try {
+    return new Intl.DateTimeFormat(undefined, { ...options, timeZone }).formatToParts(date);
+  } catch {
+    return new Intl.DateTimeFormat(undefined, options).formatToParts(date);
+  }
+}
+
+function getDatePartsInTimeZone(date: Date, timeZone?: string) {
+  const parts = safeFormatToParts(date, { year: 'numeric', month: '2-digit', day: '2-digit' }, timeZone);
+  const getPart = (type: Intl.DateTimeFormatPart['type']) =>
+    parts.find((part) => part.type === type)?.value ?? '0';
+  return {
+    year: Number(getPart('year')),
+    month: Number(getPart('month')),
+    day: Number(getPart('day'))
+  };
+}
+
+function isSameCalendarDayInTimeZone(start: Date, end: Date, timeZone?: string) {
+  const startParts = getDatePartsInTimeZone(start, timeZone);
+  const endParts = getDatePartsInTimeZone(end, timeZone);
+  return (
+    startParts.year === endParts.year &&
+    startParts.month === endParts.month &&
+    startParts.day === endParts.day
+  );
+}
+
+function getTimeZoneLabel(date: Date, timeZone?: string) {
+  const parts = safeFormatToParts(date, { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' }, timeZone);
+  const zonePart = parts.find((part) => part.type === 'timeZoneName');
+  if (!zonePart?.value) {
+    return timeZone === 'UTC' ? 'UTC' : timeZone;
+  }
+
+  return zonePart.value;
+}
+
+function formatDateTimeWithZone(value: string | null | undefined, timeZone?: string) {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  const label = safeFormat(date, { dateStyle: 'medium', timeStyle: 'short' }, timeZone);
+  const zone = getTimeZoneLabel(date, timeZone);
+  return zone ? `${label} · ${zone}` : label;
+}
+
+function formatDateRangeWithZone(
+  start: string | null | undefined,
+  end: string | null | undefined,
+  timeZone?: string
+) {
+  if (!start) {
+    return null;
+  }
+
+  const startDate = new Date(start);
+  if (Number.isNaN(startDate.getTime())) {
+    return null;
+  }
+
+  const endDate = end ? new Date(end) : null;
+  if (endDate && Number.isNaN(endDate.getTime())) {
+    return formatDateTimeWithZone(start, timeZone);
+  }
+
+  const startLabel = safeFormat(startDate, { dateStyle: 'medium', timeStyle: 'short' }, timeZone);
+  const zone = getTimeZoneLabel(startDate, timeZone);
+
+  if (!endDate) {
+    return zone ? `${startLabel} · ${zone}` : startLabel;
+  }
+
+  const sameDay = isSameCalendarDayInTimeZone(startDate, endDate, timeZone);
+  const endLabel = safeFormat(
+    endDate,
+    sameDay ? { timeStyle: 'short' } : { dateStyle: 'medium', timeStyle: 'short' },
+    timeZone
+  );
+  const separator = sameDay ? ' – ' : ' → ';
+
+  return `${startLabel}${separator}${endLabel}${zone ? ` · ${zone}` : ''}`;
+}
+
+function parseLocalDateTime(date: string, time: string) {
+  if (!date || !time) {
+    return null;
+  }
+
+  const value = new Date(`${date}T${time}`);
+  if (Number.isNaN(value.getTime())) {
+    return null;
+  }
+
+  return value;
+}
+
+function formatDateForInput(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function formatTimeForInput(date: Date) {
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+}
+
+function getToggleButtonClass(isActive: boolean) {
+  return `rounded-full px-3 py-1 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+    isActive
+      ? 'border border-emerald-500/60 bg-emerald-500/20 text-emerald-200 shadow-[0_0_12px_rgba(16,185,129,0.25)]'
+      : 'text-slate-300 hover:text-white'
+  }`;
+}
+
 export default function InterviewerDashboardPage() {
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -45,7 +223,8 @@ export default function InterviewerDashboardPage() {
     language: intentLanguage,
     tools: intentTools,
     onlyFree: intentOnlyFree,
-    tab: intentTab
+    tab: intentTab,
+    showUtc: intentShowUtc
   } = router.query;
   const slotIdParam = router.query.slotId;
   const slotTitleParam = router.query.slotTitle;
@@ -58,12 +237,90 @@ export default function InterviewerDashboardPage() {
   const slotFocusParam = router.query.slotFocus ?? router.query.slotFocusAreas;
   const slotInterviewerParam = router.query.slotInterviewerId ?? router.query.interviewerId;
   const [selectedInterviewerId, setSelectedInterviewerId] = useState('');
-  const [startInput, setStartInput] = useState('');
-  const [endInput, setEndInput] = useState('');
+  // Initialize with today and next available time slot
+  const getInitialDateTime = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const nextSlot = new Date(now.getTime() + 15 * 60 * 1000);
+    nextSlot.setMinutes(Math.ceil(nextSlot.getMinutes() / 15) * 15, 0, 0);
+    const initialDateTime = new Date(today);
+    initialDateTime.setHours(nextSlot.getHours(), nextSlot.getMinutes(), 0, 0);
+    return initialDateTime;
+  };
+
+  const getInitialEndDateTime = (startTime: Date) => {
+    // Ensure minimum 30 minutes duration
+    const minDuration = Math.max(DURATION_OPTIONS[2], 30); // DURATION_OPTIONS[2] is default
+    const endTime = new Date(startTime.getTime() + minDuration * 60 * 1000);
+    return endTime;
+  };
+
+  const [startDateTime, setStartDateTime] = useState<Date | undefined>(getInitialDateTime());
+  const [endDateTime, setEndDateTime] = useState<Date | undefined>(() => {
+    const start = getInitialDateTime();
+    return getInitialEndDateTime(start);
+  });
+  const [durationMinutes, setDurationMinutes] = useState(DURATION_OPTIONS[2]);
   const [isRecurring, setIsRecurring] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState(getDefaultLanguageFromUrl);
   const [sessionLimit, setSessionLimit] = useState(10);
+  const [sessionLimitTouched, setSessionLimitTouched] = useState(false);
+  const [sessionTab, setSessionTab] = useState<'upcoming' | 'completed' | 'all'>('upcoming');
+  const [showUtc, setShowUtc] = useState(false);
   const [slotIntentApplied, setSlotIntentApplied] = useState(false);
   const [joinIntentApplied, setJoinIntentApplied] = useState(false);
+
+  useEffect(() => {
+    if (!startDateTime) {
+      return;
+    }
+
+    // Ensure minimum 30 minutes duration
+    const minDuration = Math.max(durationMinutes, 30);
+    const end = new Date(startDateTime.getTime() + minDuration * 60 * 1000);
+    setEndDateTime(end);
+  }, [durationMinutes, startDateTime]);
+
+  useEffect(() => {
+    if (!router.isReady) {
+      return;
+    }
+
+    if (typeof intentShowUtc === 'string') {
+      setShowUtc(intentShowUtc === 'true');
+    } else if (intentShowUtc === undefined) {
+      setShowUtc(false);
+    }
+  }, [intentShowUtc, router.isReady]);
+
+  useEffect(() => {
+    if (!router.isReady) {
+      return;
+    }
+
+    if (typeof intentTab === 'string') {
+      if (intentTab === 'completed') {
+        setSessionTab('completed');
+      } else if (intentTab === 'all') {
+        setSessionTab('all');
+      } else if (intentTab === 'upcoming' || intentTab === 'live') {
+        setSessionTab('upcoming');
+      }
+    }
+  }, [intentTab, router.isReady]);
+
+  useEffect(() => {
+    if (sessionLimitTouched) {
+      return;
+    }
+
+    const defaultLimit = sessionTab === 'completed' ? 20 : sessionTab === 'all' ? 15 : 10;
+
+    if (sessionLimit !== defaultLimit) {
+      setSessionLimit(defaultLimit);
+    }
+  }, [sessionLimit, sessionLimitTouched, sessionTab]);
 
   const joinSlotId = typeof slotIdParam === 'string' ? slotIdParam : undefined;
   const joinSlotTitle = typeof slotTitleParam === 'string' ? slotTitleParam : undefined;
@@ -110,20 +367,54 @@ export default function InterviewerDashboardPage() {
 
   const interviewersQuery = useQuery({
     queryKey: ['interviewers'],
-    queryFn: fetchInterviewers
+    queryFn: fetchInterviewers,
+    enabled: typeof window !== 'undefined', // Only run on client side
+    onSuccess: (data) => {
+      console.log('Interviewers loaded:', data);
+    },
+    onError: (error) => {
+      console.error('Failed to load interviewers:', error);
+    }
   });
 
   const availabilityQuery = useQuery({
     queryKey: ['interviewer', selectedInterviewerId, 'availability'],
     queryFn: () => fetchInterviewerAvailability(selectedInterviewerId),
-    enabled: Boolean(selectedInterviewerId)
+    enabled: Boolean(selectedInterviewerId) && typeof window !== 'undefined'
   });
 
   const sessionsQuery = useQuery({
     queryKey: ['interviewer', selectedInterviewerId, 'sessions', sessionLimit],
     queryFn: () => fetchInterviewerSessions(selectedInterviewerId, sessionLimit),
-    enabled: Boolean(selectedInterviewerId)
+    enabled: Boolean(selectedInterviewerId) && typeof window !== 'undefined'
   });
+
+  const candidatesQuery = useQuery({
+    queryKey: ['interviewer', 'candidate-summaries'],
+    queryFn: fetchCandidateSummaries,
+    enabled: typeof window !== 'undefined'
+  });
+
+  const currentInterviewer: InterviewerSummaryDto | undefined = useMemo(() => {
+    return interviewersQuery.data?.find((person) => person.id === selectedInterviewerId);
+  }, [interviewersQuery.data, selectedInterviewerId]);
+  const deviceTimeZone = useMemo(() => {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch {
+      return undefined;
+    }
+  }, []);
+  const resolvedTimeZone = showUtc ? 'UTC' : currentInterviewer?.timezone ?? undefined;
+  const canonicalTimeZoneName = showUtc ? 'UTC' : currentInterviewer?.timezone ?? deviceTimeZone ?? null;
+  const timeZoneShortLabel = useMemo(() => {
+    const referenceDate = new Date();
+    return getTimeZoneLabel(referenceDate, resolvedTimeZone ?? (showUtc ? 'UTC' : undefined)) ?? (showUtc ? 'UTC' : null);
+  }, [resolvedTimeZone, showUtc]);
+  const timeDisplayDescription =
+    timeZoneShortLabel && canonicalTimeZoneName && timeZoneShortLabel !== canonicalTimeZoneName
+      ? `${timeZoneShortLabel} (${canonicalTimeZoneName})`
+      : canonicalTimeZoneName ?? timeZoneShortLabel ?? 'local time';
 
   const slotDetailsQuery = useQuery<Slot>({
     queryKey: ['slots', joinSlotIntent?.id],
@@ -152,34 +443,10 @@ export default function InterviewerDashboardPage() {
       : undefined;
   const slotStartIso = slotDetails?.start ?? joinSlotIntent?.start;
   const slotEndIso = slotDetails?.end ?? joinSlotIntent?.end;
-  const slotStartDate = useMemo(() => (slotStartIso ? new Date(slotStartIso) : null), [slotStartIso]);
-  const slotEndDate = useMemo(() => (slotEndIso ? new Date(slotEndIso) : null), [slotEndIso]);
-  const slotTimeSummary = useMemo(() => {
-    if (!slotStartDate) {
-      return null;
-    }
-
-    const startLabel = slotStartDate.toLocaleString(undefined, {
-      dateStyle: 'medium',
-      timeStyle: 'short'
-    });
-
-    if (!slotEndDate) {
-      return startLabel;
-    }
-
-    const sameDay = slotStartDate.toDateString() === slotEndDate.toDateString();
-    const endLabel = slotEndDate.toLocaleString(undefined, {
-      dateStyle: sameDay ? undefined : 'medium',
-      timeStyle: 'short'
-    });
-
-    if (sameDay) {
-      return `${startLabel} – ${endLabel}`;
-    }
-
-    return `${startLabel} → ${endLabel}`;
-  }, [slotEndDate, slotStartDate]);
+  const slotTimeSummary = useMemo(
+    () => formatDateRangeWithZone(slotStartIso ?? null, slotEndIso ?? null, resolvedTimeZone),
+    [resolvedTimeZone, slotEndIso, slotStartIso]
+  );
   const recommendedInterviewer = interviewersQuery.data?.find(
     (person) => person.id === recommendedInterviewerId
   );
@@ -190,33 +457,123 @@ export default function InterviewerDashboardPage() {
         ? '…'
         : '—';
   const isSlotFull = typeof slotRemaining === 'number' && slotRemaining <= 0;
+  const filteredSessions = useMemo(() => {
+    if (!sessionsQuery.data) {
+      return [];
+    }
+
+    if (sessionTab === 'completed') {
+      return sessionsQuery.data.filter((session) => session.status === 'COMPLETED');
+    }
+
+    if (sessionTab === 'upcoming') {
+      return sessionsQuery.data.filter((session) => session.status !== 'COMPLETED');
+    }
+
+    return sessionsQuery.data;
+  }, [sessionTab, sessionsQuery.data]);
+  const hasFilteredSessions = filteredSessions.length > 0;
+  const noSessionsMessage =
+    sessionTab === 'completed'
+      ? 'No completed sessions yet.'
+      : sessionTab === 'upcoming'
+        ? 'No upcoming sessions yet.'
+        : 'No sessions to show.';
+  const candidateSummaries = candidatesQuery.data ?? [];
+  const normalizedIntentLanguageLabel = useMemo(() => {
+    if (typeof intentLanguage !== 'string') {
+      return null;
+    }
+
+    const normalized = normalizeLanguageLabel(intentLanguage);
+    return normalized ? normalized.toLowerCase() : null;
+  }, [intentLanguage]);
+  const highlightedLanguageLabel = useMemo(() => {
+    if (typeof intentLanguage !== 'string') {
+      return null;
+    }
+
+    const normalized = normalizeLanguageLabel(intentLanguage);
+    return normalized.length > 0 ? normalized : null;
+  }, [intentLanguage]);
+  const candidateSummariesOrdered = useMemo(() => {
+    if (!normalizedIntentLanguageLabel) {
+      return candidateSummaries;
+    }
+
+    const matches: CandidateSummaryDto[] = [];
+    const rest: CandidateSummaryDto[] = [];
+
+    candidateSummaries.forEach((candidate) => {
+      const hasLanguage = candidate.preferredLanguages.some((language) =>
+        language.toLowerCase().includes(normalizedIntentLanguageLabel)
+      );
+
+      if (hasLanguage) {
+        matches.push(candidate);
+      } else {
+        rest.push(candidate);
+      }
+    });
+
+    return [...matches, ...rest];
+  }, [candidateSummaries, normalizedIntentLanguageLabel]);
+  const visibleCandidateSummaries = useMemo(
+    () => candidateSummariesOrdered.slice(0, 6),
+    [candidateSummariesOrdered]
+  );
+  const hasCandidateSummaries = visibleCandidateSummaries.length > 0;
 
   const createSlotMutation = useMutation({
     mutationFn: () => {
       if (!selectedInterviewerId) {
-        return Promise.reject(new Error('Select interviewer first'));
+        return Promise.reject(new Error('Please select an interviewer first'));
       }
-      if (!startInput || !endInput) {
-        return Promise.reject(new Error('Specify start and end time'));
-      }
-
-      const startISO = new Date(startInput).toISOString();
-      const endISO = new Date(endInput).toISOString();
-
-      if (new Date(endISO) <= new Date(startISO)) {
-        return Promise.reject(new Error('End time must be after start time'));
+      if (!startDateTime || !endDateTime) {
+        return Promise.reject(new Error('Please select start and end date/time'));
       }
 
-      return createInterviewerAvailabilitySlot(selectedInterviewerId, {
-        start: startISO,
-        end: endISO,
-        isRecurring
+      // Check minimum duration of 30 minutes
+      const minDuration = Math.max(durationMinutes, 30);
+      if (durationMinutes < 30) {
+        return Promise.reject(new Error('Interview duration must be at least 30 minutes'));
+      }
+
+      // Create ISO string with timezone offset
+      const formatDateTimeWithTimezone = (date: Date) => {
+        const offset = -date.getTimezoneOffset();
+        const offsetHours = Math.floor(Math.abs(offset) / 60);
+        const offsetMinutes = Math.abs(offset) % 60;
+        const offsetSign = offset >= 0 ? '+' : '-';
+        const offsetString = `${offsetSign}${offsetHours.toString().padStart(2, '0')}:${offsetMinutes.toString().padStart(2, '0')}`;
+        
+        return date.toISOString().replace('Z', offsetString);
+      };
+
+      const payload = {
+        start: formatDateTimeWithTimezone(startDateTime),
+        end: formatDateTimeWithTimezone(endDateTime),
+        isRecurring,
+        language: normalizeLanguageLabel(selectedLanguage)
+      };
+
+      console.log('Creating slot with payload:', {
+        interviewerId: selectedInterviewerId,
+        ...payload
       });
+      console.log('Selected language:', selectedLanguage);
+      console.log('Start date:', startDateTime);
+      console.log('End date:', endDateTime);
+
+      return createInterviewerAvailabilitySlot(selectedInterviewerId, payload);
     },
     onSuccess: () => {
-      setStartInput('');
-      setEndInput('');
+      const newStart = getInitialDateTime();
+      setStartDateTime(newStart);
+      setEndDateTime(getInitialEndDateTime(newStart));
+      setDurationMinutes(DURATION_OPTIONS[2]);
       setIsRecurring(false);
+      setSelectedLanguage(getDefaultLanguageFromUrl());
       queryClient.invalidateQueries({ queryKey: ['interviewer', selectedInterviewerId, 'availability'] });
     }
   });
@@ -301,9 +658,6 @@ export default function InterviewerDashboardPage() {
     }
   });
 
-  const currentInterviewer: InterviewerSummaryDto | undefined = useMemo(() => {
-    return interviewersQuery.data?.find((person) => person.id === selectedInterviewerId);
-  }, [interviewersQuery.data, selectedInterviewerId]);
   const isJoinDisabled =
     joinSlotMutation.isPending ||
     !joinSlotIntent?.id ||
@@ -311,6 +665,59 @@ export default function InterviewerDashboardPage() {
     slotDetailsQuery.isLoading ||
     slotDetailsQuery.isError ||
     isSlotFull;
+
+  const updateQueryParams = useCallback(
+    (updates: Record<string, string | string[] | null | undefined>) => {
+      const nextQuery: Record<string, string | string[]> = {};
+
+      Object.entries(router.query).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          if (value.length > 0) {
+            nextQuery[key] = value;
+          }
+        } else if (typeof value === 'string' && value.length > 0) {
+          nextQuery[key] = value;
+        }
+      });
+
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === undefined || value === null || value === '') {
+          delete nextQuery[key];
+          return;
+        }
+
+        if (Array.isArray(value)) {
+          if (value.length > 0) {
+            nextQuery[key] = value;
+          } else {
+            delete nextQuery[key];
+          }
+          return;
+        }
+
+        nextQuery[key] = value;
+      });
+
+      void router.replace({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true });
+    },
+    [router]
+  );
+
+  const handleTimeDisplayToggle = useCallback(
+    (value: boolean) => {
+      setShowUtc(value);
+      updateQueryParams({ showUtc: value ? 'true' : null });
+    },
+    [updateQueryParams]
+  );
+
+  const handleSessionTabChange = useCallback(
+    (nextTab: 'upcoming' | 'completed' | 'all') => {
+      setSessionTab(nextTab);
+      updateQueryParams({ tab: nextTab });
+    },
+    [updateQueryParams]
+  );
 
   useEffect(() => {
     if (!router.isReady || slotIntentApplied) {
@@ -321,16 +728,8 @@ export default function InterviewerDashboardPage() {
       setIsRecurring(intentOnlyFree === 'true');
     }
 
-    if (typeof intentTab === 'string') {
-      if (intentTab === 'completed') {
-        setSessionLimit(20);
-      } else if (intentTab === 'live') {
-        setSessionLimit(5);
-      }
-    }
-
     setSlotIntentApplied(true);
-  }, [intentOnlyFree, intentTab, router.isReady, slotIntentApplied]);
+  }, [intentOnlyFree, router.isReady, slotIntentApplied]);
 
   useEffect(() => {
     if (!joinSlotIntent?.id) {
@@ -443,6 +842,31 @@ export default function InterviewerDashboardPage() {
             Manage availability, track upcoming interviews and review completed sessions. Seed account:{' '}
             <span className="font-semibold text-secondary">{DEFAULT_INTERVIEWER_EMAIL}</span>
           </p>
+          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
+            <span className="font-semibold text-slate-300">Time display</span>
+            <div className="flex items-center gap-1 rounded-full border border-slate-700 bg-slate-900/80 p-1">
+              <button
+                type="button"
+                className={getToggleButtonClass(!showUtc)}
+                onClick={() => handleTimeDisplayToggle(false)}
+                disabled={!showUtc}
+              >
+                Local
+              </button>
+              <button
+                type="button"
+                className={getToggleButtonClass(showUtc)}
+                onClick={() => handleTimeDisplayToggle(true)}
+                disabled={showUtc}
+              >
+                UTC
+              </button>
+            </div>
+            <span className="text-slate-500">
+              Showing times in{' '}
+              <span className="font-semibold text-slate-200">{timeDisplayDescription}</span>
+            </span>
+          </div>
         </header>
 
         <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
@@ -464,10 +888,22 @@ export default function InterviewerDashboardPage() {
             </label>
 
             {currentInterviewer && (
-              <div className="text-xs text-slate-400">
-                <p>{currentInterviewer.timezone}</p>
-                <p>{currentInterviewer.languages.join(', ')}</p>
-              </div>
+              <dl className="grid gap-1 text-xs text-slate-400">
+                <div className="flex items-center gap-2">
+                  <dt className="text-slate-500">Timezone</dt>
+                  <dd className="font-semibold text-white">{currentInterviewer.timezone}</dd>
+                </div>
+                <div className="flex items-center gap-2">
+                  <dt className="text-slate-500">Languages</dt>
+                  <dd className="font-semibold text-white">
+                    {currentInterviewer.languages.join(', ') || '—'}
+                  </dd>
+                </div>
+                <div className="flex items-center gap-2">
+                  <dt className="text-slate-500">Experience</dt>
+                  <dd className="font-semibold text-white">{currentInterviewer.experienceYears} yrs</dd>
+                </div>
+              </dl>
             )}
           </div>
         </section>
@@ -480,12 +916,18 @@ export default function InterviewerDashboardPage() {
                   Join slot intent
                 </p>
                 <h2 className="text-xl font-semibold text-white">{slotTitle}</h2>
-                {slotTimeSummary && (
+                {slotTimeSummary ? (
                   <p className="text-sm text-slate-300">
                     When:{' '}
                     <span className="font-medium text-white">{slotTimeSummary}</span>
                   </p>
+                ) : (
+                  <p className="text-sm text-slate-300">
+                    When:{' '}
+                    <span className="font-medium text-slate-500">To be confirmed</span>
+                  </p>
                 )}
+                <p className="text-[11px] text-emerald-200/80">Times shown in {timeDisplayDescription}.</p>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-300">
                   {slotLanguage && (
                     <span>
@@ -617,53 +1059,93 @@ export default function InterviewerDashboardPage() {
         )}
 
         <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-          <h2 className="text-lg font-semibold text-white">Add availability</h2>
+          <div>
+            <h2 className="text-lg font-semibold text-white">Add availability</h2>
+            <p className="text-sm text-slate-400">
+              Create a new availability slot for candidates to join.
+            </p>
+          </div>
           <form
-            className="mt-4 grid gap-4 md:grid-cols-[repeat(4,minmax(0,1fr))] md:items-end"
+            className="mt-4 space-y-4"
             onSubmit={(event) => {
               event.preventDefault();
               createSlotMutation.mutate();
             }}
           >
-            <label className="flex flex-col gap-2 text-xs">
-              <span className="text-slate-400">Start time</span>
-              <input
-                type="datetime-local"
-                className="rounded border border-slate-700 bg-slate-950 px-3 py-2 text-white"
-                value={startInput}
-                onChange={(event) => setStartInput(event.target.value)}
-                required
-              />
-            </label>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="flex flex-col gap-2 text-xs">
+                <span className="text-slate-400">Start date & time</span>
+                <DateTimePicker
+                  value={startDateTime}
+                  onChange={(date) => {
+                    setStartDateTime(date);
+                    // Auto-calculate end time based on duration
+                    if (date) {
+                      const minDuration = Math.max(durationMinutes, 30);
+                      const end = new Date(date.getTime() + minDuration * 60 * 1000);
+                      setEndDateTime(end);
+                    } else {
+                      setEndDateTime(undefined);
+                    }
+                  }}
+                  placeholder="Select start date and time"
+                  showTime={true}
+                  minDate={(() => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    return today;
+                  })()}
+                />
+              </label>
 
-            <label className="flex flex-col gap-2 text-xs">
-              <span className="text-slate-400">End time</span>
-              <input
-                type="datetime-local"
-                className="rounded border border-slate-700 bg-slate-950 px-3 py-2 text-white"
-                value={endInput}
-                onChange={(event) => setEndInput(event.target.value)}
-                required
-              />
-            </label>
+              <label className="flex flex-col gap-2 text-xs">
+                <span className="text-slate-400">Duration</span>
+                <select
+                  className="rounded border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+                  value={durationMinutes}
+                  onChange={(event) => {
+                    const newDuration = Number(event.target.value);
+                    setDurationMinutes(newDuration);
+                    // Auto-calculate end time based on new duration
+                    if (startDateTime) {
+                      const minDuration = Math.max(newDuration, 30);
+                      const end = new Date(startDateTime.getTime() + minDuration * 60 * 1000);
+                      setEndDateTime(end);
+                    }
+                  }}
+                >
+                  {DURATION_OPTIONS.map((minutes) => (
+                    <option key={minutes} value={minutes}>
+                      {minutes} minutes
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-            <label className="flex items-center gap-2 text-xs text-slate-300">
-              <input
-                type="checkbox"
-                className="h-4 w-4 rounded border-slate-700 bg-slate-950"
-                checked={isRecurring}
-                onChange={(event) => setIsRecurring(event.target.checked)}
-              />
-              Recurring slot
-            </label>
+            </div>
 
-            <button
-              type="submit"
-              className="rounded-lg bg-secondary px-4 py-2 text-sm font-semibold text-slate-950 disabled:opacity-60"
-              disabled={createSlotMutation.isPending || !selectedInterviewerId}
-            >
-              {createSlotMutation.isPending ? 'Adding…' : 'Add slot'}
-            </button>
+            <div className="flex flex-wrap items-end gap-4">
+
+              <label className="flex items-center gap-2 text-xs text-slate-300">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 rounded border-slate-700 bg-slate-950"
+                  checked={isRecurring}
+                  onChange={(event) => setIsRecurring(event.target.checked)}
+                />
+                Recurring slot
+              </label>
+
+              <button
+                type="submit"
+                className="rounded-lg bg-secondary px-4 py-2 text-sm font-semibold text-slate-950 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={createSlotMutation.isPending || !selectedInterviewerId}
+              >
+                {createSlotMutation.isPending ? 'Adding…' : 'Add slot'}
+              </button>
+            </div>
+
+            <p className="text-[11px] text-slate-500">Times shown in {timeDisplayDescription}.</p>
           </form>
 
           <div className="mt-3 space-y-2 text-xs text-red-400">
@@ -680,19 +1162,48 @@ export default function InterviewerDashboardPage() {
                 {availabilityQuery.data.map((slot: AvailabilitySlotDto) => (
                   <li
                     key={slot.id}
-                    className="flex items-center justify-between rounded border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-200"
+                    className="flex flex-col gap-2 rounded border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-200 md:flex-row md:items-center md:justify-between"
                   >
-                    <span>
-                      {new Date(slot.start).toLocaleString()} → {new Date(slot.end).toLocaleTimeString()}
-                    </span>
-                    <button
-                      type="button"
-                      className="rounded border border-red-500/60 px-2 py-1 font-semibold text-red-400 hover:bg-red-500/10 disabled:opacity-60"
-                      onClick={() => deleteSlotMutation.mutate(slot.id)}
-                      disabled={deleteSlotMutation.isPending}
-                    >
-                      Remove
-                    </button>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-white">
+                          {formatDateRangeWithZone(slot.start, slot.end, resolvedTimeZone) ?? '—'}
+                        </p>
+                        {slot.language && (
+                          <span className="rounded-full bg-slate-800/80 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-300">
+                            {slot.language}
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-1 text-[11px] text-slate-500">
+                        Duration:{' '}
+                        {Math.max(
+                          Math.round((new Date(slot.end).getTime() - new Date(slot.start).getTime()) / 60000),
+                          0
+                        )}{' '}
+                        min
+                        {slot.createdAt && (
+                          <span className="ml-2 text-slate-600">
+                            Added {formatDateTimeWithZone(slot.createdAt, resolvedTimeZone) ?? '—'}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 self-start md:self-center">
+                      {slot.isRecurring && (
+                        <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-300">
+                          Recurring
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        className="rounded border border-red-500/60 px-2 py-1 font-semibold text-red-400 transition-colors hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                        onClick={() => deleteSlotMutation.mutate(slot.id)}
+                        disabled={deleteSlotMutation.isPending}
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -704,13 +1215,156 @@ export default function InterviewerDashboardPage() {
 
         <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
-            <h2 className="text-lg font-semibold text-white">Upcoming / recent sessions</h2>
+            <div>
+              <h2 className="text-lg font-semibold text-white">Candidate pipeline</h2>
+              <p className="text-xs text-slate-400">
+                Overview of candidates waiting for interviews
+                {highlightedLanguageLabel ? (
+                  <>
+                    {' '}
+                    · prioritizing <span className="text-emerald-300">{highlightedLanguageLabel}</span>
+                  </>
+                ) : null}
+                .
+              </p>
+            </div>
+            <button
+              type="button"
+              className="rounded-lg border border-slate-700 px-3 py-1 text-xs font-semibold text-slate-300 transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => {
+                void candidatesQuery.refetch();
+              }}
+              disabled={candidatesQuery.isFetching}
+            >
+              {candidatesQuery.isFetching ? 'Refreshing…' : 'Refresh'}
+            </button>
+          </div>
+
+          {candidatesQuery.isLoading ? (
+            <p className="text-sm text-slate-500">Loading candidates…</p>
+          ) : candidatesQuery.isError ? (
+            <p className="text-sm text-red-400">
+              {(candidatesQuery.error as Error).message || 'Failed to load candidate summaries.'}
+            </p>
+          ) : hasCandidateSummaries ? (
+            <ul className="grid gap-3 md:grid-cols-2">
+              {visibleCandidateSummaries.map((candidate) => {
+                const languageMatch = normalizedIntentLanguageLabel
+                  ? candidate.preferredLanguages.some((language) =>
+                      language.toLowerCase().includes(normalizedIntentLanguageLabel)
+                    )
+                  : false;
+
+                return (
+                  <li
+                    key={candidate.id}
+                    className="rounded-xl border border-slate-800 bg-slate-950/70 p-4 text-xs text-slate-300"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-white">{candidate.displayName}</p>
+                        <p className="text-[11px] text-slate-500">{candidate.timezone}</p>
+                      </div>
+                      <span className="rounded-full border border-sky-500/50 bg-sky-500/10 px-2 py-0.5 text-[11px] font-semibold text-sky-200">
+                        {candidate.experienceYears} yrs
+                      </span>
+                    </div>
+                    {languageMatch && highlightedLanguageLabel && (
+                      <p className="mt-2 text-[11px] text-emerald-300">
+                        Matches requested language ({highlightedLanguageLabel}).
+                      </p>
+                    )}
+                    <div className="mt-3 space-y-3">
+                      <div>
+                        <p className="text-[11px] uppercase tracking-wide text-slate-500">Preferred roles</p>
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {candidate.preferredRoles.length > 0 ? (
+                            candidate.preferredRoles.map((role) => (
+                              <span
+                                key={`${candidate.id}-role-${role}`}
+                                className="rounded-full border border-slate-700 bg-slate-900 px-2 py-0.5 text-[11px] text-slate-200"
+                              >
+                                {role}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-[11px] text-slate-500">—</span>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-[11px] uppercase tracking-wide text-slate-500">Languages</p>
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {candidate.preferredLanguages.length > 0 ? (
+                            candidate.preferredLanguages.map((language) => {
+                              const normalized = language.toLowerCase();
+                              const isHighlighted =
+                                normalizedIntentLanguageLabel &&
+                                normalized.includes(normalizedIntentLanguageLabel);
+
+                              return (
+                                <span
+                                  key={`${candidate.id}-lang-${language}`}
+                                  className={`rounded-full border px-2 py-0.5 text-[11px] ${
+                                    isHighlighted
+                                      ? 'border-emerald-400/60 bg-emerald-500/10 text-emerald-200'
+                                      : 'border-slate-700 bg-slate-900 text-slate-200'
+                                  }`}
+                                >
+                                  {language}
+                                </span>
+                              );
+                            })
+                          ) : (
+                            <span className="text-[11px] text-slate-500">—</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="mt-3 text-[11px] text-slate-500">
+                      Candidate ID:{' '}
+                      <span className="font-mono text-slate-300">{candidate.id}</span>
+                    </p>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="text-sm text-slate-500">No candidates queued right now.</p>
+          )}
+        </section>
+
+        <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <h2 className="text-lg font-semibold text-white">Upcoming / recent sessions</h2>
+              <div className="flex items-center gap-1 rounded-full border border-slate-700 bg-slate-900/80 p-1">
+                {[
+                  { value: 'upcoming' as const, label: 'Upcoming' },
+                  { value: 'completed' as const, label: 'Completed' },
+                  { value: 'all' as const, label: 'All' }
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={getToggleButtonClass(sessionTab === option.value)}
+                    onClick={() => handleSessionTabChange(option.value)}
+                    disabled={sessionTab === option.value}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <label className="text-xs text-slate-400">
               Show last
               <select
                 className="ml-2 rounded border border-slate-700 bg-slate-950 px-2 py-1 text-white"
                 value={sessionLimit}
-                onChange={(event) => setSessionLimit(Number(event.target.value))}
+                onChange={(event) => {
+                  setSessionLimit(Number(event.target.value));
+                  setSessionLimitTouched(true);
+                }}
               >
                 {[5, 10, 20, 30].map((limit) => (
                   <option key={limit} value={limit}>
@@ -724,25 +1378,33 @@ export default function InterviewerDashboardPage() {
 
           {sessionsQuery.isLoading ? (
             <p className="text-sm text-slate-500">Loading sessions…</p>
-          ) : sessionsQuery.data && sessionsQuery.data.length > 0 ? (
+          ) : sessionsQuery.isError ? (
+            <p className="text-sm text-red-400">
+              {(sessionsQuery.error as Error).message || 'Failed to load sessions.'}
+            </p>
+          ) : hasFilteredSessions ? (
             <ul className="space-y-3">
-              {sessionsQuery.data.map((session: InterviewerSessionDto) => (
-                <li
-                  key={session.id}
-                  className="rounded border border-slate-800 bg-slate-950 p-4 text-xs text-slate-200"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="font-semibold text-white">{session.targetRole}</span>
-                    <span className={`rounded px-2 py-1 text-[10px] uppercase ${session.status === 'COMPLETED' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-sky-500/20 text-sky-300'}`}>
-                      {session.status}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-slate-400">
-                    Scheduled: {session.scheduledAt ? new Date(session.scheduledAt).toLocaleString() : 'TBD'}
-                  </p>
-                  {session.completedAt && (
-                    <p className="text-slate-400">Completed: {new Date(session.completedAt).toLocaleString()}</p>
-                  )}
+              {filteredSessions.map((session: InterviewerSessionDto) => {
+                const scheduledLabel = session.scheduledAt
+                  ? formatDateTimeWithZone(session.scheduledAt, resolvedTimeZone) ?? 'TBD'
+                  : 'TBD';
+                const completedLabel = session.completedAt
+                  ? formatDateTimeWithZone(session.completedAt, resolvedTimeZone)
+                  : null;
+
+                return (
+                  <li
+                    key={session.id}
+                    className="rounded border border-slate-800 bg-slate-950 p-4 text-xs text-slate-200"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-semibold text-white">{session.targetRole}</span>
+                      <span className={`rounded px-2 py-1 text-[10px] uppercase ${session.status === 'COMPLETED' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-sky-500/20 text-sky-300'}`}>
+                        {session.status}
+                      </span>
+                    </div>
+                  <p className="mt-2 text-slate-400">Scheduled: {scheduledLabel}</p>
+                  {completedLabel && <p className="text-slate-400">Completed: {completedLabel}</p>}
                   <p className="text-slate-400">
                     Candidate: <span className="font-semibold">{session.candidateId}</span>
                   </p>
@@ -769,10 +1431,11 @@ export default function InterviewerDashboardPage() {
                     </div>
                   )}
                 </li>
-              ))}
+              );
+              })}
             </ul>
           ) : (
-            <p className="text-sm text-slate-500">No scheduled or completed sessions yet.</p>
+            <p className="text-sm text-slate-500">{noSessionsMessage}</p>
           )}
         </section>
       </main>
