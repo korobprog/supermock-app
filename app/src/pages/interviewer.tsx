@@ -9,8 +9,10 @@ import {
   fetchCandidateSummaries,
   fetchInterviewerAvailability,
   fetchInterviewerSessions,
-  fetchInterviewers
+  fetchInterviewers,
+  joinRealtimeSession
 } from '@/lib/api';
+import { fetchSlotDetails, type Slot, type SlotParticipant } from '@/data/slots';
 import type {
   AvailabilitySlotDto,
   CandidateSummaryDto,
@@ -32,6 +34,10 @@ function toArray(value: string | string[] | undefined) {
   return Array.isArray(value) ? value : [value];
 }
 
+function formatParticipantRole(role: SlotParticipant['role']) {
+  return role.charAt(0).toUpperCase() + role.slice(1);
+}
+
 export default function InterviewerDashboardPage() {
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -41,12 +47,66 @@ export default function InterviewerDashboardPage() {
     onlyFree: intentOnlyFree,
     tab: intentTab
   } = router.query;
+  const slotIdParam = router.query.slotId;
+  const slotTitleParam = router.query.slotTitle;
+  const slotStartParam = router.query.slotStart;
+  const slotEndParam = router.query.slotEnd;
+  const slotLanguageParam = router.query.slotLanguage;
+  const slotCapacityParam = router.query.slotCapacity;
+  const slotHostParam = router.query.slotHost;
+  const slotToolsParam = router.query.slotTools;
+  const slotFocusParam = router.query.slotFocus ?? router.query.slotFocusAreas;
+  const slotInterviewerParam = router.query.slotInterviewerId ?? router.query.interviewerId;
   const [selectedInterviewerId, setSelectedInterviewerId] = useState('');
   const [startInput, setStartInput] = useState('');
   const [endInput, setEndInput] = useState('');
   const [isRecurring, setIsRecurring] = useState(false);
   const [sessionLimit, setSessionLimit] = useState(10);
   const [slotIntentApplied, setSlotIntentApplied] = useState(false);
+  const [joinIntentApplied, setJoinIntentApplied] = useState(false);
+
+  const joinSlotId = typeof slotIdParam === 'string' ? slotIdParam : undefined;
+  const joinSlotTitle = typeof slotTitleParam === 'string' ? slotTitleParam : undefined;
+  const joinSlotStart = typeof slotStartParam === 'string' ? slotStartParam : undefined;
+  const joinSlotEnd = typeof slotEndParam === 'string' ? slotEndParam : undefined;
+  const joinSlotLanguageMeta = typeof slotLanguageParam === 'string' ? slotLanguageParam : undefined;
+  const joinSlotCapacityMeta =
+    typeof slotCapacityParam === 'string' && !Number.isNaN(Number(slotCapacityParam))
+      ? Number(slotCapacityParam)
+      : undefined;
+  const joinSlotHostMeta = typeof slotHostParam === 'string' ? slotHostParam : undefined;
+  const joinSlotToolsMeta = useMemo(() => toArray(slotToolsParam), [slotToolsParam]);
+  const joinSlotFocusMeta = useMemo(() => toArray(slotFocusParam), [slotFocusParam]);
+  const recommendedInterviewerId =
+    typeof slotInterviewerParam === 'string' ? slotInterviewerParam : undefined;
+
+  const joinSlotIntent = useMemo(() => {
+    if (!joinSlotId) {
+      return null;
+    }
+
+    return {
+      id: joinSlotId,
+      title: joinSlotTitle,
+      start: joinSlotStart,
+      end: joinSlotEnd,
+      language: joinSlotLanguageMeta,
+      capacity: joinSlotCapacityMeta,
+      hostName: joinSlotHostMeta,
+      tools: joinSlotToolsMeta,
+      focusAreas: joinSlotFocusMeta
+    };
+  }, [
+    joinSlotCapacityMeta,
+    joinSlotFocusMeta,
+    joinSlotHostMeta,
+    joinSlotId,
+    joinSlotLanguageMeta,
+    joinSlotTitle,
+    joinSlotStart,
+    joinSlotEnd,
+    joinSlotToolsMeta
+  ]);
 
   const interviewersQuery = useQuery({
     queryKey: ['interviewers'],
@@ -64,6 +124,72 @@ export default function InterviewerDashboardPage() {
     queryFn: () => fetchInterviewerSessions(selectedInterviewerId, sessionLimit),
     enabled: Boolean(selectedInterviewerId)
   });
+
+  const slotDetailsQuery = useQuery<Slot>({
+    queryKey: ['slots', joinSlotIntent?.id],
+    queryFn: () => fetchSlotDetails(joinSlotIntent!.id),
+    enabled: Boolean(joinSlotIntent?.id)
+  });
+
+  const slotDetails = slotDetailsQuery.data ?? null;
+  const slotTitle = slotDetails?.title ?? joinSlotIntent?.title ?? 'Requested slot';
+  const slotLanguage = slotDetails?.language ?? joinSlotIntent?.language;
+  const slotTools = useMemo(
+    () => slotDetails?.tools ?? joinSlotIntent?.tools ?? [],
+    [joinSlotIntent?.tools, slotDetails?.tools]
+  );
+  const slotFocusAreas = useMemo(
+    () => slotDetails?.focusAreas ?? joinSlotIntent?.focusAreas ?? [],
+    [joinSlotIntent?.focusAreas, slotDetails?.focusAreas]
+  );
+  const slotHostName = slotDetails?.hostName ?? joinSlotIntent?.hostName;
+  const slotCapacity = slotDetails?.capacity ?? joinSlotIntent?.capacity;
+  const slotParticipantCount = slotDetails ? slotDetails.participants.length : undefined;
+  const slotParticipants = slotDetails?.participants ?? [];
+  const slotRemaining =
+    typeof slotCapacity === 'number' && typeof slotParticipantCount === 'number'
+      ? Math.max(slotCapacity - slotParticipantCount, 0)
+      : undefined;
+  const slotStartIso = slotDetails?.start ?? joinSlotIntent?.start;
+  const slotEndIso = slotDetails?.end ?? joinSlotIntent?.end;
+  const slotStartDate = useMemo(() => (slotStartIso ? new Date(slotStartIso) : null), [slotStartIso]);
+  const slotEndDate = useMemo(() => (slotEndIso ? new Date(slotEndIso) : null), [slotEndIso]);
+  const slotTimeSummary = useMemo(() => {
+    if (!slotStartDate) {
+      return null;
+    }
+
+    const startLabel = slotStartDate.toLocaleString(undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    });
+
+    if (!slotEndDate) {
+      return startLabel;
+    }
+
+    const sameDay = slotStartDate.toDateString() === slotEndDate.toDateString();
+    const endLabel = slotEndDate.toLocaleString(undefined, {
+      dateStyle: sameDay ? undefined : 'medium',
+      timeStyle: 'short'
+    });
+
+    if (sameDay) {
+      return `${startLabel} – ${endLabel}`;
+    }
+
+    return `${startLabel} → ${endLabel}`;
+  }, [slotEndDate, slotStartDate]);
+  const recommendedInterviewer = interviewersQuery.data?.find(
+    (person) => person.id === recommendedInterviewerId
+  );
+  const participantCountLabel =
+    slotParticipantCount !== undefined
+      ? String(slotParticipantCount)
+      : slotDetailsQuery.isLoading
+        ? '…'
+        : '—';
+  const isSlotFull = typeof slotRemaining === 'number' && slotRemaining <= 0;
 
   const createSlotMutation = useMutation({
     mutationFn: () => {
@@ -102,9 +228,89 @@ export default function InterviewerDashboardPage() {
     }
   });
 
+  const joinSlotMutation = useMutation({
+    mutationFn: async () => {
+      if (!joinSlotIntent?.id) {
+        throw new Error('Slot context missing');
+      }
+
+      if (!selectedInterviewerId) {
+        throw new Error('Select interviewer first');
+      }
+
+      const metadata: Record<string, unknown> = {
+        slotTitle,
+        slotLanguage,
+        hostName: slotHostName,
+        focusAreas: slotFocusAreas,
+        tools: slotTools,
+        capacity: slotCapacity,
+        remainingCapacity: slotRemaining,
+        start: slotStartIso,
+        end: slotEndIso,
+        interviewerId: selectedInterviewerId,
+        interviewerName: currentInterviewer?.displayName
+      };
+
+      Object.keys(metadata).forEach((key) => {
+        const value = metadata[key];
+        if (value === undefined || value === null) {
+          delete metadata[key];
+        }
+
+        if (Array.isArray(value) && value.length === 0) {
+          delete metadata[key];
+        }
+      });
+
+      return joinRealtimeSession(joinSlotIntent.id, {
+        role: 'INTERVIEWER',
+        metadata
+      });
+    },
+    onSuccess: () => {
+      if (selectedInterviewerId) {
+        queryClient.invalidateQueries({
+          queryKey: ['interviewer', selectedInterviewerId, 'availability']
+        });
+        queryClient.invalidateQueries({
+          queryKey: ['interviewer', selectedInterviewerId, 'sessions', sessionLimit]
+        });
+      }
+
+      if (joinSlotIntent?.id) {
+        queryClient.invalidateQueries({ queryKey: ['slots', joinSlotIntent.id] });
+      }
+
+      const nextQuery: Record<string, string | string[]> = {};
+      Object.entries(router.query).forEach(([key, value]) => {
+        if (key === 'slotId' || key.startsWith('slot')) {
+          return;
+        }
+
+        if (Array.isArray(value)) {
+          if (value.length > 0) {
+            nextQuery[key] = value;
+          }
+        } else if (typeof value === 'string' && value.length > 0) {
+          nextQuery[key] = value;
+        }
+      });
+
+      void router.replace({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true });
+    }
+  });
+
   const currentInterviewer: InterviewerSummaryDto | undefined = useMemo(() => {
     return interviewersQuery.data?.find((person) => person.id === selectedInterviewerId);
   }, [interviewersQuery.data, selectedInterviewerId]);
+  const isJoinDisabled =
+    joinSlotMutation.isPending ||
+    !joinSlotIntent?.id ||
+    !selectedInterviewerId ||
+    slotDetailsQuery.isLoading ||
+    slotDetailsQuery.isError ||
+    isSlotFull;
 
   useEffect(() => {
     if (!router.isReady || slotIntentApplied) {
@@ -127,7 +333,62 @@ export default function InterviewerDashboardPage() {
   }, [intentOnlyFree, intentTab, router.isReady, slotIntentApplied]);
 
   useEffect(() => {
-    if (!router.isReady || selectedInterviewerId || !interviewersQuery.data?.length) {
+    if (!joinSlotIntent?.id) {
+      setJoinIntentApplied(false);
+    }
+  }, [joinSlotIntent?.id]);
+
+  useEffect(() => {
+    if (!router.isReady || !interviewersQuery.data?.length) {
+      return;
+    }
+
+    if (joinSlotIntent?.id && !joinIntentApplied) {
+      let matched = false;
+
+      if (recommendedInterviewerId) {
+        const suggested = interviewersQuery.data.find((person) => person.id === recommendedInterviewerId);
+        if (suggested) {
+          setSelectedInterviewerId(suggested.id);
+          matched = true;
+        }
+      }
+
+      if (!matched) {
+        const normalizedLanguage =
+          slotLanguage ? normalizeLanguageLabel(slotLanguage).toLowerCase() : undefined;
+        const normalizedTools =
+          slotTools.length > 0
+            ? slotTools.map((tool) => tool.toLowerCase())
+            : toArray(intentTools).map((tool) => tool.toLowerCase());
+
+        const match = interviewersQuery.data.find((person) => {
+          const languageMatch =
+            normalizedLanguage &&
+            person.languages.some((language) => language.toLowerCase().includes(normalizedLanguage));
+          const toolsMatch =
+            normalizedTools.length > 0 &&
+            normalizedTools.every((tool) =>
+              person.specializations.some((specialization) => specialization.toLowerCase().includes(tool))
+            );
+
+          return languageMatch || toolsMatch;
+        });
+
+        if (match) {
+          setSelectedInterviewerId(match.id);
+          matched = true;
+        }
+      }
+
+      setJoinIntentApplied(true);
+
+      if (matched) {
+        return;
+      }
+    }
+
+    if (selectedInterviewerId) {
       return;
     }
 
@@ -157,7 +418,18 @@ export default function InterviewerDashboardPage() {
     if (fallback) {
       setSelectedInterviewerId(fallback.id);
     }
-  }, [intentLanguage, intentTools, interviewersQuery.data, router.isReady, selectedInterviewerId]);
+  }, [
+    intentLanguage,
+    intentTools,
+    interviewersQuery.data,
+    joinIntentApplied,
+    joinSlotIntent?.id,
+    recommendedInterviewerId,
+    router.isReady,
+    selectedInterviewerId,
+    slotLanguage,
+    slotTools
+  ]);
 
   return (
     <>
@@ -199,6 +471,150 @@ export default function InterviewerDashboardPage() {
             )}
           </div>
         </section>
+
+        {joinSlotIntent && (
+          <section className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-6">
+            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-emerald-300">
+                  Join slot intent
+                </p>
+                <h2 className="text-xl font-semibold text-white">{slotTitle}</h2>
+                {slotTimeSummary && (
+                  <p className="text-sm text-slate-300">
+                    When:{' '}
+                    <span className="font-medium text-white">{slotTimeSummary}</span>
+                  </p>
+                )}
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-300">
+                  {slotLanguage && (
+                    <span>
+                      Language:{' '}
+                      <span className="font-semibold text-white">{slotLanguage}</span>
+                    </span>
+                  )}
+                  {slotHostName && (
+                    <span>
+                      Host:{' '}
+                      <span className="font-semibold text-white">{slotHostName}</span>
+                    </span>
+                  )}
+                  {slotFocusAreas.length > 0 && (
+                    <span>
+                      Focus:{' '}
+                      <span className="font-semibold text-white">{slotFocusAreas.join(', ')}</span>
+                    </span>
+                  )}
+                  {slotTools.length > 0 && (
+                    <span>
+                      Tools:{' '}
+                      <span className="font-semibold text-white">{slotTools.join(', ')}</span>
+                    </span>
+                  )}
+                </div>
+                <div className="space-y-1 text-xs text-slate-300">
+                  <p>
+                    Joining as:{' '}
+                    <span className="font-semibold text-white">
+                      {currentInterviewer?.displayName ?? 'Select profile'}
+                    </span>
+                  </p>
+                  {recommendedInterviewer && (
+                    <p className="text-emerald-300">
+                      Suggested profile:{' '}
+                      <span className="font-semibold text-white">
+                        {recommendedInterviewer.displayName}
+                      </span>
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="flex w-full flex-col items-start gap-3 md:w-auto md:items-end">
+                <div className="flex flex-col items-start gap-1 text-xs text-slate-300 md:items-end">
+                  <p>
+                    Participants:{' '}
+                    <span className="font-semibold text-white">{participantCountLabel}</span>
+                    {typeof slotCapacity === 'number' && (
+                      <>
+                        /
+                        <span className="font-semibold text-white">{slotCapacity}</span>
+                        {typeof slotRemaining === 'number' && (
+                          <span
+                            className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
+                              isSlotFull
+                                ? 'bg-red-500/20 text-red-300'
+                                : 'bg-emerald-500/20 text-emerald-300'
+                            }`}
+                          >
+                            {isSlotFull ? 'Full' : `${slotRemaining} free`}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </p>
+                  {slotCapacity === undefined && (
+                    <p className="text-[11px] text-slate-400">Capacity details pending confirmation.</p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className="w-full rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
+                  onClick={() => joinSlotMutation.mutate()}
+                  disabled={isJoinDisabled}
+                >
+                  {joinSlotMutation.isPending ? 'Joining…' : 'Join slot as interviewer'}
+                </button>
+                {joinSlotMutation.isError && (
+                  <p className="text-xs text-red-300">
+                    {(joinSlotMutation.error as Error).message || 'Failed to join slot.'}
+                  </p>
+                )}
+                {isSlotFull && (
+                  <p className="text-xs text-amber-300">
+                    Slot is fully booked. You can still adjust availability below.
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="mt-6 space-y-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-300">
+                  Current participants
+                </h3>
+                {slotDetails?.waitlistCount ? (
+                  <span className="text-[11px] text-amber-300">
+                    Waitlist: {slotDetails.waitlistCount}
+                  </span>
+                ) : null}
+              </div>
+              {slotDetailsQuery.isLoading ? (
+                <p className="text-xs text-slate-400">Loading slot details…</p>
+              ) : slotDetailsQuery.isError ? (
+                <p className="text-xs text-red-300">
+                  {(slotDetailsQuery.error as Error).message || 'Failed to load slot details.'}
+                </p>
+              ) : slotParticipants.length > 0 ? (
+                <ul className="grid gap-2 md:grid-cols-2">
+                  {slotParticipants.map((participant) => (
+                    <li
+                      key={participant.id}
+                      className="rounded border border-emerald-500/30 bg-slate-950/70 px-3 py-2"
+                    >
+                      <p className="text-sm font-semibold text-white">{participant.name}</p>
+                      <p className="text-xs text-slate-400">
+                        {formatParticipantRole(participant.role)} ·{' '}
+                        {participant.stack.slice(0, 3).join(', ')}
+                      </p>
+                      <p className="text-[10px] text-slate-500">{participant.timezone}</p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs text-slate-400">No participants yet.</p>
+              )}
+            </div>
+          </section>
+        )}
 
         <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
           <h2 className="text-lg font-semibold text-white">Add availability</h2>

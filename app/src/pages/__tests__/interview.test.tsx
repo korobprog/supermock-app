@@ -64,11 +64,8 @@ describe('InterviewMatchingPage', () => {
 
     expect(screen.getByLabelText('Focus areas (comma separated)')).toHaveValue('React, TypeScript');
     expect(screen.getByLabelText('Preferred languages')).toHaveValue('🇬🇧 English');
-    expect(screen.getByLabelText('Notes (optional)')).toHaveValue(
-      expect.stringContaining('Нужны свободные места')
-    );
-    expect(screen.getByLabelText('Notes (optional)')).toHaveValue(
-      expect.stringContaining('Исходный таб: live')
-    );
+    const notesValue = (screen.getByLabelText('Notes (optional)') as HTMLTextAreaElement).value;
+    expect(notesValue).toContain('Нужны свободные места');
+    expect(notesValue).toContain('Исходный таб: live');
   });
 });
