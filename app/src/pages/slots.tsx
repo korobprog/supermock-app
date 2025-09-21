@@ -11,6 +11,7 @@ import {
   UsersIcon
 } from '@heroicons/react/24/outline';
 
+import NotificationToggle from '@/components/profile/NotificationToggle';
 import { PROFESSION_OPTIONS } from '@/data/professions';
 import { SLOT_DATA, type Slot, type SlotParticipant, type SlotStatus } from '@/data/slots';
 
@@ -301,39 +302,6 @@ function SlotCard({
         )}
       </footer>
     </article>
-  );
-}
-
-interface NotificationToggleProps {
-  label: string;
-  description: string;
-  checked: boolean;
-  onToggle: () => void;
-}
-
-function NotificationToggle({ label, description, checked, onToggle }: NotificationToggleProps) {
-  return (
-    <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-      <div>
-        <p className="text-sm font-semibold text-white">{label}</p>
-        <p className="text-xs text-slate-400">{description}</p>
-      </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        onClick={onToggle}
-        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary/60 ${
-          checked ? 'bg-secondary/80' : 'bg-slate-700'
-        }`}
-      >
-        <span
-          className={`inline-block h-5 w-5 transform rounded-full bg-slate-950 transition ${
-            checked ? 'translate-x-5' : 'translate-x-1'
-          }`}
-        />
-      </button>
-    </div>
   );
 }
 
@@ -892,37 +860,43 @@ export default function SlotDashboardPage() {
 
           <div className="mt-6 grid gap-3 md:grid-cols-3">
             <NotificationToggle
+              channel="telegram"
               label="Telegram"
               description="Моментальные пуши в бота @supermock_slots, поддержка быстрых действий"
-              checked={notificationSettings.telegram}
+              enabled={notificationSettings.telegram}
               onToggle={() =>
                 setNotificationSettings((state) => ({
                   ...state,
                   telegram: !state.telegram
                 }))
               }
+              showMarkReadButton={false}
             />
             <NotificationToggle
+              channel="email"
               label="Email"
               description="Ежедневная сводка по свободным слотам и изменениям в расписании"
-              checked={notificationSettings.email}
+              enabled={notificationSettings.email}
               onToggle={() =>
                 setNotificationSettings((state) => ({
                   ...state,
                   email: !state.email
                 }))
               }
+              showMarkReadButton={false}
             />
             <NotificationToggle
+              channel="push"
               label="Push"
               description="Браузерные уведомления о том, что слот открылся или завершился"
-              checked={notificationSettings.push}
+              enabled={notificationSettings.push}
               onToggle={() =>
                 setNotificationSettings((state) => ({
                   ...state,
                   push: !state.push
                 }))
               }
+              showMarkReadButton={false}
             />
           </div>
 

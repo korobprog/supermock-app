@@ -20,11 +20,17 @@ import type {
   JoinRealtimeSessionPayload,
   MarkNotificationsReadPayload,
   NotificationDto,
+  NotificationImportance,
+  NotificationSource,
   RealtimeSessionDto,
   SessionParticipantDto,
   UpdateRealtimeSessionStatusPayload
 } from '../../../shared/src/types/realtime.js';
-import type { CompleteOnboardingPayload, CompleteOnboardingResponse } from '../../../shared/src/types/user.js';
+import type {
+  CompleteOnboardingPayload,
+  CompleteOnboardingResponse,
+  UserDto
+} from '../../../shared/src/types/user.js';
 import type { InterviewAiInsightDto, PlatformStatsDto } from '../../../shared/src/types/analytics.js';
 import type { OnboardingProfileDraftPayload, OnboardingProfileDraftResponse } from '@/types/onboarding';
 
@@ -212,6 +218,26 @@ export function completeOnboarding(payload: CompleteOnboardingPayload) {
   });
 }
 
+export function fetchUser(userId: string) {
+  return request<UserDto>(`/users/${userId}`);
+}
+
+export type UpdateUserPayload = {
+  email?: string;
+  role?: UserDto['role'];
+  password?: string;
+  passwordSaltRounds?: number;
+  profile?: Record<string, unknown> | null;
+  avatarUrl?: string | null;
+};
+
+export function updateUser(userId: string, payload: UpdateUserPayload) {
+  return request<UserDto>(`/users/${userId}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload)
+  });
+}
+
 export function fetchNotifications(params?: {
   unreadOnly?: boolean;
   limit?: number;
@@ -242,6 +268,303 @@ export function markNotificationsRead(payload: MarkNotificationsReadPayload) {
     method: 'POST',
     body: JSON.stringify(payload)
   });
+}
+
+function normalizeImportance(value?: NotificationImportance | null | unknown): NotificationImportance {
+  if (value === 'high' || value === 'low' || value === 'normal') {
+    return value;
+  }
+
+  return 'normal';
+}
+
+function resolveSource(notification: NotificationDto): NotificationSource | undefined {
+  if (notification.source) {
+    return notification.source;
+  }
+
+  const metadataSource = notification.metadata?.source;
+  if (typeof metadataSource === 'string' && metadataSource.trim()) {
+    return metadataSource as NotificationSource;
+  }
+
+  const [prefix] = notification.type.split('.');
+  return prefix ? (prefix as NotificationSource) : undefined;
+}
+
+function parseDate(value: unknown): Date | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+const NOTIFICATION_DATE_FORMAT = new Intl.DateTimeFormat('ru-RU', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric'
+});
+
+const NOTIFICATION_TIME_FORMAT = new Intl.DateTimeFormat('ru-RU', {
+  hour: '2-digit',
+  minute: '2-digit'
+});
+
+const NOTIFICATION_DATETIME_FORMAT = new Intl.DateTimeFormat('ru-RU', {
+  dateStyle: 'medium',
+  timeStyle: 'short'
+});
+
+type NotificationPayload = Record<string, unknown> | undefined;
+
+function formatMatchScheduled(payload: NotificationPayload) {
+  const slot = (payload?.slot as { start?: string } | undefined) ?? {};
+  const role = typeof payload?.role === 'string' ? payload.role : undefined;
+  const start = parseDate(slot.start);
+  const interviewer = (payload?.interviewer as { displayName?: string } | undefined)?.displayName;
+  const candidate = (payload?.candidate as { displayName?: string } | undefined)?.displayName;
+
+  const dateLabel = start ? NOTIFICATION_DATETIME_FORMAT.format(start) : 'скоро';
+
+  if (role === 'candidate') {
+    const counterpart = interviewer ? `с ${interviewer}` : '';
+    return {
+      title: 'Собеседование назначено',
+      description: `Сессия ${counterpart ? `${counterpart} ` : ''}назначена на ${dateLabel}.`
+    };
+  }
+
+  const counterpart = candidate ? `с ${candidate}` : '';
+  return {
+    title: 'Новая сессия в календаре',
+    description: `Вы назначены на сессию ${counterpart ? `${counterpart} ` : ''}${dateLabel}.`
+  };
+}
+
+function formatDefaultNotification(notification: NotificationDto) {
+  const payloadMessage = typeof notification.payload?.message === 'string' ? notification.payload.message : null;
+
+  return {
+    title: 'Новое уведомление',
+    description: payloadMessage ?? `Событие «${notification.type}»`
+  };
+}
+
+export interface FormattedNotification {
+  id: string;
+  title: string;
+  description: string;
+  channel?: NotificationDto['channel'];
+  source?: NotificationSource;
+  importance: NotificationImportance;
+  createdAt: Date;
+  createdAtIso: string;
+  createdAtLabel: string;
+  dateKey: string;
+  timeLabel: string;
+  readAt: Date | null;
+  isRead: boolean;
+  payload?: Record<string, unknown>;
+  raw: NotificationDto;
+}
+
+export function formatNotification(notification: NotificationDto): FormattedNotification {
+  const createdAt = parseDate(notification.createdAt) ?? new Date();
+  const readAt = notification.readAt ? parseDate(notification.readAt) : null;
+  const source = resolveSource(notification);
+  const importance = normalizeImportance(notification.importance ?? notification.metadata?.importance);
+
+  let copy: { title: string; description: string };
+  switch (notification.type) {
+    case 'match.scheduled':
+      copy = formatMatchScheduled(notification.payload);
+      break;
+    case 'match.assigned':
+      copy = formatMatchScheduled(notification.payload);
+      break;
+    default:
+      copy = formatDefaultNotification(notification);
+  }
+
+  return {
+    id: notification.id,
+    title: copy.title,
+    description: copy.description,
+    channel: notification.channel,
+    source,
+    importance,
+    createdAt,
+    createdAtIso: createdAt.toISOString(),
+    createdAtLabel: NOTIFICATION_DATETIME_FORMAT.format(createdAt),
+    dateKey: NOTIFICATION_DATE_FORMAT.format(createdAt),
+    timeLabel: NOTIFICATION_TIME_FORMAT.format(createdAt),
+    readAt,
+    isRead: Boolean(readAt),
+    payload: notification.payload,
+    raw: notification
+  };
+}
+
+type NotificationSubscriptionOptions = {
+  token?: string | null;
+  onNotification: (notification: NotificationDto) => void;
+  onOpen?: (event: Event) => void;
+  onClose?: (event: CloseEvent) => void;
+  onError?: (error: Error) => void;
+};
+
+export type NotificationSubscription = {
+  close: () => void;
+  reconnect: () => void;
+  getReadyState: () => number;
+};
+
+async function resolveNotificationToken(token?: string | null) {
+  if (token) {
+    return token;
+  }
+
+  try {
+    const authStore = await import('../store/useAuth');
+    const { accessToken } = authStore.useAuth.getState();
+    return accessToken ?? null;
+  } catch (error) {
+    console.error('Failed to resolve auth token for notifications', error);
+    return null;
+  }
+}
+
+function buildWebsocketUrl(path: string, token?: string | null) {
+  const url = new URL(path, API_BASE_URL);
+  url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+
+  if (token) {
+    url.searchParams.set('token', token);
+  }
+
+  return url.toString();
+}
+
+export function subscribeToNotifications(
+  options: NotificationSubscriptionOptions
+): NotificationSubscription {
+  if (typeof window === 'undefined') {
+    return {
+      close() {},
+      reconnect() {},
+      getReadyState() {
+        return WebSocket.CLOSED;
+      }
+    };
+  }
+
+  let socket: WebSocket | null = null;
+  let manuallyClosed = false;
+
+  const handleOpen = (event: Event) => {
+    options.onOpen?.(event);
+  };
+
+  const handleClose = (event: CloseEvent) => {
+    options.onClose?.(event);
+    detach();
+    socket = null;
+  };
+
+  const handleError = (event: Event) => {
+    if (manuallyClosed) {
+      return;
+    }
+
+    const error = event instanceof ErrorEvent ? event.error ?? event : event;
+    const normalizedError =
+      error instanceof Error ? error : new Error('WebSocket connection error');
+    options.onError?.(normalizedError);
+  };
+
+  const handleMessage = (event: MessageEvent<string>) => {
+    try {
+      const payload = JSON.parse(event.data ?? '{}');
+
+      if (payload?.type === 'notifications:new' && payload?.data) {
+        options.onNotification(payload.data as NotificationDto);
+        return;
+      }
+
+      if (payload?.type === 'error' && payload?.message) {
+        options.onError?.(new Error(String(payload.message)));
+      }
+    } catch (error) {
+      options.onError?.(
+        error instanceof Error ? error : new Error('Failed to parse notification message')
+      );
+    }
+  };
+
+  const detach = () => {
+    if (!socket) {
+      return;
+    }
+
+    socket.removeEventListener('open', handleOpen);
+    socket.removeEventListener('close', handleClose);
+    socket.removeEventListener('error', handleError);
+    socket.removeEventListener('message', handleMessage as EventListener);
+  };
+
+  const connect = async () => {
+    const token = await resolveNotificationToken(options.token);
+
+    if (!token) {
+      options.onError?.(new Error('Требуется авторизация для подписки на уведомления'));
+      return;
+    }
+
+    const url = buildWebsocketUrl('/ws/notifications', token);
+    socket = new WebSocket(url);
+    socket.addEventListener('open', handleOpen);
+    socket.addEventListener('close', handleClose);
+    socket.addEventListener('error', handleError);
+    socket.addEventListener('message', handleMessage as EventListener);
+  };
+
+  void connect();
+
+  return {
+    close() {
+      manuallyClosed = true;
+
+      if (socket) {
+        detach();
+        try {
+          socket.close();
+        } catch {
+          // ignore errors from closing a dead socket
+        }
+        socket = null;
+      }
+    },
+    reconnect() {
+      manuallyClosed = false;
+
+      if (socket) {
+        detach();
+        try {
+          socket.close();
+        } catch {
+          // ignore close errors
+        }
+        socket = null;
+      }
+
+      void connect();
+    },
+    getReadyState() {
+      return socket?.readyState ?? WebSocket.CLOSED;
+    }
+  };
 }
 
 export function fetchRealtimeSessions(query?: {

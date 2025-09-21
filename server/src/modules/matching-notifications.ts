@@ -90,7 +90,9 @@ export function createMatchSchedulingHooks(options: { webhookUrl?: string | null
             payload: {
               ...payload,
               role: 'candidate'
-            }
+            },
+            source: 'matching',
+            importance: 'high'
           }).catch((error) => {
             console.error('Failed to create candidate match notification', error);
           })
@@ -106,7 +108,9 @@ export function createMatchSchedulingHooks(options: { webhookUrl?: string | null
             payload: {
               ...payload,
               role: 'interviewer'
-            }
+            },
+            source: 'matching',
+            importance: 'high'
           }).catch((error) => {
             console.error('Failed to create interviewer match notification', error);
           })

@@ -3,7 +3,8 @@ import type { Notification, Prisma } from '@prisma/client';
 import type {
   CreateNotificationPayload,
   MarkNotificationsReadPayload,
-  NotificationDto
+  NotificationDto,
+  NotificationImportance
 } from '../../../shared/src/types/realtime.js';
 import { prisma } from './prisma.js';
 import { emitNotification } from './realtime/bus.js';
@@ -28,6 +29,8 @@ function toJsonObject(
 function mapNotification(record: Notification): NotificationDto {
   const payload = record.payload as Record<string, unknown> | null;
   const metadata = record.metadata as Record<string, unknown> | null;
+  const source = typeof metadata?.source === 'string' ? metadata.source : undefined;
+  const importance = parseImportance(metadata?.importance);
 
   return {
     id: record.id,
@@ -38,8 +41,27 @@ function mapNotification(record: Notification): NotificationDto {
     readAt: record.readAt ? record.readAt.toISOString() : null,
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
-    metadata: metadata ?? undefined
+    metadata: metadata ?? undefined,
+    source,
+    importance
   };
+}
+
+function parseImportance(value: unknown): NotificationImportance | undefined {
+  if (value === 'low' || value === 'normal' || value === 'high') {
+    return value;
+  }
+
+  return undefined;
+}
+
+function inferSource(type: string | undefined): string | undefined {
+  if (!type) {
+    return undefined;
+  }
+
+  const [prefix] = type.split('.');
+  return prefix || undefined;
 }
 
 function isValidDate(value: Date | null | undefined): value is Date {
@@ -70,13 +92,29 @@ export async function listNotifications(
 export async function createNotification(
   payload: CreateNotificationPayload
 ): Promise<NotificationDto> {
+  const metadata: Record<string, unknown> | undefined = (() => {
+    const baseMetadata = payload.metadata ? { ...payload.metadata } : {};
+    const source = payload.source ?? inferSource(payload.type);
+    const importance = parseImportance(payload.importance);
+
+    if (source) {
+      baseMetadata.source = source;
+    }
+
+    if (importance) {
+      baseMetadata.importance = importance;
+    }
+
+    return Object.keys(baseMetadata).length > 0 ? baseMetadata : undefined;
+  })();
+
   const notification = await prisma.notification.create({
     data: {
       userId: payload.userId,
       type: payload.type,
       channel: payload.channel ?? null,
       payload: toJsonObject(payload.payload, 'payload'),
-      metadata: toJsonObject(payload.metadata, 'metadata')
+      metadata: toJsonObject(metadata, 'metadata')
     }
   });
 

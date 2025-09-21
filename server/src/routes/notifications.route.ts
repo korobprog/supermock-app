@@ -20,7 +20,9 @@ const createNotificationSchema = z.object({
   type: z.string().min(1),
   channel: z.string().min(1).optional(),
   payload: z.record(z.any()).optional(),
-  metadata: z.record(z.any()).optional()
+  metadata: z.record(z.any()).optional(),
+  source: z.string().trim().min(1).optional(),
+  importance: z.enum(['low', 'normal', 'high']).optional()
 });
 
 const markReadSchema = z.object({

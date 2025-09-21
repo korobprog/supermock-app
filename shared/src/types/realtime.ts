@@ -60,24 +60,34 @@ export interface RealtimeSessionListQuery {
   activeOnly?: boolean;
 }
 
+export type NotificationChannel = 'in-app' | 'email' | 'telegram' | 'push' | string;
+
+export type NotificationImportance = 'low' | 'normal' | 'high';
+
+export type NotificationSource = 'matching' | 'system' | 'profile' | string;
+
 export interface NotificationDto {
   id: string;
   userId: string;
   type: string;
-  channel?: string | null;
+  channel?: NotificationChannel | null;
   payload?: Record<string, unknown>;
   readAt?: string | null;
   createdAt: string;
   updatedAt: string;
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, unknown> | null;
+  source?: NotificationSource;
+  importance?: NotificationImportance;
 }
 
 export interface CreateNotificationPayload {
   userId: string;
   type: string;
-  channel?: string;
+  channel?: NotificationChannel;
   payload?: Record<string, unknown>;
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, unknown> | null;
+  source?: NotificationSource;
+  importance?: NotificationImportance;
 }
 
 export interface MarkNotificationsReadPayload {
