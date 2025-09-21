@@ -12,8 +12,28 @@ vi.mock('@prisma/client', () => {
     $on = vi.fn();
   }
 
+  const RealtimeSessionStatus = {
+    SCHEDULED: 'SCHEDULED',
+    ACTIVE: 'ACTIVE',
+    ENDED: 'ENDED',
+    CANCELLED: 'CANCELLED'
+  };
+
+  const SessionParticipantRole = {
+    HOST: 'HOST',
+    INTERVIEWER: 'INTERVIEWER',
+    CANDIDATE: 'CANDIDATE',
+    OBSERVER: 'OBSERVER'
+  };
+
+  // Create aliases for the imported names
+  const PrismaRealtimeSessionStatus = RealtimeSessionStatus;
+  const PrismaSessionParticipantRole = SessionParticipantRole;
+
   return {
     PrismaClient: PrismaClientMock,
+    RealtimeSessionStatus,
+    SessionParticipantRole,
     UserRole: {
       CANDIDATE: 'CANDIDATE',
       INTERVIEWER: 'INTERVIEWER',
@@ -38,18 +58,8 @@ vi.mock('@prisma/client', () => {
       INTERVIEWER: 'INTERVIEWER',
       OBSERVER: 'OBSERVER'
     },
-    RealtimeSessionStatus: {
-      SCHEDULED: 'SCHEDULED',
-      ACTIVE: 'ACTIVE',
-      ENDED: 'ENDED',
-      CANCELLED: 'CANCELLED'
-    },
-    SessionParticipantRole: {
-      HOST: 'HOST',
-      INTERVIEWER: 'INTERVIEWER',
-      CANDIDATE: 'CANDIDATE',
-      OBSERVER: 'OBSERVER'
-    },
+    PrismaRealtimeSessionStatus,
+    PrismaSessionParticipantRole,
     Prisma: {
       JsonNull: jsonNull,
       DbNull: dbNull,

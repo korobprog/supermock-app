@@ -299,6 +299,27 @@ vi.mock('../../src/modules/prisma.js', () => ({
   __mockDb: { reset: () => ensurePrismaInstance().reset() }
 }));
 
+vi.mock('@prisma/client', () => ({
+  PrismaClient: class PrismaClientMock {
+    $disconnect = vi.fn().mockResolvedValue(undefined);
+    $transaction = vi.fn(async () => Promise.resolve([]));
+    $use = vi.fn();
+    $on = vi.fn();
+  },
+  RealtimeSessionStatus: {
+    SCHEDULED: 'SCHEDULED',
+    ACTIVE: 'ACTIVE',
+    ENDED: 'ENDED',
+    CANCELLED: 'CANCELLED'
+  },
+  SessionParticipantRole: {
+    HOST: 'HOST',
+    INTERVIEWER: 'INTERVIEWER',
+    CANDIDATE: 'CANDIDATE',
+    OBSERVER: 'OBSERVER'
+  }
+}));
+
 ensurePrismaInstance();
 
 const prismaModulePromise = import('../../src/modules/prisma.js');
