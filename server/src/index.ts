@@ -21,12 +21,21 @@ import { registerNotificationRoutes } from './routes/notifications.route.js';
 import { registerAnalyticsRoutes } from './routes/analytics.route.js';
 import { registerRealtimeWebsocketRoutes } from './routes/realtime.ws.js';
 import { DailyCoService } from './modules/daily-co.js';
+import { startMatchingAutomation } from './modules/matching-automation.js';
+import { createMatchSchedulingHooks } from './modules/matching-notifications.js';
 import { restoreRealtimeSessions } from './modules/realtime-sessions.js';
 
 const config = buildConfig();
 const dailyCoService = config.dailyCo.enabled
   ? new DailyCoService({ apiKey: config.dailyCo.apiKey, domain: config.dailyCo.domain })
   : null;
+const matchScheduledWebhookUrl =
+  typeof process.env.MATCH_SCHEDULED_WEBHOOK_URL === 'string'
+    ? process.env.MATCH_SCHEDULED_WEBHOOK_URL.trim() || null
+    : null;
+const matchSchedulingHooks = createMatchSchedulingHooks({
+  webhookUrl: matchScheduledWebhookUrl
+});
 
 async function bootstrap() {
   const app = fastify({
@@ -51,7 +60,8 @@ async function bootstrap() {
       service: dailyCoService,
       domain: config.dailyCo.domain,
       enabled: config.dailyCo.enabled
-    }
+    },
+    hooks: matchSchedulingHooks
   });
   registerPaymentRoutes(app);
   registerAuthRoutes(app, config);
@@ -67,6 +77,10 @@ async function bootstrap() {
   registerRealtimeWebsocketRoutes(app);
 
   try {
+    startMatchingAutomation({
+      dailyCoService,
+      hooks: matchSchedulingHooks
+    });
     await app.listen({ port: config.port, host: config.host });
     await restoreRealtimeSessions();
     app.log.info(`SuperMock API listening on ${config.host}:${config.port}`);

@@ -19,7 +19,8 @@ import {
   getInterviewerSessions,
   scheduleMatch,
   getSlotById,
-  joinSlot
+  joinSlot,
+  type MatchSchedulingHooks
 } from '../modules/matching.js';
 import { authenticate, authorizeRoles } from '../utils/auth.js';
 
@@ -42,6 +43,7 @@ type MatchingRouteDependencies = {
     domain?: string;
     enabled?: boolean;
   };
+  hooks?: MatchSchedulingHooks;
 };
 
 function normalizeDailyDomain(domain?: string | null): string | null {
@@ -232,7 +234,10 @@ export function registerMatchingRoutes(app: FastifyInstance, deps: MatchingRoute
       const { id } = requestIdParamsSchema.parse(request.params);
       const payload = scheduleMatchSchema.parse(request.body);
 
-      const updated = await scheduleMatch(id, payload, { dailyCoService: deps.dailyCo?.service ?? null });
+      const updated = await scheduleMatch(id, payload, {
+        dailyCoService: deps.dailyCo?.service ?? null,
+        hooks: deps.hooks
+      });
 
       if (!updated) {
         throw new Error('Match request or availability not found');
