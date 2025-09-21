@@ -1,3 +1,5 @@
+import type { NotificationDto } from './realtime.js';
+
 export type UserRole = 'CANDIDATE' | 'INTERVIEWER' | 'ADMIN';
 
 export type ExperienceLevel = 'JUNIOR' | 'MIDDLE' | 'SENIOR';
@@ -94,6 +96,14 @@ export type UserDto = {
   interviewerProfile: InterviewerProfileDto | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type UserExportDto = {
+  exportedAt: string;
+  user: UserDto;
+  candidateProfile: CandidateProfileDto | null;
+  interviewerProfile: InterviewerProfileDto | null;
+  notifications: NotificationDto[];
 };
 
 export type CreateUserInput = {
