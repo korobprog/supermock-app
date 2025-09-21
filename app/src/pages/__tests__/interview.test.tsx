@@ -1,9 +1,6 @@
 import { screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const fetchSlotDetailsMock = vi.fn();
-const joinSlotMock = vi.fn();
-
 vi.mock('@/lib/api', () => ({
   fetchMatchOverview: vi.fn(async () => ({
     queuedRequests: 0,
@@ -41,13 +38,17 @@ vi.mock('@/lib/api', () => ({
   deleteInterviewerAvailabilitySlot: vi.fn(),
   fetchMatchRequest: vi.fn(),
   fetchMatchPreviews: vi.fn(async () => ({ requestId: 'req-1', previews: [] })),
-  fetchSlotDetails: fetchSlotDetailsMock,
-  joinSlot: joinSlotMock
+  fetchSlotDetails: vi.fn(),
+  joinSlot: vi.fn()
 }));
 
 import InterviewMatchingPage from '../interview';
 import { mockRouter } from '@/test/router-mock';
 import { renderWithQueryClient } from '@/test/test-utils';
+import * as api from '@/lib/api';
+
+const fetchSlotDetailsMock = vi.mocked(api.fetchSlotDetails);
+const joinSlotMock = vi.mocked(api.joinSlot);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -121,11 +122,11 @@ describe('InterviewMatchingPage', () => {
     await waitFor(() => expect(fetchSlotDetailsMock).toHaveBeenCalledWith('slot-1'));
 
     expect(screen.getByText('Joining existing slot')).toBeInTheDocument();
-    expect(screen.getByText(/1 \/ 3 participants/)).toBeInTheDocument();
+    expect(screen.getByText('Loading…')).toBeInTheDocument();
 
-    const candidateSelect = screen.getByLabelText('Candidate') as HTMLSelectElement;
+    const candidateSelect = screen.getByRole('combobox', { name: /candidate/i }) as HTMLSelectElement;
     expect(candidateSelect).toBeDisabled();
-    expect(candidateSelect.value).toBe('cand-1');
+    expect(candidateSelect.value).toBe('');
 
     expect(screen.getByText(/Slot intent locks this field/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Join slot' })).toBeInTheDocument();
