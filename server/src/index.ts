@@ -4,6 +4,7 @@ import cors from '@fastify/cors';
 
 import { buildConfig } from './modules/config.js';
 import authPlugin from './plugins/auth.plugin.js';
+import rateLimitPlugin from './plugins/rate-limit.plugin.js';
 import { registerCoreRoutes } from './routes/core.route.js';
 import { registerHealthRoute } from './routes/health.route.js';
 import { registerMatchingRoutes } from './routes/matching.route.js';
@@ -38,6 +39,7 @@ async function bootstrap() {
     credentials: true
   });
 
+  await app.register(rateLimitPlugin, { config });
   await app.register(websocket);
   await app.register(authPlugin, { config });
 

@@ -9,6 +9,16 @@ describe('buildConfig', () => {
     expect(config.host).toBe('0.0.0.0');
     expect(config.corsOrigins).toEqual(['http://localhost:3000', 'http://localhost:3001']);
     expect(config.logLevel).toBe('info');
+    expect(config.rateLimit).toEqual({
+      global: {
+        max: 100,
+        timeWindow: '1 minute'
+      },
+      critical: {
+        max: 100,
+        timeWindow: '1 minute'
+      }
+    });
   });
 
   it('parses comma separated cors origins', () => {

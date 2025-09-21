@@ -3,6 +3,14 @@ import crypto from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { AppConfig } from '../../src/modules/config.js';
+import rateLimitPlugin from '../../src/plugins/rate-limit.plugin.js';
+
+vi.mock('@prisma/client', () => ({
+  UserRole: {
+    CANDIDATE: 'CANDIDATE',
+    INTERVIEWER: 'INTERVIEWER'
+  }
+}));
 
 vi.mock('../../src/modules/prisma.js', () => {
   type UserRecord = {
@@ -392,6 +400,16 @@ const buildTestConfig = (): AppConfig => ({
   },
   password: {
     saltRounds: 4
+  },
+  rateLimit: {
+    global: {
+      max: 1000,
+      timeWindow: '1 minute'
+    },
+    critical: {
+      max: 1000,
+      timeWindow: '1 minute'
+    }
   }
 });
 
@@ -420,6 +438,7 @@ describe('Auth HTTP flows', () => {
     __mockDb.reset();
     config = buildTestConfig();
     app = fastify({ logger: false });
+    await app.register(rateLimitPlugin, { config });
     await app.register(authPlugin, { config });
     registerAuthRoutes(app, config);
     await app.ready();
