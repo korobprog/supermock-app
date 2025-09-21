@@ -25,7 +25,8 @@ import type {
   CreateMatchRequestPayload,
   MatchPreviewDto,
   MatchRequestWithResultDto,
-  CompletedSessionDto
+  CompletedSessionDto,
+  JoinSlotPayload
 } from '../../../shared/src/types/matching.js';
 import { PROFESSION_OPTIONS } from '@/data/professions';
 
@@ -282,7 +283,7 @@ export default function InterviewMatchingPage() {
   });
 
   const joinSlotMutation = useMutation({
-    mutationFn: (payload: CreateMatchRequestPayload) => {
+    mutationFn: (payload: JoinSlotPayload) => {
       if (!isSlotJoinIntent || typeof intentSlotId !== 'string') {
         return Promise.reject(new Error('Slot intent is missing'));
       }
@@ -417,21 +418,30 @@ export default function InterviewMatchingPage() {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!selectedCandidateId) return;
+    const candidateId = lockedCandidateId ?? selectedCandidateId;
+
+    if (!candidateId) {
+      return;
+    }
+
+    if (isSlotJoinIntent) {
+      const payload: JoinSlotPayload = {
+        role: 'CANDIDATE',
+        candidateId
+      };
+
+      joinSlotMutation.mutate(payload);
+      return;
+    }
 
     const payload: CreateMatchRequestPayload = {
-      candidateId: selectedCandidateId,
+      candidateId,
       targetRole: targetRole.trim(),
       focusAreas: parseList(focusAreasInput),
       preferredLanguages: parseList(languagesInput),
       sessionFormat,
       notes: notes.trim() || undefined
     };
-
-    if (isSlotJoinIntent) {
-      joinSlotMutation.mutate(payload);
-      return;
-    }
 
     createRequestMutation.mutate(payload);
   };

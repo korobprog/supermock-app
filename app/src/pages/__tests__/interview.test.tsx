@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/lib/api', () => ({
@@ -65,7 +65,17 @@ beforeEach(() => {
     participantCapacity: 2,
     participantCount: 0
   });
-  joinSlotMock.mockResolvedValue({ id: 'req-joined' } as any);
+  joinSlotMock.mockResolvedValue({
+    id: 'req-joined',
+    candidateId: 'cand-1',
+    targetRole: 'Frontend Developer',
+    focusAreas: ['React'],
+    preferredLanguages: ['English'],
+    sessionFormat: 'CODING',
+    status: 'PENDING',
+    createdAt: '2024-05-30T12:00:00.000Z',
+    updatedAt: '2024-05-30T12:00:00.000Z'
+  } as any);
 });
 
 describe('InterviewMatchingPage', () => {
@@ -130,5 +140,39 @@ describe('InterviewMatchingPage', () => {
 
     expect(screen.getByText(/Slot intent locks this field/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Join slot' })).toBeInTheDocument();
+  });
+
+  it('joins slot with candidate payload', async () => {
+    fetchSlotDetailsMock.mockResolvedValue({
+      id: 'slot-1',
+      interviewerId: 'int-1',
+      start: '2024-06-01T09:00:00.000Z',
+      end: '2024-06-01T10:00:00.000Z',
+      isRecurring: false,
+      createdAt: '2024-05-30T12:00:00.000Z',
+      participantCapacity: 2,
+      participantCount: 0
+    });
+
+    mockRouter.query = {
+      slotId: 'slot-1',
+      candidateId: 'cand-1'
+    };
+
+    renderWithQueryClient(<InterviewMatchingPage />);
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('Target role')).toHaveValue('Frontend Developer')
+    );
+
+    const joinButton = await screen.findByRole('button', { name: 'Join slot' });
+    fireEvent.click(joinButton);
+
+    await waitFor(() =>
+      expect(joinSlotMock).toHaveBeenCalledWith('slot-1', {
+        role: 'CANDIDATE',
+        candidateId: 'cand-1'
+      })
+    );
   });
 });
