@@ -6,8 +6,6 @@ import { fetchMatchOverview } from '@/lib/api';
 import { useUserProfile } from '@/store/useUserProfile';
 import type { UserRole } from '../../../../shared/src/types/user.js';
 
-import OnboardingProgress from './OnboardingProgress';
-
 const SESSION_REWARD_USD = 65;
 
 type RoleCardRole = Extract<UserRole, 'CANDIDATE' | 'INTERVIEWER'>;
