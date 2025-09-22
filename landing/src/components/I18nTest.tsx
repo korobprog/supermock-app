@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 
 const I18nTest = () => {
   const { t, i18n } = useTranslation();
+  const router = useRouter();
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
@@ -31,10 +33,19 @@ const I18nTest = () => {
 
   const changeLanguage = (lang: string) => {
     console.log('I18nTest: changing language to:', lang);
-    i18n.changeLanguage(lang).then(() => {
-      console.log('I18nTest: language changed to:', i18n.language);
-      testTranslation();
-    });
+    void router
+      .push(
+        { pathname: router.pathname, query: router.query },
+        router.asPath,
+        { locale: lang }
+      )
+      .then(() => {
+        console.log('I18nTest: router push resolved for locale:', lang);
+        testTranslation();
+      })
+      .catch((error) => {
+        console.error('I18nTest: error changing locale:', error);
+      });
   };
 
   return (
