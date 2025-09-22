@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { professions, type Profession } from "@/data/professions";
 import { handleExternalClick } from "@/lib/utils";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 
 interface ProfessionsSectionProps {
   className?: string;

@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, Globe } from 'lucide-react';
 import { useSafeUIStore } from '@/hooks/useSafeUIStore';
-import { useTranslation as useI18nTranslation } from 'react-i18next';
+import { useTranslation as useI18nTranslation } from 'next-i18next';
 
 interface LanguageSwitcherProps {
   compact?: boolean;

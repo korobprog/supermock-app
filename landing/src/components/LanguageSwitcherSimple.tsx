@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { useTranslation as useI18nTranslation } from 'react-i18next';
+import { useTranslation as useI18nTranslation } from 'next-i18next';
 
 const LanguageSwitcherSimple = () => {
   const { i18n } = useI18nTranslation();
@@ -27,6 +27,10 @@ const LanguageSwitcherSimple = () => {
     setIsOpen(false);
   };
 
+  const currentLanguageCode = typeof i18n.language === 'string' && i18n.language.length > 0
+    ? i18n.language
+    : 'en';
+
   return (
     <div className="relative">
       <Button
@@ -39,7 +43,7 @@ const LanguageSwitcherSimple = () => {
         className="flex items-center gap-2"
       >
         <span>{languages.find(lang => lang.code === i18n.language)?.flag || '🇺🇸'}</span>
-        <span>{i18n.language.toUpperCase()}</span>
+        <span>{currentLanguageCode.toUpperCase()}</span>
         <span>{isOpen ? '▲' : '▼'}</span>
       </Button>
 

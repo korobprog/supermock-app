@@ -1,15 +1,9 @@
 import type { AppProps } from 'next/app';
-import { useEffect } from 'react';
-import '../i18n/index'; // Initialize i18n
+import { appWithTranslation } from 'next-i18next';
 import '../index.css';
 
-export default function App({ Component, pageProps }: AppProps) {
-  useEffect(() => {
-    // Ensure i18n is initialized on client side
-    if (typeof window !== 'undefined') {
-      console.log('i18n initialized in _app.tsx');
-    }
-  }, []);
-
+function App({ Component, pageProps }: AppProps) {
   return <Component {...pageProps} />;
 }
+
+export default appWithTranslation(App);

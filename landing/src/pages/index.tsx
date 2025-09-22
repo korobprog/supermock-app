@@ -7,7 +7,10 @@ import ProfessionsSection from "@/components/ProfessionsSection";
 import LanguageTest from "@/components/LanguageTest";
 import I18nTest from "@/components/I18nTest";
 import { handleExternalClick } from "@/lib/utils";
-import { useTranslation } from "react-i18next";
+import type { GetStaticProps } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { useTranslation } from "next-i18next";
+import { nextI18NextConfig } from "@/i18n";
 import { 
   Mic, 
   Code, 
@@ -432,5 +435,15 @@ const Index = () => {
     </div>
   );
 };
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => ({
+  props: {
+    ...(await serverSideTranslations(
+      locale ?? nextI18NextConfig.i18n?.defaultLocale ?? 'en',
+      ['common'],
+      nextI18NextConfig,
+    )),
+  },
+});
 
 export default Index;

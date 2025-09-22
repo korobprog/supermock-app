@@ -4,6 +4,9 @@ import { navigateToExternal, handleExternalClick } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import Logo from "@/components/Logo";
 import Footer from "@/components/Footer";
+import type { GetStaticProps } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { nextI18NextConfig } from "@/i18n";
 import { 
   HelpCircle, 
   MessageSquare, 
@@ -230,5 +233,15 @@ const FAQ = () => {
     </div>
   );
 };
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => ({
+  props: {
+    ...(await serverSideTranslations(
+      locale ?? nextI18NextConfig.i18n?.defaultLocale ?? 'en',
+      ['common'],
+      nextI18NextConfig,
+    )),
+  },
+});
 
 export default FAQ;

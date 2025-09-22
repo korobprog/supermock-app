@@ -1,3 +1,5 @@
+import nextI18NextConfig from './next-i18next.config.js';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Remove output: 'export' for development
@@ -13,6 +15,7 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true, // Disable TypeScript errors during builds for now
   },
+  i18n: nextI18NextConfig.i18n,
   // Configure base path if needed
   // basePath: process.env.NEXT_PUBLIC_BASE_PATH,
 }

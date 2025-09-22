@@ -3,7 +3,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { handleExternalClick } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
 import Footer from "@/components/Footer";
-import { useTranslation } from "react-i18next";
+import type { GetStaticProps } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { useTranslation } from "next-i18next";
+import { nextI18NextConfig } from "@/i18n";
 
 const Languages = () => {
   const { t, i18n } = useTranslation();
@@ -144,5 +147,15 @@ const Languages = () => {
     </div>
   );
 };
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => ({
+  props: {
+    ...(await serverSideTranslations(
+      locale ?? nextI18NextConfig.i18n?.defaultLocale ?? 'en',
+      ['common'],
+      nextI18NextConfig,
+    )),
+  },
+});
 
 export default Languages;

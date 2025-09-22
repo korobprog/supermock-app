@@ -17,7 +17,10 @@ import {
 // import { Link } from "react-router-dom";
 // import TechnologySection from "@/components/TechnologySection";
 // import ProfilePhoto from "@/components/ProfilePhoto";
-import { useTranslation } from "react-i18next";
+import type { GetStaticProps } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { useTranslation } from "next-i18next";
+import { nextI18NextConfig } from "@/i18n";
 
 const About = () => {
   const { t } = useTranslation();
@@ -336,5 +339,15 @@ const About = () => {
     </div>
   );
 };
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => ({
+  props: {
+    ...(await serverSideTranslations(
+      locale ?? nextI18NextConfig.i18n?.defaultLocale ?? 'en',
+      ['common'],
+      nextI18NextConfig,
+    )),
+  },
+});
 
 export default About;
