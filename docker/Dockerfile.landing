@@ -3,25 +3,33 @@
 FROM node:20-bullseye as base
 WORKDIR /app
 
+# Copy workspace files
 COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml ./
 COPY landing/package.json landing/
 COPY shared/package.json shared/
 
+# Enable pnpm and install dependencies
 RUN corepack enable && pnpm fetch
 
+# Copy source code
 COPY . .
-RUN pnpm --filter @supermock/shared build && pnpm --filter @supermock/landing build
 
+# Build shared package first, then landing
+RUN pnpm --filter @supermock/shared build && pnpm --filter ./landing build
+
+# Production stage
 FROM node:20-bullseye
 WORKDIR /app
 ENV NODE_ENV=production
 
+# Copy built application
 COPY --from=base /app/landing/.next ./.next
 COPY --from=base /app/landing/public ./public
 COPY --from=base /app/landing/package.json ./package.json
 COPY --from=base /app/landing/next.config.mjs ./next.config.mjs
 
-RUN corepack enable && pnpm install --prod
+# Install only production dependencies
+RUN corepack enable && pnpm install --prod --frozen-lockfile
 
 EXPOSE 3000
 CMD ["pnpm", "start"]
