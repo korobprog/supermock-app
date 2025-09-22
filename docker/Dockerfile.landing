@@ -10,6 +10,7 @@ COPY shared/package.json shared/
 RUN corepack enable && pnpm fetch
 
 COPY . .
+RUN pnpm install --offline --frozen-lockfile
 RUN pnpm --filter @supermock/shared build && pnpm --filter @supermock/landing build
 
 FROM node:20-bullseye
