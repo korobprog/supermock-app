@@ -24,7 +24,11 @@ import type {
   SessionParticipantDto,
   UpdateRealtimeSessionStatusPayload
 } from '../../../shared/src/types/realtime.js';
-import type { CompleteOnboardingPayload, CompleteOnboardingResponse } from '../../../shared/src/types/user.js';
+import type {
+  CompleteOnboardingPayload,
+  CompleteOnboardingResponse,
+  UserDto
+} from '../../../shared/src/types/user.js';
 import type { InterviewAiInsightDto, PlatformStatsDto } from '../../../shared/src/types/analytics.js';
 import type { OnboardingProfileDraftPayload, OnboardingProfileDraftResponse } from '@/types/onboarding';
 
@@ -54,7 +58,10 @@ async function request<T>(path: string, init?: RequestInit, options?: RequestOpt
   const headers: Record<string, string> = {};
   
   // Only set Content-Type for requests with a body
-  if (init?.body) {
+  const isFormData = typeof FormData !== 'undefined' && init?.body instanceof FormData;
+  const isBlob = typeof Blob !== 'undefined' && init?.body instanceof Blob;
+
+  if (init?.body && !isFormData && !isBlob) {
     headers['Content-Type'] = 'application/json';
   }
   
@@ -99,6 +106,102 @@ async function request<T>(path: string, init?: RequestInit, options?: RequestOpt
   }
 
   return (await response.json()) as T;
+}
+
+export interface NotificationPreferencesDto {
+  upcomingSessions: boolean;
+  newMatches: boolean;
+  productUpdates: boolean;
+  securityAlerts: boolean;
+}
+
+export const DEFAULT_NOTIFICATION_PREFERENCES: Readonly<NotificationPreferencesDto> = Object.freeze({
+  upcomingSessions: true,
+  newMatches: true,
+  productUpdates: false,
+  securityAlerts: true
+});
+
+export interface ProfileRecord extends Record<string, unknown> {
+  displayName?: string | null;
+  bio?: string | null;
+  locale?: string | null;
+  timezone?: string | null;
+  notificationPreferences?: NotificationPreferencesDto;
+}
+
+export interface UpdateProfilePayload {
+  email?: string;
+  avatarUrl?: string | null;
+  profile?: ProfileRecord | null;
+}
+
+export interface UploadAvatarResult {
+  avatarUrl: string;
+}
+
+export interface ActivityEntryDto {
+  id: string;
+  type: string;
+  title?: string;
+  description?: string;
+  createdAt: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface ActivityHistoryResponse {
+  items: ActivityEntryDto[];
+  nextCursor?: string | null;
+  hasMore: boolean;
+}
+
+export interface ActivityHistoryQuery {
+  cursor?: string;
+  limit?: number;
+}
+
+export interface NotificationPreferencesResponse {
+  preferences: NotificationPreferencesDto;
+  updatedAt?: string;
+}
+
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+}
+
+async function readBlobAsDataUrl(blob: Blob): Promise<string> {
+  if (typeof window !== 'undefined' && typeof FileReader !== 'undefined') {
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(reader.error);
+      reader.onload = () => {
+        const result = reader.result;
+        if (typeof result === 'string') {
+          resolve(result);
+        } else {
+          reject(new Error('Не удалось прочитать файл аватара'));
+        }
+      };
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  const arrayBuffer = await blob.arrayBuffer();
+  let base64: string;
+
+  if (typeof Buffer !== 'undefined') {
+    base64 = Buffer.from(arrayBuffer).toString('base64');
+  } else {
+    const bytes = new Uint8Array(arrayBuffer);
+    let binary = '';
+    bytes.forEach((byte) => {
+      binary += String.fromCharCode(byte);
+    });
+    base64 = typeof btoa === 'function' ? btoa(binary) : binary;
+  }
+  const mediaType = blob.type || 'application/octet-stream';
+  return `data:${mediaType};base64,${base64}`;
 }
 
 export function fetchMatchOverview() {
@@ -340,6 +443,92 @@ export function fetchInterviewAiInsights(matchId: string) {
 
 export function fetchPlatformStats() {
   return request<PlatformStatsDto>('/analytics/overview');
+}
+
+export function fetchUserProfile(userId: string) {
+  return request<UserDto>(`/users/${userId}`);
+}
+
+export function updateProfile(userId: string, payload: UpdateProfilePayload) {
+  const body: Record<string, unknown> = {};
+
+  if (payload.email !== undefined) {
+    body.email = payload.email;
+  }
+
+  if (payload.avatarUrl !== undefined) {
+    body.avatarUrl = payload.avatarUrl;
+  }
+
+  if (payload.profile !== undefined) {
+    body.profile = payload.profile;
+  }
+
+  return request<UserDto>(`/users/${userId}`, {
+    method: 'PUT',
+    body: JSON.stringify(body)
+  });
+}
+
+export async function uploadAvatar(userId: string, source: File | Blob | string) {
+  let data: string;
+  let mediaType: string | undefined;
+
+  if (typeof source === 'string') {
+    data = source;
+  } else {
+    data = await readBlobAsDataUrl(source);
+    mediaType = source.type || undefined;
+  }
+
+  const payload: Record<string, string> = { data };
+
+  if (mediaType) {
+    payload.mediaType = mediaType;
+  }
+
+  return request<UploadAvatarResult>(`/users/${userId}/avatar`, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+}
+
+export function fetchActivityHistory(userId: string, query?: ActivityHistoryQuery) {
+  const search = new URLSearchParams();
+
+  if (query?.limit) {
+    search.set('limit', String(query.limit));
+  }
+
+  if (query?.cursor) {
+    search.set('cursor', query.cursor);
+  }
+
+  const suffix = search.toString() ? `?${search.toString()}` : '';
+  return request<ActivityHistoryResponse>(`/users/${userId}/activity${suffix}`);
+}
+
+export type UpdateNotificationPreferencesPayload = NotificationPreferencesDto;
+
+export function fetchNotificationPreferences(userId: string) {
+  return request<NotificationPreferencesResponse>(`/users/${userId}/notification-preferences`);
+}
+
+export function updateNotificationPreferences(
+  userId: string,
+  payload: UpdateNotificationPreferencesPayload
+) {
+  return request<NotificationPreferencesResponse>(`/users/${userId}/notification-preferences`, {
+    method: 'PUT',
+    body: JSON.stringify({ preferences: payload })
+  });
+}
+
+export function changePassword(userId: string, payload: ChangePasswordPayload) {
+  return request<void>(`/users/${userId}/password`, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
 }
 
 export function exportUserData(userId: string, options?: { format?: 'json' | 'zip' }) {
