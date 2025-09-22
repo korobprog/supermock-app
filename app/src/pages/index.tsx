@@ -1,6 +1,8 @@
 import Head from 'next/head';
 import Link from 'next/link';
 
+import { useAuth } from '@/store/useAuth';
+
 const features = [
   {
     title: 'Real-time interviews',
@@ -30,6 +32,8 @@ const features = [
 ];
 
 export default function HomePage() {
+  const isAuthenticated = useAuth((state) => state.isAuthenticated);
+
   return (
     <>
       <Head>
@@ -54,6 +58,14 @@ export default function HomePage() {
             >
               Open slots dashboard
             </Link>
+            {isAuthenticated && (
+              <Link
+                href="/profile"
+                className="rounded-lg border border-secondary/40 px-5 py-2 text-sm font-semibold text-secondary shadow shadow-secondary/30 transition hover:bg-secondary/10"
+              >
+                Перейти в профиль
+              </Link>
+            )}
             <span className="text-xs text-slate-500">
               Tip: browse available slots, filter by language and tools, and join interviews on `/slots`
             </span>
