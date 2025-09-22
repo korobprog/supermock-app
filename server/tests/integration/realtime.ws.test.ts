@@ -34,6 +34,16 @@ const buildTestConfig = (): AppConfig => ({
     enabled: false,
     apiKey: '',
     domain: ''
+  },
+  rateLimit: {
+    global: {
+      max: 1000,
+      timeWindow: '1 minute'
+    },
+    critical: {
+      max: 1000,
+      timeWindow: '1 minute'
+    }
   }
 });
 
@@ -215,8 +225,7 @@ describe('Realtime websocket authentication', () => {
           payload: { message: 'candidate' },
           readAt: null,
           createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          metadata: null
+          updatedAt: new Date().toISOString()
         }
       });
 
@@ -234,8 +243,7 @@ describe('Realtime websocket authentication', () => {
           payload: { message: 'interviewer' },
           readAt: null,
           createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          metadata: null
+          updatedAt: new Date().toISOString()
         }
       });
 

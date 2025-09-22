@@ -346,7 +346,4 @@ export async function deleteUser(id: string): Promise<void> {
   });
 }
 
-export type {
-  ListUsersParams,
-  AccountDeletionChallenge
-};
+export type { ListUsersParams };

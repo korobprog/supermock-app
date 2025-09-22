@@ -38,6 +38,22 @@ function toRecord(value: Prisma.JsonValue | null | undefined): Record<string, un
   return value as Record<string, unknown>;
 }
 
+function toJsonInput(
+  value: Record<string, unknown> | undefined
+): Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  try {
+    JSON.stringify(value);
+  } catch (error) {
+    throw new Error('Metadata must be JSON-serializable');
+  }
+
+  return value as Prisma.JsonObject;
+}
+
 function toParticipantDto(participant: RealtimeSessionParticipant): SessionParticipantDto {
   return {
     id: participant.id,
@@ -123,7 +139,7 @@ export async function createRealtimeSession(
       hostId: payload.hostId,
       status: (payload.status ?? 'SCHEDULED') as PrismaRealtimeSessionStatus,
       startedAt: now,
-      metadata: (payload.metadata as Prisma.JsonValue) ?? undefined
+      metadata: toJsonInput(payload.metadata)
     },
     include: { participants: true }
   });
@@ -162,7 +178,7 @@ export async function joinRealtimeSession(
             joinedAt: now,
             lastSeenAt: now,
             connectionId: payload.connectionId ?? null,
-            metadata: (payload.metadata as Prisma.JsonValue) ?? undefined
+            metadata: toJsonInput(payload.metadata)
           }
         }
       },
@@ -288,29 +304,30 @@ export async function updateRealtimeSessionStatus(
   sessionId: string,
   payload: UpdateRealtimeSessionStatusPayload
 ): Promise<RealtimeSessionDto | null> {
-  const session = await realtimePrisma.$transaction(async (tx) => {
-    const existing = await tx.realtimeSession.findUnique({ where: { id: sessionId } });
-    if (!existing) {
-      return null;
+  const session = await realtimePrisma.$transaction<SessionWithParticipants | null>(
+    async (tx) => {
+      const existing = await tx.realtimeSession.findUnique({ where: { id: sessionId } });
+      if (!existing) {
+        return null;
+      }
+
+      const endedAt = payload.endedAt ? new Date(payload.endedAt) : existing.endedAt;
+      const shouldFinalize = payload.status === 'ENDED';
+
+      const updated = await tx.realtimeSession.update({
+        where: { id: sessionId },
+        data: {
+          status: payload.status as PrismaRealtimeSessionStatus,
+          endedAt: shouldFinalize && !payload.endedAt ? new Date() : endedAt,
+          metadata: toJsonInput(payload.metadata),
+          lastHeartbeat: shouldFinalize ? null : existing.lastHeartbeat
+        },
+        include: { participants: true }
+      });
+
+      return updated;
     }
-
-    const endedAt = payload.endedAt ? new Date(payload.endedAt) : existing.endedAt;
-    const shouldFinalize = payload.status === 'ENDED';
-
-    return tx.realtimeSession.update({
-      where: { id: sessionId },
-      data: {
-        status: payload.status as PrismaRealtimeSessionStatus,
-        endedAt: shouldFinalize && !payload.endedAt ? new Date() : endedAt,
-        metadata:
-          payload.metadata !== undefined
-            ? (payload.metadata as Prisma.JsonValue)
-            : existing.metadata,
-        lastHeartbeat: shouldFinalize ? null : existing.lastHeartbeat
-      },
-      include: { participants: true }
-    });
-  });
+  );
 
   if (!session) {
     return null;

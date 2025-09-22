@@ -282,10 +282,10 @@ export async function refreshSession(
   const tokenHash = hashToken(token);
   const stored = await prisma.refreshToken.findUnique({
     where: { tokenHash },
-    include: { user: true }
+    include: { User: true }
   });
 
-  if (!stored || !stored.user) {
+  if (!stored || !stored.User) {
     throw new AuthError('Invalid refresh token', 401);
   }
 
@@ -297,7 +297,8 @@ export async function refreshSession(
     throw new AuthError('Refresh token expired', 401);
   }
 
-  const { token: newToken, expiresAt } = await issueRefreshToken(stored.user.id, config, metadata);
+  const storedUser = stored.User;
+  const { token: newToken, expiresAt } = await issueRefreshToken(storedUser.id, config, metadata);
   const newTokenHash = hashToken(newToken);
 
   await prisma.refreshToken.update({
@@ -310,14 +311,14 @@ export async function refreshSession(
   });
 
   await createAuditLog({
-    userId: stored.user.id,
+    userId: storedUser.id,
     action: 'auth.refresh',
     ipAddress: metadata.ipAddress,
     userAgent: metadata.userAgent
   });
 
   return {
-    user: toAuthUser({ ...stored.user, emailVerifiedAt: stored.user.emailVerifiedAt ?? null }),
+    user: toAuthUser({ ...storedUser, emailVerifiedAt: storedUser.emailVerifiedAt ?? null }),
     refreshToken: newToken,
     refreshTokenExpiresAt: expiresAt
   };
@@ -363,10 +364,10 @@ export async function resetPassword(
   const tokenHash = hashToken(token);
   const stored = await prisma.passwordResetToken.findUnique({
     where: { tokenHash },
-    include: { user: true }
+    include: { User: true }
   });
 
-  if (!stored || !stored.user) {
+  if (!stored || !stored.User) {
     throw new AuthError('Invalid or expired reset token', 400);
   }
 
@@ -379,9 +380,10 @@ export async function resetPassword(
   }
 
   const passwordHash = await bcrypt.hash(newPassword, config.password.saltRounds);
+  const storedUser = stored.User;
 
   const user = await prisma.user.update({
-    where: { id: stored.user.id },
+    where: { id: storedUser.id },
     data: {
       passwordHash
     }
@@ -419,15 +421,17 @@ export async function verifyEmail(token: string, metadata: TokenMetadata): Promi
   const tokenHash = hashToken(token);
   const stored = await prisma.emailVerificationToken.findUnique({
     where: { tokenHash },
-    include: { user: true }
+    include: { User: true }
   });
 
-  if (!stored || !stored.user) {
+  if (!stored || !stored.User) {
     throw new AuthError('Invalid or expired verification token', 400);
   }
 
+  const storedUser = stored.User;
+
   if (stored.verifiedAt) {
-    return toAuthUser({ ...stored.user, emailVerifiedAt: stored.user.emailVerifiedAt ?? null });
+    return toAuthUser({ ...storedUser, emailVerifiedAt: storedUser.emailVerifiedAt ?? null });
   }
 
   if (stored.expiresAt.getTime() <= Date.now()) {
@@ -435,9 +439,9 @@ export async function verifyEmail(token: string, metadata: TokenMetadata): Promi
   }
 
   const user = await prisma.user.update({
-    where: { id: stored.user.id },
+    where: { id: storedUser.id },
     data: {
-      emailVerifiedAt: stored.user.emailVerifiedAt ?? new Date()
+      emailVerifiedAt: storedUser.emailVerifiedAt ?? new Date()
     }
   });
 

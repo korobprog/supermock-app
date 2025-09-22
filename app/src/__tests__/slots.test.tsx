@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
-import SlotDashboardPage from '../slots';
+import SlotDashboardPage from '../pages/slots';
 import { mockRouter, resetMockRouter } from '@/test/router-mock';
 
 describe('SlotDashboardPage CTA', () => {
@@ -43,7 +43,7 @@ describe('SlotDashboardPage CTA', () => {
     expect(await screen.findByText('Слотов нет — создайте свой')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Кандидат' }));
-    mockRouter.push.mockClear();
+    vi.mocked(mockRouter.push).mockClear();
 
     fireEvent.click(screen.getByRole('button', { name: 'Стать кандидатом' }));
 

@@ -258,6 +258,21 @@ const buildTestConfig = (): AppConfig => ({
   },
   password: {
     saltRounds: 4
+  },
+  dailyCo: {
+    enabled: false,
+    apiKey: '',
+    domain: ''
+  },
+  rateLimit: {
+    global: {
+      max: 1000,
+      timeWindow: '1 minute'
+    },
+    critical: {
+      max: 1000,
+      timeWindow: '1 minute'
+    }
   }
 });
 
