@@ -58,10 +58,18 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (typeof window !== 'undefined') {
     try {
       const authStore = await import('../store/useAuth');
-      const { accessToken } = authStore.useAuth.getState();
-      if (accessToken) {
-        headers['Authorization'] = `Bearer ${accessToken}`;
-        console.log('Adding auth header:', `Bearer ${accessToken.substring(0, 20)}...`);
+      const { accessToken, isRefreshTokenExpired, refreshAccessToken } = authStore.useAuth.getState();
+      
+      // Check if refresh token is expired and refresh proactively
+      if (isRefreshTokenExpired()) {
+        console.log('Refresh token is expired or expiring soon, refreshing...');
+        await refreshAccessToken();
+      }
+      
+      const { accessToken: currentAccessToken } = authStore.useAuth.getState();
+      if (currentAccessToken) {
+        headers['Authorization'] = `Bearer ${currentAccessToken}`;
+        console.log('Adding auth header:', `Bearer ${currentAccessToken.substring(0, 20)}...`);
       } else {
         console.log('No access token found in auth store');
       }
@@ -80,6 +88,48 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     },
     ...init
   });
+
+  // Handle 401 Unauthorized - try to refresh token
+  if (response.status === 401 && typeof window !== 'undefined') {
+    try {
+      const authStore = await import('../store/useAuth');
+      const { refreshAccessToken } = authStore.useAuth.getState();
+      
+      console.log('Received 401, attempting token refresh...');
+      const refreshSuccess = await refreshAccessToken();
+      
+      if (refreshSuccess) {
+        // Retry the original request with the new token
+        const { accessToken } = authStore.useAuth.getState();
+        if (accessToken) {
+          const retryHeaders = {
+            ...headers,
+            'Authorization': `Bearer ${accessToken}`,
+            ...init?.headers
+          };
+          
+          console.log('Retrying request with refreshed token...');
+          const retryResponse = await fetch(`${baseUrl}${path}`, {
+            headers: retryHeaders,
+            ...init
+          });
+          
+          if (!retryResponse.ok) {
+            const message = await retryResponse.text();
+            throw new Error(message || `Request failed with status ${retryResponse.status}`);
+          }
+          
+          if (retryResponse.status === 204) {
+            return undefined as T;
+          }
+          
+          return (await retryResponse.json()) as T;
+        }
+      }
+    } catch (refreshError) {
+      console.error('Token refresh failed:', refreshError);
+    }
+  }
 
   if (!response.ok) {
     const message = await response.text();
