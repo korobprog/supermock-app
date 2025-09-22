@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { Menu, X } from "lucide-react";
 import { navigateToExternal, handleExternalClick } from "@/lib/utils";
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'next-i18next';
 import { useSafeUIStore } from "@/hooks/useSafeUIStore";
 
 const Navigation = () => {

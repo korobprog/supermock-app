@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'next-i18next';
 
 interface UseSafeTranslationReturn {
   t: (key: string, options?: any) => string;
@@ -11,31 +11,29 @@ interface UseSafeTranslationReturn {
 export const useSafeTranslation = (): UseSafeTranslationReturn => {
   const { t: i18nT, i18n } = useTranslation();
   const [error, setError] = useState<Error | null>(null);
-  const [currentLang, setCurrentLang] = useState(i18n.language);
+  const [currentLang, setCurrentLang] = useState(i18n.language || 'en');
 
   // Функция перевода с fallback
   const t = (key: string, options?: any): string => {
     try {
-      // Проверяем, инициализирован ли i18n
-      if (!i18n.isInitialized) {
-        console.warn('i18n not initialized yet, returning key:', key);
+      const translation = i18nT(key, options);
+
+      // Если перевод не найден, возвращаем ключ
+      if (translation === key) {
+        if (!i18n.isInitialized) {
+          console.warn('i18n not initialized yet, returning key:', key);
+        } else {
+          console.warn(`Translation not found for key: ${key}`);
+        }
         return key;
       }
 
-      const translation = i18nT(key, options);
-      
-      // Если перевод не найден, возвращаем ключ
-      if (translation === key) {
-        console.warn(`Translation not found for key: ${key}`);
-        return key;
-      }
-      
       // Если перевод - объект, возвращаем строковое представление
       if (typeof translation === 'object') {
         console.warn(`Translation for key '${key}' returned an object, converting to string`);
         return JSON.stringify(translation);
       }
-      
+
       return String(translation);
     } catch (err) {
       console.warn('Translation error:', err);
@@ -61,7 +59,7 @@ export const useSafeTranslation = (): UseSafeTranslationReturn => {
   return {
     t,
     locale: currentLang || 'en',
-    isLoading: !i18n.isInitialized,
+    isLoading: typeof window !== 'undefined' ? !i18n.isInitialized : false,
     error
   };
 };

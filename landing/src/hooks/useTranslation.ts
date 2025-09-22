@@ -1,4 +1,4 @@
-import { useTranslation as useI18nTranslation } from 'react-i18next';
+import { useTranslation as useI18nTranslation } from 'next-i18next';
 import { useEffect, useState } from 'react';
 
 export const useTranslation = () => {
