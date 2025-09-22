@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import { createHash } from 'node:crypto';
 import { Prisma, UserRole } from '@prisma/client';
 
 import type {
@@ -21,6 +22,25 @@ type UserWithProfiles = Prisma.UserGetPayload<{
 
 type CandidateProfileRecord = Prisma.CandidateProfileGetPayload<{}>;
 type InterviewerProfileRecord = Prisma.InterviewerProfileGetPayload<{}>;
+
+type UserCredentialsRecord = {
+  id: string;
+  passwordHash: string | null;
+};
+
+export class AccountDeletionError extends Error {
+  statusCode: number;
+
+  constructor(message: string, statusCode = 400) {
+    super(message);
+    this.statusCode = statusCode;
+  }
+}
+
+export type AccountDeletionChallenge = {
+  password?: string;
+  token?: string;
+};
 
 type ListUsersParams = {
   page?: number;
@@ -255,10 +275,75 @@ export async function updateUser(id: string, input: UpdateUserInput): Promise<Us
   return mapUser(user);
 }
 
-export async function deleteUser(id: string): Promise<void> {
-  await prisma.user.delete({ where: { id } });
+export async function getUserCredentials(id: string): Promise<UserCredentialsRecord | null> {
+  const record = await prisma.user.findUnique({
+    where: { id },
+    select: { id: true, passwordHash: true }
+  });
+
+  return record ?? null;
 }
 
-export type {
-  ListUsersParams
-};
+export async function verifyAccountDeletionChallenge(
+  user: UserCredentialsRecord,
+  challenge: AccountDeletionChallenge
+): Promise<'password' | 'token'> {
+  const password = challenge.password?.trim();
+  const token = challenge.token?.trim();
+
+  if (!password && !token) {
+    throw new AccountDeletionError('Password or token is required', 400);
+  }
+
+  if (password) {
+    if (!user.passwordHash) {
+      throw new AccountDeletionError('Password authentication is not available for this account', 400);
+    }
+
+    const isValid = await bcrypt.compare(password, user.passwordHash);
+
+    if (!isValid) {
+      throw new AccountDeletionError('Invalid password', 401);
+    }
+
+    return 'password';
+  }
+
+  if (token) {
+    const tokenHash = createHash('sha256').update(token).digest('hex');
+    const stored = await prisma.passwordResetToken.findUnique({ where: { tokenHash } });
+
+    if (!stored || stored.userId !== user.id) {
+      throw new AccountDeletionError('Invalid or expired token', 401);
+    }
+
+    if (stored.usedAt) {
+      throw new AccountDeletionError('Token already used', 400);
+    }
+
+    if (stored.expiresAt.getTime() <= Date.now()) {
+      throw new AccountDeletionError('Invalid or expired token', 401);
+    }
+
+    await prisma.passwordResetToken.update({
+      where: { id: stored.id },
+      data: { usedAt: new Date() }
+    });
+
+    return 'token';
+  }
+
+  throw new AccountDeletionError('Password or token is required', 400);
+}
+
+export async function deleteUser(id: string): Promise<void> {
+  await prisma.$transaction(async (tx) => {
+    await tx.refreshToken.deleteMany({ where: { userId: id } });
+    await tx.notification.deleteMany({ where: { userId: id } });
+    await tx.passwordResetToken.deleteMany({ where: { userId: id } });
+    await tx.emailVerificationToken.deleteMany({ where: { userId: id } });
+    await tx.user.delete({ where: { id } });
+  });
+}
+
+export type { ListUsersParams };

@@ -67,6 +67,15 @@ export async function listNotifications(
   return notifications.map(mapNotification);
 }
 
+export async function listAllNotificationsForUser(userId: string): Promise<NotificationDto[]> {
+  const notifications = await prisma.notification.findMany({
+    where: { userId },
+    orderBy: { createdAt: 'asc' }
+  });
+
+  return notifications.map(mapNotification);
+}
+
 export async function createNotification(
   payload: CreateNotificationPayload
 ): Promise<NotificationDto> {

@@ -13,6 +13,7 @@ model User {
   passwordHash           String?
   role                   UserRole                 @default(CANDIDATE)
   profile                Json?
+  avatarUrl              String?
   createdAt              DateTime                 @default(now())
   updatedAt              DateTime                 @updatedAt
   emailVerifiedAt        DateTime?
@@ -23,6 +24,44 @@ model User {
   PasswordResetToken     PasswordResetToken[]
   RefreshToken           RefreshToken[]
   notifications          Notification[]
+  invitations            UserInvitation[]         @relation("InvitedBy")
+}
+
+model OnboardingDraft {
+  id               String   @id
+  email            String
+  locale           String
+  languages        String[] @default([])
+  timezone         String
+  timezoneSource   String
+  professionId     String?
+  customProfession String?
+  expertiseTools   String[] @default([])
+  data             Json?
+  expiresAt        DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([email])
+  @@index([expiresAt])
+}
+
+model UserInvitation {
+  id           String    @id @default(cuid())
+  email        String
+  role         UserRole
+  token        String    @unique
+  invitedById  String?
+  expiresAt    DateTime
+  acceptedAt   DateTime?
+  revokedAt    DateTime?
+  metadata     Json?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  invitedBy    User?     @relation("InvitedBy", fields: [invitedById], references: [id], onDelete: SetNull)
+
+  @@index([email])
+  @@index([expiresAt])
 }
 
 model CandidateProfile {

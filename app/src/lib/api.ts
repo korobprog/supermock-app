@@ -46,7 +46,11 @@ function shouldUseNextApi(path: string) {
   );
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+type RequestOptions = {
+  responseType?: 'json' | 'blob';
+};
+
+async function request<T>(path: string, init?: RequestInit, options?: RequestOptions): Promise<T> {
   const headers: Record<string, string> = {};
   
   // Only set Content-Type for requests with a body
@@ -138,6 +142,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (response.status === 204) {
     return undefined as T;
+  }
+
+  if (options?.responseType === 'blob') {
+    return (await response.blob()) as T;
   }
 
   return (await response.json()) as T;
@@ -382,4 +390,28 @@ export function fetchInterviewAiInsights(matchId: string) {
 
 export function fetchPlatformStats() {
   return request<PlatformStatsDto>('/analytics/overview');
+}
+
+export function exportUserData(userId: string, options?: { format?: 'json' | 'zip' }) {
+  const search = new URLSearchParams();
+  const format = options?.format ?? 'json';
+
+  if (format === 'zip') {
+    search.set('format', 'zip');
+  }
+
+  const query = search.toString();
+  const path = `/users/${userId}/export${query ? `?${query}` : ''}`;
+
+  return request<Blob>(path, undefined, { responseType: 'blob' });
+}
+
+export function deleteAccount(
+  userId: string,
+  payload: { password?: string; token?: string }
+) {
+  return request<void>(`/users/${userId}`, {
+    method: 'DELETE',
+    body: JSON.stringify(payload)
+  });
 }
