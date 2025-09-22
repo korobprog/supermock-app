@@ -1,15 +1,15 @@
+import type { PropsWithChildren } from "react";
 import Navigation from "./Navigation";
-import { Outlet } from "react-router-dom";
 import { YandexMetrika } from "./YandexMetrika";
 
-const Layout = () => {
+const Layout = ({ children }: PropsWithChildren) => {
   return (
     <div className="min-h-screen">
       <YandexMetrika counterId={103986343} />
       <Navigation />
-      <div className="pt-20">
-        <Outlet />
-      </div>
+      <main className="pt-20">
+        {children}
+      </main>
     </div>
   );
 };
