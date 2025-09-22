@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { withBasePath } from "@/lib/routing";
 import { navigateToExternal, handleExternalClick } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import Logo from "@/components/Logo";
@@ -210,12 +211,12 @@ const FAQ = () => {
                     variant="hero" 
                     size="xl" 
                     className="animate-pulse-glow"
-                    onClick={() => window.location.href = '/support'}
+                    onClick={() => { window.location.href = withBasePath('/support') }}
                   >
                     <MessageSquare className="mr-2 h-5 w-5" />
                     Связаться с поддержкой
                   </Button>
-                  <Button variant="outline" size="xl" onClick={() => window.location.href = '/documentation'}>
+                  <Button variant="outline" size="xl" onClick={() => { window.location.href = withBasePath('/documentation') }}>
                     <ArrowRight className="mr-2 h-5 w-5" />
                     Документация
                   </Button>

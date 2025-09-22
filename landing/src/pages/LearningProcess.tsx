@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Footer from "@/components/Footer";
+import { withBasePath } from "@/lib/routing";
 import { navigateToExternal, handleExternalClick } from "@/lib/utils";
 import { useSafeTranslation } from "@/hooks/useSafeTranslation";
 
@@ -381,7 +382,7 @@ const LearningProcess = () => {
                     <Play className="mr-2 h-5 w-5" />
                     {t("learningProcess.cta.startLearning")}
                   </Button>
-                  <Button variant="outline" size="xl" onClick={() => window.location.href = '/pricing'}>
+                  <Button variant="outline" size="xl" onClick={() => { window.location.href = withBasePath('/pricing') }}>
                     <ArrowRight className="mr-2 h-5 w-5" />
                     {t("learningProcess.cta.comparePlans")}
                   </Button>

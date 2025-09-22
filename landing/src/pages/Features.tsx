@@ -2,6 +2,7 @@ import Footer from "@/components/Footer";
 import HeroSection from "@/components/HeroSection";
 import FeatureCard from "@/components/FeatureCard";
 import CTASection from "@/components/CTASection";
+import { withBasePath } from "@/lib/routing";
 import { navigateToExternal, handleExternalClick } from "@/lib/utils";
 import { 
   Mic, 
@@ -55,7 +56,7 @@ const Features = () => {
         primaryButtonText="Начать обучение"
         primaryButtonAction={() => handleExternalClick('https://app.supermock.ru')}
         secondaryButtonText="Процесс обучения"
-        secondaryButtonAction={() => window.location.href = '/learning-process'}
+        secondaryButtonAction={() => { window.location.href = withBasePath('/learning-process') }}
         secondaryButtonIcon={ArrowRight}
       />
 

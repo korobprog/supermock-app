@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { withBasePath } from "@/lib/routing";
 import { navigateToExternal, handleExternalClick } from "@/lib/utils";
 import { 
   Code, 
@@ -155,12 +156,12 @@ const Documentation = () => {
                     variant="hero" 
                     size="xl" 
                     className="wave-shimmer"
-                    onClick={() => window.location.href = '/support'}
+                    onClick={() => { window.location.href = withBasePath('/support') }}
                   >
                     <MessageSquare className="mr-2 h-5 w-5" />
                     Связаться с поддержкой
                   </Button>
-                  <Button variant="outline" size="xl" onClick={() => window.location.href = '/faq'}>
+                  <Button variant="outline" size="xl" onClick={() => { window.location.href = withBasePath('/faq') }}>
                     <ArrowRight className="mr-2 h-5 w-5" />
                     FAQ
                   </Button>

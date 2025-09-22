@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { withBasePath } from "@/lib/routing";
 
 interface LogoProps {
   className?: string;
@@ -6,14 +7,16 @@ interface LogoProps {
 }
 
 const Logo = ({ className = "", variant = 'white-blue-glow' }: LogoProps) => {
+  const logoPath = withBasePath('/logo.png');
+
   return (
     <Link 
       href="/" 
       className={`flex items-center transition-transform duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded-lg ${className}`}
     >
       {/* Try to show image logo first */}
-      <img 
-        src="/logo.png" 
+      <img
+        src={logoPath}
         alt="Super Mock Logo" 
         className={`h-8 w-auto object-contain ${
           variant === 'enhanced' ? 'logo-enhanced' : 
@@ -23,7 +26,7 @@ const Logo = ({ className = "", variant = 'white-blue-glow' }: LogoProps) => {
           ''
         }`}
         onError={(e) => {
-          console.error('Logo image failed to load: /logo.png');
+          console.error(`Logo image failed to load: ${logoPath}`);
           // Hide image and show text fallback
           const target = e.target as HTMLImageElement;
           target.style.display = 'none';

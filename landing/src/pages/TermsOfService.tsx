@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { withBasePath } from "@/lib/routing";
 import { navigateToExternal, handleExternalClick } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Footer from "@/components/Footer";
@@ -200,7 +201,7 @@ const TermsOfService = () => {
                     <FileText className="mr-2 h-5 w-5" />
                     Условия использования
                   </Button>
-                  <Button variant="outline" size="lg" onClick={() => window.location.href = '/privacy-policy'}>
+                  <Button variant="outline" size="lg" onClick={() => { window.location.href = withBasePath('/privacy-policy') }}>
                     <Shield className="mr-2 h-5 w-5" />
                     Политика конфиденциальности
                   </Button>
@@ -232,7 +233,7 @@ const TermsOfService = () => {
                   >
                     Начать обучение
                   </Button>
-                  <Button variant="outline" size="xl" onClick={() => window.location.href = '/'}>
+                  <Button variant="outline" size="xl" onClick={() => { window.location.href = withBasePath('/') }}>
                     <ArrowRight className="mr-2 h-5 w-5" />
                     Вернуться на главную
                   </Button>

@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { withBasePath } from "@/lib/routing"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -21,19 +22,20 @@ async function testUrl(url: string): Promise<boolean> {
 
 // Функция для безопасного перехода на внешние ссылки
 export function navigateToExternal(url: string) {
-  console.log('Попытка перехода на:', url);
-  
+  const targetUrl = withBasePath(url)
+  console.log('Попытка перехода на:', targetUrl)
+
   try {
     // Пробуем открыть в новой вкладке
-    const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
-    
+    const newWindow = window.open(targetUrl, '_blank', 'noopener,noreferrer');
+
     // Если блокировщик рекламы заблокировал открытие, пробуем другой способ
     if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
       console.log('Блокировщик рекламы заблокировал window.open, пробуем альтернативный способ');
-      
+
       // Создаем временную ссылку и кликаем по ней
       const link = document.createElement('a');
-      link.href = url;
+      link.href = targetUrl;
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
       link.style.display = 'none';
@@ -47,16 +49,17 @@ export function navigateToExternal(url: string) {
     }
   } catch (error) {
     console.error('Ошибка при переходе на внешнюю ссылку:', error);
-    
+
     // Fallback - просто меняем location
     console.log('Используем fallback - переход в текущем окне');
-    window.location.href = url;
+    window.location.href = targetUrl;
   }
 }
 
 // Функция для обработки кликов с визуальной обратной связью
 export function handleExternalClick(url: string, event?: React.MouseEvent) {
-  console.log('🔗 Попытка перехода на:', url);
+  const targetUrl = withBasePath(url)
+  console.log('🔗 Попытка перехода на:', targetUrl);
   
   // Добавляем визуальную обратную связь
   if (event?.currentTarget) {
@@ -73,8 +76,8 @@ export function handleExternalClick(url: string, event?: React.MouseEvent) {
     try {
       // Способ 1: Прямое открытие в новой вкладке
       console.log('📱 Способ 1: Прямое открытие в новой вкладке');
-      const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
-      
+      const newWindow = window.open(targetUrl, '_blank', 'noopener,noreferrer');
+
       if (newWindow && !newWindow.closed) {
         console.log('✅ Успешно открыто новое окно');
         return;
@@ -83,7 +86,7 @@ export function handleExternalClick(url: string, event?: React.MouseEvent) {
       // Способ 2: Создание временной ссылки
       console.log('🔗 Способ 2: Создание временной ссылки');
       const link = document.createElement('a');
-      link.href = url;
+      link.href = targetUrl;
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
       link.style.display = 'none';
@@ -96,14 +99,14 @@ export function handleExternalClick(url: string, event?: React.MouseEvent) {
       // Способ 3: Если ничего не работает, переходим в текущем окне
       setTimeout(() => {
         console.log('🔄 Способ 3: Fallback - переход в текущем окне');
-        window.location.href = url;
+        window.location.href = targetUrl;
       }, 2000);
-      
+
     } catch (error) {
       console.error('❌ Ошибка при переходе:', error);
       // Fallback - переход в текущем окне
       console.log('🔄 Используем fallback - переход в текущем окне');
-      window.location.href = url;
+      window.location.href = targetUrl;
     }
   }, 100);
 }

@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { withBasePath } from "@/lib/routing";
 import { navigateToExternal, handleExternalClick } from "@/lib/utils";
 import Footer from "@/components/Footer";
 import { useSafeTranslation } from "@/hooks/useSafeTranslation";
@@ -104,7 +105,7 @@ const Professions = () => {
                   >
                     {t('professions.cta.startLearning')}
                   </Button>
-                  <Button variant="outline" size="xl" onClick={() => window.location.href = '/learning-process'}>
+                  <Button variant="outline" size="xl" onClick={() => { window.location.href = withBasePath('/learning-process') }}>
                     <ArrowRight className="mr-2 h-5 w-5" />
                     {t('professions.cta.learningProcess')}
                   </Button>

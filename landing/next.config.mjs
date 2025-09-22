@@ -1,3 +1,24 @@
+const normalizeBasePath = (value) => {
+  if (!value || value === '/') {
+    return ''
+  }
+
+  const trimmed = value.trim()
+
+  if (!trimmed || trimmed === '/') {
+    return ''
+  }
+
+  const withoutTrailingSlash = trimmed.replace(/\/+$/, '')
+
+  return withoutTrailingSlash.startsWith('/')
+    ? withoutTrailingSlash
+    : `/${withoutTrailingSlash}`
+}
+
+const basePath = normalizeBasePath(process.env.NEXT_PUBLIC_BASE_PATH)
+const assetPrefix = basePath ? `${basePath}/` : undefined
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Remove output: 'export' for development
@@ -13,8 +34,12 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true, // Disable TypeScript errors during builds for now
   },
-  // Configure base path if needed
-  // basePath: process.env.NEXT_PUBLIC_BASE_PATH,
+  ...(basePath
+    ? {
+        basePath,
+        assetPrefix,
+      }
+    : {}),
 }
 
 export default nextConfig

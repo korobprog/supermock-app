@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { withBasePath } from "@/lib/routing";
 import { navigateToExternal, handleExternalClick } from "@/lib/utils";
 import { 
   Play,
@@ -109,7 +110,7 @@ const Instructions = () => {
               <Play className="mr-2 h-5 w-5" />
               {t('instructions.hero.startLearning')}
             </Button>
-            <Button variant="outline" size="lg" onClick={() => window.location.href = '/support'}>
+            <Button variant="outline" size="lg" onClick={() => { window.location.href = withBasePath('/support') }}>
               <Mail className="mr-2 h-5 w-5" />
               {t('instructions.hero.haveQuestions')}
             </Button>
