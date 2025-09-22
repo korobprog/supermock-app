@@ -3,13 +3,16 @@
 FROM node:20-alpine as base
 WORKDIR /app
 
+# Install pnpm globally
+RUN npm install -g pnpm@8.15.4
+
 # Copy workspace files
 COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml ./
 COPY landing/package.json landing/
 COPY shared/package.json shared/
 
-# Enable pnpm and install dependencies
-RUN corepack enable && pnpm fetch
+# Install dependencies
+RUN pnpm install --frozen-lockfile
 
 # Copy source code
 COPY . .
@@ -22,6 +25,9 @@ FROM node:20-alpine
 WORKDIR /app
 ENV NODE_ENV=production
 
+# Install pnpm globally
+RUN npm install -g pnpm@8.15.4
+
 # Copy built application
 COPY --from=base /app/landing/.next ./.next
 COPY --from=base /app/landing/public ./public
@@ -29,7 +35,7 @@ COPY --from=base /app/landing/package.json ./package.json
 COPY --from=base /app/landing/next.config.mjs ./next.config.mjs
 
 # Install only production dependencies
-RUN corepack enable && pnpm install --prod --frozen-lockfile
+RUN pnpm install --prod --frozen-lockfile
 
 EXPOSE 3000
 CMD ["pnpm", "start"]
