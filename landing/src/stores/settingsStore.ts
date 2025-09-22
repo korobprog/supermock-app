@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { createVersionedStorage } from '@/lib/persistence';
 
 export interface SettingsState {
   // Language settings
@@ -32,7 +31,7 @@ const defaultPreferences = {
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       // Language settings
       language: 'en',
       setLanguage: (language) => set({ language }),
@@ -57,14 +56,31 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: 'landing-settings-store',
-      storage: createVersionedStorage('landing-settings'),
-      // Persist all settings
-      partialize: (state) => ({
-        language: state.language,
-        theme: state.theme,
-        preferences: state.preferences,
-        analyticsConsent: state.analyticsConsent,
-      }),
+      storage: {
+        getItem: (name) => {
+          if (typeof window === 'undefined') return null
+          try {
+            const item = localStorage.getItem(name)
+            return item ? JSON.parse(item) : null
+          } catch (error) {
+            console.warn(`Failed to parse stored data for ${name}:`, error)
+            localStorage.removeItem(name)
+            return null
+          }
+        },
+        setItem: (name, value) => {
+          if (typeof window === 'undefined') return
+          try {
+            localStorage.setItem(name, JSON.stringify(value))
+          } catch (error) {
+            console.error(`Failed to store data for ${name}:`, error)
+          }
+        },
+        removeItem: (name) => {
+          if (typeof window === 'undefined') return
+          localStorage.removeItem(name)
+        }
+      },
       onRehydrateStorage: () => (state) => {
         if (state) {
           console.log('Settings store rehydrated:', { 

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { navigateToExternal, handleExternalClick } from "@/lib/utils";
+import {  handleExternalClick } from "@/lib/utils";
 import { 
   Code, 
   Video, 

@@ -1,10 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { navigateToExternal, handleExternalClick } from "@/lib/utils";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {  handleExternalClick } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Footer from "@/components/Footer";
 import { ArrowRight, Check, X } from "lucide-react";
-import Logo from "@/components/Logo";
 import type { GetStaticProps } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useTranslation } from "next-i18next";
@@ -18,7 +17,13 @@ const Pricing = () => {
     try {
       // Use the raw i18n function directly for objects
       const result = i18n.t(key, { returnObjects: true });
-      return Array.isArray(result) ? result : [];
+      if (Array.isArray(result)) {
+        // Filter and convert to string array, handling mixed types
+        return result
+          .map(item => typeof item === 'string' ? item : String(item))
+          .filter((item): item is string => typeof item === 'string');
+      }
+      return [];
     } catch (error) {
       console.warn(`Failed to get translation array for key: ${key}`, error);
       return [];

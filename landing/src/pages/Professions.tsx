@@ -1,22 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { navigateToExternal, handleExternalClick } from "@/lib/utils";
+import {  handleExternalClick } from "@/lib/utils";
 import Footer from "@/components/Footer";
 import type { GetStaticProps } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { nextI18NextConfig } from "@/i18n";
 import { useSafeTranslation } from "@/hooks/useSafeTranslation";
 import { 
-  Monitor,
-  Database,
-  Code,
-  Smartphone,
-  Settings,
-  TestTube,
-  Palette,
-  BarChart,
-  BarChart3,
-  Users,
   ArrowRight
 } from "lucide-react";
 import { professions } from "@/data/professions";

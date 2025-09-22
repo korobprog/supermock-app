@@ -2,10 +2,7 @@ import Footer from "@/components/Footer";
 import HeroSection from "@/components/HeroSection";
 import FeatureCard from "@/components/FeatureCard";
 import CTASection from "@/components/CTASection";
-import { navigateToExternal, handleExternalClick } from "@/lib/utils";
-import type { GetStaticProps } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-import { nextI18NextConfig } from "@/i18n";
+import { handleExternalClick } from "@/lib/utils";
 import { 
   Mic, 
   Code, 
@@ -66,15 +63,5 @@ const Features = () => {
     </div>
   );
 };
-
-export const getStaticProps: GetStaticProps = async ({ locale }) => ({
-  props: {
-    ...(await serverSideTranslations(
-      locale ?? nextI18NextConfig.i18n?.defaultLocale ?? 'en',
-      ['common'],
-      nextI18NextConfig,
-    )),
-  },
-});
 
 export default Features;

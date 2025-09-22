@@ -1,10 +1,9 @@
 import { Button } from "@/components/ui/button";
-import Logo from "@/components/Logo";
 import LanguageSwitcherSimple from "@/components/LanguageSwitcherSimple";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Menu, X } from "lucide-react";
-import { navigateToExternal, handleExternalClick } from "@/lib/utils";
+import {  handleExternalClick } from "@/lib/utils";
 import { useTranslation } from 'next-i18next';
 import { useSafeUIStore } from "@/hooks/useSafeUIStore";
 

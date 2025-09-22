@@ -92,7 +92,7 @@ export const createVersionedStorage = (name: string): StateStorage => {
   return {
     getItem: (key: string): string | null => {
       const data = storage.getItem(key)
-      if (!data) return null
+      if (!data || typeof data === 'object') return null
       
       try {
         const parsed = JSON.parse(data)

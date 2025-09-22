@@ -7,7 +7,7 @@ interface YandexMetrikaProps {
 export const YandexMetrika: React.FC<YandexMetrikaProps> = ({ counterId }) => {
   useEffect(() => {
     // Проверяем, что Яндекс.Метрика еще не загружена
-    if (window.ym) {
+    if ((window as any).ym && (window as any).ym.a) {
       return;
     }
 

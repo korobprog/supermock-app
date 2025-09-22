@@ -1,10 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { navigateToExternal, handleExternalClick } from "@/lib/utils";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { handleExternalClick } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Footer from "@/components/Footer";
 import { ArrowRight, FileText, CheckCircle, AlertTriangle, Clock, Users, Shield, CreditCard } from "lucide-react";
-import Logo from "@/components/Logo";
 import type { GetStaticProps } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { nextI18NextConfig } from "@/i18n";

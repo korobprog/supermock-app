@@ -1,8 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { navigateToExternal, handleExternalClick } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import Logo from "@/components/Logo";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {  handleExternalClick } from "@/lib/utils";
 import Footer from "@/components/Footer";
 import type { GetStaticProps } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
@@ -13,7 +11,6 @@ import {
   ArrowRight,
   Search,
   BookOpen,
-  Users,
   CreditCard,
   Settings
 } from "lucide-react";

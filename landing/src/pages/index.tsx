@@ -4,13 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Footer from "@/components/Footer";
 import Navigation from "@/components/Navigation";
 import ProfessionsSection from "@/components/ProfessionsSection";
-import LanguageTest from "@/components/LanguageTest";
-import I18nTest from "@/components/I18nTest";
 import { handleExternalClick } from "@/lib/utils";
-import type { GetStaticProps } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-import { useTranslation } from "next-i18next";
-import { nextI18NextConfig } from "@/i18n";
+// Removed Next.js specific imports for Vite compatibility
 import { 
   Mic, 
   Code, 
@@ -23,7 +18,7 @@ import {
 // Hero image will be loaded from public folder
 
 const Index = () => {
-  const { t, i18n } = useTranslation();
+  // Removed translation hooks for Vite compatibility
   
   const languages = [
     { code: "🇺🇸", name: "English" },
@@ -35,12 +30,12 @@ const Index = () => {
   ];
 
   const features = [
-    { icon: Mic, title: t('features.webrtc.title') || 'WebRTC', description: t('features.webrtc.description') || 'Real-time communication' },
-    { icon: Code, title: t('features.coding.title') || 'Coding', description: t('features.coding.description') || 'Code challenges' },
-    { icon: MessageCircle, title: t('features.chat.title') || 'Chat', description: t('features.chat.description') || 'AI chat' },
-    { icon: BarChart3, title: t('features.ai.title') || 'AI', description: t('features.ai.description') || 'AI analysis' },
-    { icon: FileText, title: t('features.feedback.title') || 'Feedback', description: t('features.feedback.description') || 'Detailed feedback' },
-    { icon: Gamepad2, title: t('features.learning.title') || 'Learning', description: t('features.learning.description') || 'Interactive learning' }
+    { icon: Mic, title: 'WebRTC видеозвонки', description: 'Качественная связь в реальном времени' },
+    { icon: Code, title: 'Программирование в реальном времени', description: 'Совместное написание кода' },
+    { icon: MessageCircle, title: 'Чат интервьюер ↔ кандидат', description: 'Мгновенная коммуникация' },
+    { icon: BarChart3, title: 'AI анализ', description: 'Умная оценка навыков' },
+    { icon: FileText, title: 'Персонализированная обратная связь', description: 'Детальные рекомендации' },
+    { icon: Gamepad2, title: 'Интерактивное обучение', description: 'Геймификация процесса' }
   ];
 
   return (
@@ -435,15 +430,5 @@ const Index = () => {
     </div>
   );
 };
-
-export const getStaticProps: GetStaticProps = async ({ locale }) => ({
-  props: {
-    ...(await serverSideTranslations(
-      locale ?? nextI18NextConfig.i18n?.defaultLocale ?? 'en',
-      ['common'],
-      nextI18NextConfig,
-    )),
-  },
-});
 
 export default Index;
