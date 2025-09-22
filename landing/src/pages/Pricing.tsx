@@ -6,6 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Footer from "@/components/Footer";
 import { ArrowRight, Check, X } from "lucide-react";
 import Logo from "@/components/Logo";
+import type { GetStaticProps } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { nextI18NextConfig } from "@/i18n";
 import { useTranslation } from "react-i18next";
 
 const Pricing = () => {
@@ -318,5 +321,15 @@ const Pricing = () => {
     </div>
   );
 };
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => ({
+  props: {
+    ...(await serverSideTranslations(
+      locale ?? nextI18NextConfig.i18n?.defaultLocale ?? 'en',
+      ['common'],
+      nextI18NextConfig,
+    )),
+  },
+});
 
 export default Pricing;

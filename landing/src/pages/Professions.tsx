@@ -4,7 +4,7 @@ import { withBasePath } from "@/lib/routing";
 import { navigateToExternal, handleExternalClick } from "@/lib/utils";
 import Footer from "@/components/Footer";
 import { useSafeTranslation } from "@/hooks/useSafeTranslation";
-import { 
+import {
   Monitor,
   Database,
   Code,
@@ -18,6 +18,9 @@ import {
   ArrowRight
 } from "lucide-react";
 import { professions } from "@/data/professions";
+import type { GetStaticProps } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { nextI18NextConfig } from "@/i18n";
 
 const Professions = () => {
   const { t } = useSafeTranslation();
@@ -121,5 +124,15 @@ const Professions = () => {
     </div>
   );
 };
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => ({
+  props: {
+    ...(await serverSideTranslations(
+      locale ?? nextI18NextConfig.i18n?.defaultLocale ?? 'en',
+      ['common'],
+      nextI18NextConfig,
+    )),
+  },
+});
 
 export default Professions;

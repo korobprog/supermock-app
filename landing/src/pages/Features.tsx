@@ -4,15 +4,18 @@ import FeatureCard from "@/components/FeatureCard";
 import CTASection from "@/components/CTASection";
 import { withBasePath } from "@/lib/routing";
 import { navigateToExternal, handleExternalClick } from "@/lib/utils";
-import { 
-  Mic, 
-  Code, 
-  MessageCircle, 
-  BarChart3, 
-  FileText, 
+import {
+  Mic,
+  Code,
+  MessageCircle,
+  BarChart3,
+  FileText,
   Gamepad2,
   ArrowRight
 } from "lucide-react";
+import type { GetStaticProps } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { nextI18NextConfig } from "@/i18n";
 
 const Features = () => {
   const features = [
@@ -64,5 +67,15 @@ const Features = () => {
     </div>
   );
 };
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => ({
+  props: {
+    ...(await serverSideTranslations(
+      locale ?? nextI18NextConfig.i18n?.defaultLocale ?? 'en',
+      ['common'],
+      nextI18NextConfig,
+    )),
+  },
+});
 
 export default Features;

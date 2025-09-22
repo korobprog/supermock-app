@@ -5,10 +5,13 @@ import Footer from "@/components/Footer";
 import { withBasePath } from "@/lib/routing";
 import { navigateToExternal, handleExternalClick } from "@/lib/utils";
 import { useSafeTranslation } from "@/hooks/useSafeTranslation";
+import type { GetStaticProps } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { nextI18NextConfig } from "@/i18n";
 
-import { 
-  Code,  
-  MessageSquare, 
+import {
+  Code,
+  MessageSquare,
   Brain,
   BookOpen,
   RefreshCw,
@@ -398,5 +401,15 @@ const LearningProcess = () => {
     </div>
   );
 };
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => ({
+  props: {
+    ...(await serverSideTranslations(
+      locale ?? nextI18NextConfig.i18n?.defaultLocale ?? 'en',
+      ['common'],
+      nextI18NextConfig,
+    )),
+  },
+});
 
 export default LearningProcess;
