@@ -42,7 +42,7 @@ vi.mock('@/lib/api', () => ({
   joinSlot: vi.fn()
 }));
 
-import InterviewMatchingPage from '../interview';
+import InterviewMatchingPage from '../pages/interview';
 import { mockRouter } from '@/test/router-mock';
 import { renderWithQueryClient } from '@/test/test-utils';
 import * as api from '@/lib/api';

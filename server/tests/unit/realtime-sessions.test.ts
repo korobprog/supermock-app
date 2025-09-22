@@ -1,7 +1,7 @@
 import { beforeAll, afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { randomUUID } from 'node:crypto';
 
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient, Prisma } from '@prisma/client';
 import type { SessionBroadcastEvent } from '../../src/modules/realtime/bus.js';
 
 interface SessionRecord {
@@ -255,7 +255,7 @@ function matchesSession(session: SessionRecord, where: any = {}): boolean {
   }
 
   if (Array.isArray(where.OR) && where.OR.length > 0) {
-    return where.OR.some((clause) => matchesSession(session, clause));
+    return where.OR.some((clause: Prisma.RealtimeSessionWhereInput) => matchesSession(session, clause));
   }
 
   return true;

@@ -35,7 +35,7 @@ vi.mock('@/data/slots', () => ({
   fetchSlotDetails: vi.fn()
 }));
 
-import InterviewerDashboardPage from '../interviewer';
+import InterviewerDashboardPage from '../pages/interviewer';
 import { mockRouter } from '@/test/router-mock';
 import { renderWithQueryClient } from '@/test/test-utils';
 import { fetchSlotDetails } from '@/data/slots';
@@ -166,7 +166,8 @@ describe('InterviewerDashboardPage', () => {
     );
 
     await waitFor(() => expect(mockRouter.replace).toHaveBeenCalled());
-    const replaceArgs = mockRouter.replace.mock.calls[0][0] as { query?: Record<string, unknown> };
+    const replaceMock = vi.mocked(mockRouter.replace);
+    const replaceArgs = replaceMock.mock.calls[0]?.[0] as { query?: Record<string, unknown> };
     expect(replaceArgs?.query?.slotId).toBeUndefined();
   });
 });
