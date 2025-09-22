@@ -1,41 +1,20 @@
-# syntax=docker/dockerfile:1.6
+FROM node:20-alpine
 
-FROM node:20-alpine as base
 WORKDIR /app
 
-# Install pnpm globally using npm
-RUN npm install -g pnpm@8.15.4
-
-# Copy workspace files
-COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml ./
-COPY landing/package.json landing/
-COPY shared/package.json shared/
+# Copy package files
+COPY landing/package*.json ./
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN npm ci --only=production
 
 # Copy source code
-COPY . .
+COPY landing/ ./
 
-# Build shared package first, then landing
-RUN pnpm --filter @supermock/shared build && pnpm --filter ./landing build
+# Build the application
+RUN npm run build
 
-# Production stage
-FROM node:20-alpine
-WORKDIR /app
-ENV NODE_ENV=production
-
-# Install pnpm globally using npm
-RUN npm install -g pnpm@8.15.4
-
-# Copy built application
-COPY --from=base /app/landing/.next ./.next
-COPY --from=base /app/landing/public ./public
-COPY --from=base /app/landing/package.json ./package.json
-COPY --from=base /app/landing/next.config.mjs ./next.config.mjs
-
-# Install only production dependencies
-RUN pnpm install --prod --frozen-lockfile
-
+# Use built-in Node.js server
 EXPOSE 3000
-CMD ["pnpm", "start"]
+
+CMD ["npx", "next", "start"]
