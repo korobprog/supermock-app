@@ -8,7 +8,7 @@
     "pnpm": ">=8.15.0"
   },
   "scripts": {
-    "dev": "pnpm -r --parallel dev",
+    "dev": "sh -c 'if [ \"$1\" = \"--filter\" ] && [ -n \"$2\" ]; then pnpm -r --parallel --filter \"$2\" dev; else pnpm -r --parallel dev; fi' _ \"$@\"",
     "dev:app": "pnpm --filter ./app dev --port 3000",
     "dev:landing": "pnpm --filter ./landing dev --port 3001",
     "dev:server": "pnpm --filter ./server dev",

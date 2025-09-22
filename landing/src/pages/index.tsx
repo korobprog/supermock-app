@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Footer from "@/components/Footer";
-import Navigation from "@/components/Navigation";
 import ProfessionsSection from "@/components/ProfessionsSection";
 import { handleExternalClick } from "@/lib/utils";
 import {
@@ -42,7 +41,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
       {/* <LanguageTest />
       <I18nTest /> */}
       {/* Hero Section */}

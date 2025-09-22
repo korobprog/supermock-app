@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useRouter } from 'next/router';
 import { YANDEX_METRIKA_CONFIG, YandexMetrikaGoal, YandexMetrikaEvent } from '../config/yandexMetrika';
 
 declare global {
@@ -9,14 +9,14 @@ declare global {
 }
 
 export const useYandexMetrika = (counterId: number = YANDEX_METRIKA_CONFIG.counterId) => {
-  const location = useLocation();
+  const router = useRouter();
 
   useEffect(() => {
     // Отслеживаем переходы между страницами в SPA
-    if (window.ym) {
-      window.ym(counterId, 'hit', location.pathname);
+    if (typeof window !== 'undefined' && window.ym) {
+      window.ym(counterId, 'hit', router.asPath);
     }
-  }, [location, counterId]);
+  }, [router.asPath, counterId]);
 
   // Функция для отправки пользовательских событий
   const trackEvent = (eventName: YandexMetrikaEvent, params?: Record<string, any>) => {

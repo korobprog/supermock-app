@@ -2,7 +2,6 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import type { GetStaticProps } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
@@ -20,7 +19,6 @@ const NotFound = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
       <div className="flex items-center justify-center min-h-[80vh] px-6">
         <Card className="neu-card border-0 max-w-md w-full">
           <CardContent className="p-8 text-center">

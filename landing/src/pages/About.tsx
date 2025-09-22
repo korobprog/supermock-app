@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 // import myPhoto from "@/assets/my2.png";
 
-// import { Link } from "react-router-dom";
 // import TechnologySection from "@/components/TechnologySection";
 // import ProfilePhoto from "@/components/ProfilePhoto";
 import type { GetStaticProps } from "next";
