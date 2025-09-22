@@ -1,14 +1,14 @@
 import { Button } from "@/components/ui/button";
-import LanguageSwitcherSimple from "@/components/LanguageSwitcherSimple";
+// import LanguageSwitcherSimple from "@/components/LanguageSwitcherSimple";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Menu, X } from "lucide-react";
 import {  handleExternalClick } from "@/lib/utils";
-import { useTranslation } from 'next-i18next';
+// import { useTranslation } from 'next-i18next';
 import { useSafeUIStore } from "@/hooks/useSafeUIStore";
 
 const Navigation = () => {
-  const { t } = useTranslation();
+  // const { t } = useTranslation();
   const router = useRouter();
   const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useSafeUIStore();
   const activeLocale = router.locale ?? router.defaultLocale;
@@ -33,13 +33,13 @@ const Navigation = () => {
   };
 
   const menuItems = [
-    { path: "/features", label: t('navigation.features') || 'Features' },
-    { path: "/learning-process", label: t('navigation.learningProcess') || 'Process' },
-    { path: "/professions", label: t('navigation.professions') || 'Professions' },
-    { path: "/languages", label: t('navigation.languages') || 'Languages' },
-    { path: "/pricing", label: t('navigation.pricing') || 'Pricing' },
-    { path: "/support", label: t('navigation.support') || 'Support' },
-    { path: "/about", label: t('navigation.about') || 'About' },
+    { path: "/features", label: 'Возможности' },
+    { path: "/learning-process", label: 'Процесс' },
+    { path: "/professions", label: 'Профессии' },
+    { path: "/languages", label: 'Языки' },
+    { path: "/pricing", label: 'Цены' },
+    { path: "/support", label: 'Поддержка' },
+    { path: "/about", label: 'О нас' },
   ];
 
   return (
@@ -56,7 +56,7 @@ const Navigation = () => {
             </div>
             {/* Mobile Language Switcher - visible only on mobile */}
             <div className="lg:hidden">
-              <LanguageSwitcherSimple />
+              {/* <LanguageSwitcherSimple /> */}
             </div>
           </div>
 
@@ -80,9 +80,9 @@ const Navigation = () => {
 
           {/* Desktop Right Section */}
           <div className="hidden lg:flex items-center gap-4">
-            <LanguageSwitcherSimple />
+            {/* <LanguageSwitcherSimple /> */}
             <Button variant="outline" onClick={(e) => handleExternalClick('https://app.supermock.ru', e)}>
-              {t('navigation.login') || 'Login'}
+              Войти
             </Button>
           </div>
 
@@ -120,10 +120,10 @@ const Navigation = () => {
               ))}
               <div className="pt-4 border-t border-border/50 space-y-4">
                 <div className="flex justify-center">
-                  <LanguageSwitcherSimple />
+                  {/* <LanguageSwitcherSimple /> */}
                 </div>
                 <Button onClick={(e) => handleExternalClick('https://app.supermock.ru', e)} variant="outline" className="w-full">
-                  {t('navigation.login')}
+                  Войти
                 </Button>
               </div>
             </div>
