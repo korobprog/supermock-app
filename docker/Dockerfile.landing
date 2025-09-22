@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.6
 
-FROM node:20-bullseye as base
+FROM node:20-alpine as base
 WORKDIR /app
 
 # Copy workspace files
@@ -18,7 +18,7 @@ COPY . .
 RUN pnpm --filter @supermock/shared build && pnpm --filter ./landing build
 
 # Production stage
-FROM node:20-bullseye
+FROM node:20-alpine
 WORKDIR /app
 ENV NODE_ENV=production
 
