@@ -1,26 +1,28 @@
-'use client';
-
-import { useTranslations } from 'next-intl';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { 
   User, 
   Code, 
   Brain, 
   MessageCircle, 
   Target, 
+  Rocket,
   Mail,
   Linkedin,
   Github,
+  Globe,
   Send
-} from 'lucide-react';
-import ClientButton from '../components/ClientButton';
-import TechnologySection from '@/components/TechnologySection';
-import ProfilePhoto from './components/ProfilePhoto';
-import ExpandableContent from './components/ExpandableContent';
+} from "lucide-react";
+import myPhoto from "@/assets/my2.png";
 
-export default function AboutPage() {
-  const t = useTranslations();
+import Link from "next/link";
+// import TechnologySection from "@/components/TechnologySection";
+// import ProfilePhoto from "@/components/ProfilePhoto";
+import { useTranslation } from "@/hooks/useTranslation";
+
+const About = () => {
+  const { t } = useTranslation();
   
   const skills = [
     { 
@@ -84,25 +86,28 @@ export default function AboutPage() {
               </div>
               
               <div className="flex flex-col sm:flex-row gap-4">
-                <ClientButton 
-                  variant="hero" 
-                  size="xl" 
-                  className="wave-shimmer hover:scale-105 transition-all duration-300"
-                  href="mailto:korobprog@gmail.com"
-                >
-                  <Mail className="w-5 h-5 mr-2" />
-                  {t('about.page.contact')}
-                </ClientButton>
+                <Link to="mailto:korobprog@gmail.com" target="_blank" rel="noopener noreferrer">
+                  <Button variant="hero" size="xl" className="wave-shimmer hover:scale-105 transition-all duration-300">
+                    <Mail className="w-5 h-5 mr-2" />
+                    {t('about.page.contact')}
+                  </Button>
+                </Link>
+
               </div>
             </div>
 
             {/* Profile Image */}
             <div className="relative">
               <div className="neu-card p-8 rounded-full w-80 h-80 flex items-center justify-center animate-photo-glow">
-                <ProfilePhoto 
-                  src="/my2.png" 
+                {/* <ProfilePhoto 
+                  src={myPhoto} 
                   alt={t('about.page.name')} 
                   size="xl"
+                /> */}
+                <img 
+                  src={myPhoto} 
+                  alt={t('about.page.name')} 
+                  className="w-32 h-32 rounded-full object-cover mx-auto"
                 />
               </div>
             </div>
@@ -138,21 +143,71 @@ export default function AboutPage() {
                   </div>
 
                   {/* Expandable content */}
-                  <ExpandableContent 
-                    translations={{
-                      readMore: t('about.page.readMore'),
-                      hideDetails: t('about.page.hideDetails'),
-                      authorIntro: t('about.page.authorIntro'),
-                      problemDescription: t('about.page.problemDescription'),
-                      solutionTitle: t('about.page.solutionTitle'),
-                      solutionText: t('about.page.solutionText'),
-                      experienceDescription: t('about.page.experienceDescription'),
-                      ideaTitle: t('about.page.ideaTitle'),
-                      ideaText: t('about.page.ideaText'),
-                      learningDescription: t('about.page.learningDescription'),
-                      conclusion: t('about.page.conclusion')
-                    }}
-                  />
+                  <div className="space-y-6">
+                    <div className="text-center">
+                      <Button 
+                        variant="outline" 
+                        size="lg"
+                        className="neu-button hover:glow-primary transition-all duration-300"
+                        onClick={() => {
+                          const content = document.getElementById('project-details');
+                          const button = document.getElementById('read-more-btn');
+                          if (content && button) {
+                            if (content.classList.contains('hidden')) {
+                              content.classList.remove('hidden');
+                              button.innerHTML = t('about.page.hideDetails');
+                            } else {
+                              content.classList.add('hidden');
+                              button.innerHTML = t('about.page.readMore');
+                            }
+                          }
+                        }}
+                        id="read-more-btn"
+                      >
+                        {t('about.page.readMore')}
+                      </Button>
+                    </div>
+
+                    <div id="project-details" className="hidden space-y-6 text-muted-foreground leading-relaxed">
+                      <div className="space-y-4">
+                        <p>
+                          {t('about.page.authorIntro')}
+                        </p>
+                        
+                        <p>
+                          {t('about.page.problemDescription')}
+                        </p>
+
+                        <div className="bg-gradient-to-r from-primary/10 to-secondary/10 p-6 rounded-lg border-l-4 border-primary">
+                          <h4 className="font-semibold text-foreground mb-2">{t('about.page.solutionTitle')}</h4>
+                          <p>
+                            {t('about.page.solutionText')}
+                          </p>
+                        </div>
+
+                        <p>
+                          {t('about.page.experienceDescription')}
+                        </p>
+
+                        <div className="bg-gradient-to-r from-accent/10 to-primary/10 p-6 rounded-lg border-l-4 border-accent">
+                          <h4 className="font-semibold text-foreground mb-2">{t('about.page.ideaTitle')}</h4>
+                          <p>
+                            {t('about.page.ideaText')}
+                          </p>
+                        </div>
+
+                        <p>
+                          {t('about.page.learningDescription')}
+                        </p>
+
+                        <div className="text-center p-6 bg-gradient-to-r from-secondary/10 to-accent/10 rounded-lg">
+                          <p className="text-lg font-medium text-foreground">
+                            {t('about.page.conclusion')}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -190,7 +245,7 @@ export default function AboutPage() {
       </section>
 
       {/* Technology Section */}
-      <TechnologySection />
+      {/* <TechnologySection /> */}
 
       {/* Skills Section */}
       <section className="py-16 px-6">
@@ -255,38 +310,23 @@ export default function AboutPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid md:grid-cols-2 gap-4">
-                <ClientButton 
-                  variant="outline" 
-                  className="w-full"
-                  href="mailto:korobprog@gmail.com"
-                >
+                <Button onClick={() => window.location.href = 'mailto:korobprog@gmail.com'} variant="outline" className="w-full">
                   <Mail className="w-4 h-4 mr-2" />
                   {t('about.page.email')}
-                </ClientButton>
-                <ClientButton 
-                  variant="outline" 
-                  className="w-full"
-                  href="https://www.linkedin.com/in/korobprog/"
-                >
+                </Button>
+                <Button onClick={() => window.location.href = 'https://www.linkedin.com/in/korobprog/'} variant="outline" className="w-full">
                   <Linkedin className="w-4 h-4 mr-2" />
                   {t('about.page.linkedin')}
-                </ClientButton>
-                <ClientButton 
-                  variant="outline" 
-                  className="w-full"
-                  href="https://github.com/korobprog"
-                >
+                </Button>
+                <Button onClick={() => window.location.href = 'https://github.com/korobprog'} variant="outline" className="w-full">
                   <Github className="w-4 h-4 mr-2" />
                   {t('about.page.github')}
-                </ClientButton>
-                <ClientButton 
-                  variant="outline" 
-                  className="w-full"
-                  href="https://t.me/korobprog"
-                >
+                </Button>
+                <Button onClick={() => window.location.href = 'https://t.me/korobprog'} variant="outline" className="w-full">
                   <Send className="w-4 h-4 mr-2" />
                   {t('about.page.telegram')}
-                </ClientButton>
+                </Button>
+
               </div>
             </CardContent>
           </Card>
@@ -294,4 +334,6 @@ export default function AboutPage() {
       </section>
     </div>
   );
-}
+};
+
+export default About;

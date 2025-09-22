@@ -3,12 +3,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { handleExternalClick } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
 import Footer from "@/components/Footer";
-import { useSafeTranslation } from "@/hooks/useSafeTranslation";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const Languages = () => {
-  const { t } = useSafeTranslation();
+  const { t, changeLanguage, currentLanguage, availableLanguages } = useTranslation();
   
-  const languages = [
+  const languageData = [
     { code: "🇺🇸", name: t('languages.english'), description: t('languages.englishDesc') },
     { code: "🇷🇺", name: t('languages.russian'), description: t('languages.russianDesc') },
     { code: "🇪🇸", name: t('languages.spanish'), description: t('languages.spanishDesc') },
@@ -28,6 +28,21 @@ const Languages = () => {
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
             {t('languages.subtitle')}
           </p>
+          
+          {/* Language Switcher */}
+          <div className="flex flex-wrap justify-center gap-2 mb-8">
+            {availableLanguages.map((lang) => (
+              <Button
+                key={lang}
+                variant={currentLanguage === lang ? "default" : "outline"}
+                size="sm"
+                onClick={() => changeLanguage(lang)}
+                className="min-w-[60px]"
+              >
+                {lang.toUpperCase()}
+              </Button>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -35,7 +50,7 @@ const Languages = () => {
       <section className="py-16 px-6">
         <div className="container mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 max-w-4xl mx-auto">
-            {languages.map((language, index) => (
+            {languageData.map((language, index) => (
               <Card key={index} className="neu-card border-0 hover:glow-accent transition-all duration-300 hover:scale-105 cursor-pointer">
                 <CardContent className="p-6 text-center">
                   <div className="text-4xl mb-3">{language.code}</div>

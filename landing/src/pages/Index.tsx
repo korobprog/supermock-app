@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Footer from "@/components/Footer";
 import ProfessionsSection from "@/components/ProfessionsSection";
 import { handleExternalClick } from "@/lib/utils";
-import { useSafeTranslation } from "@/hooks/useSafeTranslation";
+import { useTranslation } from "@/hooks/useTranslation";
 import { 
   Mic, 
   Code, 
@@ -17,7 +17,7 @@ import {
 // Hero image will be loaded from public folder
 
 const Index = () => {
-  const { t } = useSafeTranslation();
+  const { t } = useTranslation();
   
   const languages = [
     { code: "🇺🇸", name: "English" },

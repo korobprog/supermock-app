@@ -1,12 +1,12 @@
-import { Link } from "@/i18n/navigation";
-import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { useTranslation } from "@/hooks/useTranslation";
 import yoomoneyLogo from "../assets/yoomoney.svg";
 import mastercardLogo from "../assets/mastercard.svg";
 import visaLogo from "../assets/visa-blue.svg";
 import payeerLogo from "../assets/payeer.svg";
 
 const Footer = () => {
-  const t = useTranslations();
+  const { t } = useTranslation();
 
   return (
     <footer className="py-16 px-6 border-t border-border/50">
