@@ -5,21 +5,23 @@ import Footer from "@/components/Footer";
 import Navigation from "@/components/Navigation";
 import ProfessionsSection from "@/components/ProfessionsSection";
 import { handleExternalClick } from "@/lib/utils";
-// Removed Next.js specific imports for Vite compatibility
-import { 
-  Mic, 
-  Code, 
-  MessageCircle, 
-  BarChart3, 
-  FileText, 
+import {
+  Mic,
+  Code,
+  MessageCircle,
+  BarChart3,
+  FileText,
   Gamepad2,
   Lightbulb,
 } from "lucide-react";
-// Hero image will be loaded from public folder
+import type { GetStaticProps } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { useTranslation } from "next-i18next";
+import { nextI18NextConfig } from "@/i18n";
 
 const Index = () => {
-  // Removed translation hooks for Vite compatibility
-  
+  const { t, i18n } = useTranslation();
+
   const languages = [
     { code: "🇺🇸", name: "English" },
     { code: "🇷🇺", name: "Russian" },
@@ -430,5 +432,15 @@ const Index = () => {
     </div>
   );
 };
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => ({
+  props: {
+    ...(await serverSideTranslations(
+      locale ?? nextI18NextConfig.i18n?.defaultLocale ?? "en",
+      ["common"],
+      nextI18NextConfig,
+    )),
+  },
+});
 
 export default Index;
