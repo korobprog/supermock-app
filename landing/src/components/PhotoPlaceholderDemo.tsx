@@ -1,6 +1,7 @@
 import React from 'react';
 import PhotoPlaceholder from './PhotoPlaceholder';
 import ProfilePhoto from './ProfilePhoto';
+import { withBasePath } from "@/lib/routing";
 
 const PhotoPlaceholderDemo: React.FC = () => {
   return (
@@ -31,8 +32,8 @@ const PhotoPlaceholderDemo: React.FC = () => {
       
       <div className="text-center space-y-4">
         <h3 className="text-lg font-semibold">С загрузкой изображения</h3>
-        <ProfilePhoto 
-          src="/placeholder-image.jpg" 
+        <ProfilePhoto
+          src={withBasePath('/placeholder-image.jpg')}
           alt="Демо изображение" 
           size="xl"
         />

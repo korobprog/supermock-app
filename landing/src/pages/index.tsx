@@ -3,6 +3,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Footer from "@/components/Footer";
 import ProfessionsSection from "@/components/ProfessionsSection";
+import LanguageTest from "@/components/LanguageTest";
+import I18nTest from "@/components/I18nTest";
+import { withBasePath } from "@/lib/routing";
 import { handleExternalClick } from "@/lib/utils";
 import {
   Mic,
@@ -106,8 +109,8 @@ const Index = () => {
 
             <div className="flex justify-center">
               <div className="relative">
-                <img 
-                  src="/hero-ai-illustration.jpg" 
+                <img
+                  src={withBasePath('/hero-ai-illustration.jpg')}
                   alt="AI Interview Platform Illustration" 
                   className="rounded-2xl shadow-2xl animate-float neu-card"
                   onError={(e) => {
@@ -232,7 +235,7 @@ const Index = () => {
                 variant="hero" 
                 size="xl" 
                 className="hover:scale-105 transition-all duration-300"
-                onClick={() => window.location.href = '/pricing'}
+                onClick={() => { window.location.href = withBasePath('/pricing') }}
               >
                 {t('pricing.learnMore')}
               </Button>
@@ -406,7 +409,7 @@ const Index = () => {
               <p className="text-lg text-muted-foreground mb-8">
                 {t('about.description2')}
               </p>
-              <Button variant="hero" size="lg" onClick={() => window.location.href = '/learning-process'}>
+              <Button variant="hero" size="lg" onClick={() => { window.location.href = withBasePath('/learning-process') }}>
                 {t('about.learnMore')}
               </Button>
             </div>

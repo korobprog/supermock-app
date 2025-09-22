@@ -1,13 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {  handleExternalClick } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { withBasePath } from "@/lib/routing";
+import { navigateToExternal, handleExternalClick } from "@/lib/utils";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Footer from "@/components/Footer";
 import { ArrowRight, Check, X } from "lucide-react";
-import type { GetStaticProps } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-import { useTranslation } from "next-i18next";
-import { nextI18NextConfig } from "@/i18n";
+import Logo from "@/components/Logo";
+import { useTranslation } from "react-i18next";
 
 const Pricing = () => {
   const { t, i18n } = useTranslation();
@@ -17,13 +16,7 @@ const Pricing = () => {
     try {
       // Use the raw i18n function directly for objects
       const result = i18n.t(key, { returnObjects: true });
-      if (Array.isArray(result)) {
-        // Filter and convert to string array, handling mixed types
-        return result
-          .map(item => typeof item === 'string' ? item : String(item))
-          .filter((item): item is string => typeof item === 'string');
-      }
-      return [];
+      return Array.isArray(result) ? result : [];
     } catch (error) {
       console.warn(`Failed to get translation array for key: ${key}`, error);
       return [];
@@ -310,7 +303,7 @@ const Pricing = () => {
                   >
                     {t('pricingCta.startLearning')}
                   </Button>
-                  <Button variant="outline" size="xl" onClick={() => window.location.href = '/learning-process'}>
+                  <Button variant="outline" size="xl" onClick={() => { window.location.href = withBasePath('/learning-process') }}>
                     <ArrowRight className="mr-2 h-5 w-5" />
                     {t('pricingCta.learningProcess')}
                   </Button>
@@ -325,15 +318,5 @@ const Pricing = () => {
     </div>
   );
 };
-
-export const getStaticProps: GetStaticProps = async ({ locale }) => ({
-  props: {
-    ...(await serverSideTranslations(
-      locale ?? nextI18NextConfig.i18n?.defaultLocale ?? 'en',
-      ['common'],
-      nextI18NextConfig,
-    )),
-  },
-});
 
 export default Pricing;

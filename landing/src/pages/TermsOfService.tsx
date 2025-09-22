@@ -1,12 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { handleExternalClick } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { withBasePath } from "@/lib/routing";
+import { navigateToExternal, handleExternalClick } from "@/lib/utils";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Footer from "@/components/Footer";
 import { ArrowRight, FileText, CheckCircle, AlertTriangle, Clock, Users, Shield, CreditCard } from "lucide-react";
-import type { GetStaticProps } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-import { nextI18NextConfig } from "@/i18n";
+import Logo from "@/components/Logo";
 
 const TermsOfService = () => {
   const sections = [
@@ -202,7 +201,7 @@ const TermsOfService = () => {
                     <FileText className="mr-2 h-5 w-5" />
                     Условия использования
                   </Button>
-                  <Button variant="outline" size="lg" onClick={() => window.location.href = '/privacy-policy'}>
+                  <Button variant="outline" size="lg" onClick={() => { window.location.href = withBasePath('/privacy-policy') }}>
                     <Shield className="mr-2 h-5 w-5" />
                     Политика конфиденциальности
                   </Button>
@@ -234,7 +233,7 @@ const TermsOfService = () => {
                   >
                     Начать обучение
                   </Button>
-                  <Button variant="outline" size="xl" onClick={() => window.location.href = '/'}>
+                  <Button variant="outline" size="xl" onClick={() => { window.location.href = withBasePath('/') }}>
                     <ArrowRight className="mr-2 h-5 w-5" />
                     Вернуться на главную
                   </Button>
@@ -249,15 +248,5 @@ const TermsOfService = () => {
     </div>
   );
 };
-
-export const getStaticProps: GetStaticProps = async ({ locale }) => ({
-  props: {
-    ...(await serverSideTranslations(
-      locale ?? nextI18NextConfig.i18n?.defaultLocale ?? 'en',
-      ['common'],
-      nextI18NextConfig,
-    )),
-  },
-});
 
 export default TermsOfService;

@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { withBasePath } from "@/lib/routing";
 import { handleExternalClick } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
 import Footer from "@/components/Footer";
@@ -145,7 +146,7 @@ const Languages = () => {
                   >
                     {t('languages.cta.startLearning')}
                   </Button>
-                  <Button variant="outline" size="xl" onClick={() => window.location.href = '/learning-process'}>
+                  <Button variant="outline" size="xl" onClick={() => { window.location.href = withBasePath('/learning-process') }}>
                     <ArrowRight className="mr-2 h-5 w-5" />
                     {t('languages.cta.learningProcess')}
                   </Button>

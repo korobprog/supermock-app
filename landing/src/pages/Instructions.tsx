@@ -1,12 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {  handleExternalClick } from "@/lib/utils";
+import { withBasePath } from "@/lib/routing";
+import { navigateToExternal, handleExternalClick } from "@/lib/utils";
 import { 
   Play,
   Users,
   Video,
   MessageSquare,
   Star,
+  ArrowRight,
   CheckCircle,
   Mail,
   UserCheck,
@@ -14,9 +16,6 @@ import {
   Heart,
 } from "lucide-react";
 import Footer from "@/components/Footer";
-import type { GetStaticProps } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-import { nextI18NextConfig } from "@/i18n";
 import { useSafeTranslation } from "@/hooks/useSafeTranslation";
 
 const Instructions = () => {
@@ -111,7 +110,7 @@ const Instructions = () => {
               <Play className="mr-2 h-5 w-5" />
               {t('instructions.hero.startLearning')}
             </Button>
-            <Button variant="outline" size="lg" onClick={() => window.location.href = '/support'}>
+            <Button variant="outline" size="lg" onClick={() => { window.location.href = withBasePath('/support') }}>
               <Mail className="mr-2 h-5 w-5" />
               {t('instructions.hero.haveQuestions')}
             </Button>
@@ -234,15 +233,5 @@ const Instructions = () => {
     </div>
   );
 };
-
-export const getStaticProps: GetStaticProps = async ({ locale }) => ({
-  props: {
-    ...(await serverSideTranslations(
-      locale ?? nextI18NextConfig.i18n?.defaultLocale ?? 'en',
-      ['common'],
-      nextI18NextConfig,
-    )),
-  },
-});
 
 export default Instructions;
