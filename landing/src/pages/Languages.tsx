@@ -6,16 +6,30 @@ import Footer from "@/components/Footer";
 import type { GetStaticProps } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useTranslation } from "next-i18next";
+import { useRouter } from "next/router";
 import { nextI18NextConfig } from "@/i18n";
 
 const Languages = () => {
   const { t, i18n } = useTranslation();
-  
+  const router = useRouter();
+
   const availableLanguages = ['en', 'ru', 'es', 'fr', 'de', 'zh'];
-  const currentLanguage = i18n.language;
-  
+  const currentLanguage = router.locale ?? i18n.language;
+
   const changeLanguage = (lng: string) => {
-    i18n.changeLanguage(lng);
+    if (lng === currentLanguage) {
+      return;
+    }
+
+    void router
+      .push(
+        { pathname: router.pathname, query: router.query },
+        router.asPath,
+        { locale: lng }
+      )
+      .catch((error) => {
+        console.error('Languages page: failed to change locale', error);
+      });
   };
   
   const languageData = [

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useTranslation } from "@/hooks/useTranslation";
+import { useTranslation } from "next-i18next";
 // Payment logos
 const yoomoneyLogo = "/yoomoney.svg";
 const mastercardLogo = "/mastercard.svg";

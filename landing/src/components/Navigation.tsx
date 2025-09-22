@@ -12,12 +12,25 @@ const Navigation = () => {
   const { t } = useTranslation();
   const router = useRouter();
   const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useSafeUIStore();
+  const activeLocale = router.locale ?? router.defaultLocale;
 
   const isActive = (path: string) => {
-    if (path === "/") {
-      return router.pathname === "/";
+    const { locale, defaultLocale, asPath } = router;
+    const normalizedPath = path === "/" ? "/" : path.replace(/\/$/, "");
+    const currentPath = asPath.split(/[?#]/)[0] || "/";
+    const localePrefix = locale && locale !== defaultLocale ? `/${locale}` : "";
+    const withoutLocale = localePrefix && currentPath.startsWith(localePrefix)
+      ? currentPath.slice(localePrefix.length) || "/"
+      : currentPath || "/";
+    const normalizedCurrent = withoutLocale.length > 1 && withoutLocale.endsWith("/")
+      ? withoutLocale.slice(0, -1)
+      : withoutLocale;
+
+    if (normalizedPath === "/") {
+      return normalizedCurrent === "/";
     }
-    return router.pathname.startsWith(path);
+
+    return normalizedCurrent.startsWith(normalizedPath);
   };
 
   const menuItems = [
@@ -54,6 +67,7 @@ const Navigation = () => {
               <Link
                 key={item.path}
                 href={item.path || '/'}
+                locale={activeLocale}
                 className={`transition-colors ${
                   isActive(item.path)
                     ? 'text-primary'
@@ -94,6 +108,7 @@ const Navigation = () => {
                 <Link
                   key={item.path}
                   href={item.path || '/'}
+                  locale={activeLocale}
                   onClick={closeMobileMenu}
                   className={`block py-2 transition-colors ${
                     isActive(item.path)

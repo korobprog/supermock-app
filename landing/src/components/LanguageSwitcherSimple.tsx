@@ -2,34 +2,45 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/router';
 import { useTranslation as useI18nTranslation } from 'next-i18next';
+
+const languages = [
+  { code: 'en', name: 'English', flag: '🇺🇸' },
+  { code: 'ru', name: 'Русский', flag: '🇷🇺' },
+  { code: 'es', name: 'Español', flag: '🇪🇸' },
+  { code: 'fr', name: 'Français', flag: '🇫🇷' },
+  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+  { code: 'zh', name: '中文', flag: '🇨🇳' }
+];
 
 const LanguageSwitcherSimple = () => {
   const { i18n } = useI18nTranslation();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  
-  const languages = [
-    { code: 'en', name: 'English', flag: '🇺🇸' },
-    { code: 'ru', name: 'Русский', flag: '🇷🇺' },
-    { code: 'es', name: 'Español', flag: '🇪🇸' },
-    { code: 'fr', name: 'Français', flag: '🇫🇷' },
-    { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-    { code: 'zh', name: '中文', flag: '🇨🇳' }
-  ];
+
+  const currentLocale = router.locale ?? i18n.language ?? router.defaultLocale ?? 'en';
+  const currentLanguage = languages.find(lang => lang.code === currentLocale);
 
   const handleLanguageChange = (languageCode: string) => {
-    console.log('SimpleLanguageSwitcher: changing language to:', languageCode);
-    i18n.changeLanguage(languageCode).then(() => {
-      console.log('SimpleLanguageSwitcher: language changed successfully to:', i18n.language);
-    }).catch((error) => {
-      console.error('SimpleLanguageSwitcher: error changing language:', error);
-    });
-    setIsOpen(false);
-  };
+    if (languageCode === currentLocale) {
+      setIsOpen(false);
+      return;
+    }
 
-  const currentLanguageCode = typeof i18n.language === 'string' && i18n.language.length > 0
-    ? i18n.language
-    : 'en';
+    void router
+      .push(
+        { pathname: router.pathname, query: router.query },
+        router.asPath,
+        { locale: languageCode }
+      )
+      .catch((error) => {
+        console.error('LanguageSwitcherSimple: error changing language:', error);
+      })
+      .finally(() => {
+        setIsOpen(false);
+      });
+  };
 
   return (
     <div className="relative">
@@ -37,13 +48,12 @@ const LanguageSwitcherSimple = () => {
         variant="outline"
         size="sm"
         onClick={() => {
-          console.log('SimpleLanguageSwitcher: toggle clicked, current state:', isOpen);
-          setIsOpen(!isOpen);
+          setIsOpen((prev) => !prev);
         }}
         className="flex items-center gap-2"
       >
-        <span>{languages.find(lang => lang.code === i18n.language)?.flag || '🇺🇸'}</span>
-        <span>{currentLanguageCode.toUpperCase()}</span>
+        <span>{currentLanguage?.flag ?? '🇺🇸'}</span>
+        <span>{currentLocale.toUpperCase()}</span>
         <span>{isOpen ? '▲' : '▼'}</span>
       </Button>
 
