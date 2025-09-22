@@ -6,6 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Footer from "@/components/Footer";
 import { ArrowRight, FileText, CheckCircle, AlertTriangle, Clock, Users, Shield, CreditCard } from "lucide-react";
 import Logo from "@/components/Logo";
+import type { GetStaticProps } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { nextI18NextConfig } from "@/i18n";
 
 const TermsOfService = () => {
   const sections = [
@@ -248,5 +251,15 @@ const TermsOfService = () => {
     </div>
   );
 };
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => ({
+  props: {
+    ...(await serverSideTranslations(
+      locale ?? nextI18NextConfig.i18n?.defaultLocale ?? 'en',
+      ['common'],
+      nextI18NextConfig,
+    )),
+  },
+});
 
 export default TermsOfService;

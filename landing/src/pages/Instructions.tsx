@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { withBasePath } from "@/lib/routing";
 import { navigateToExternal, handleExternalClick } from "@/lib/utils";
-import { 
+import {
   Play,
   Users,
   Video,
@@ -17,6 +17,9 @@ import {
 } from "lucide-react";
 import Footer from "@/components/Footer";
 import { useSafeTranslation } from "@/hooks/useSafeTranslation";
+import type { GetStaticProps } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { nextI18NextConfig } from "@/i18n";
 
 const Instructions = () => {
   const { t } = useSafeTranslation();
@@ -233,5 +236,15 @@ const Instructions = () => {
     </div>
   );
 };
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => ({
+  props: {
+    ...(await serverSideTranslations(
+      locale ?? nextI18NextConfig.i18n?.defaultLocale ?? 'en',
+      ['common'],
+      nextI18NextConfig,
+    )),
+  },
+});
 
 export default Instructions;
