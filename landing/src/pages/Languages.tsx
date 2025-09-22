@@ -3,10 +3,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { handleExternalClick } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
 import Footer from "@/components/Footer";
-import { useTranslation } from "@/hooks/useTranslation";
+import { useTranslation } from "react-i18next";
 
 const Languages = () => {
-  const { t, changeLanguage, currentLanguage, availableLanguages } = useTranslation();
+  const { t, i18n } = useTranslation();
+  
+  const availableLanguages = ['en', 'ru', 'es', 'fr', 'de', 'zh'];
+  const currentLanguage = i18n.language;
+  
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
+  };
   
   const languageData = [
     { code: "🇺🇸", name: t('languages.english'), description: t('languages.englishDesc') },

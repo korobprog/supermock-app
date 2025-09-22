@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import Link from "next/link";
 
 interface LogoProps {
   className?: string;
@@ -8,7 +8,7 @@ interface LogoProps {
 const Logo = ({ className = "", variant = 'white-blue-glow' }: LogoProps) => {
   return (
     <Link 
-      to="/" 
+      href="/" 
       className={`flex items-center transition-transform duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded-lg ${className}`}
     >
       {/* Try to show image logo first */}

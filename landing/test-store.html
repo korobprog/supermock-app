@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 8px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            background: #333;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Store Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Store Functionality</h2>
+        <p>This page tests if the Zustand store is working correctly.</p>
+        
+        <div class="status" id="store-status">
+            <strong>Store Status:</strong> <span id="store-state">Loading...</span><br>
+            <strong>Language Dropdown Open:</strong> <span id="dropdown-state">Loading...</span><br>
+            <strong>Mobile Menu Open:</strong> <span id="mobile-state">Loading...</span>
+        </div>
+        
+        <button onclick="testStore()">Test Store</button>
+        <button onclick="toggleLanguageDropdown()">Toggle Language Dropdown</button>
+        <button onclick="toggleMobileMenu()">Toggle Mobile Menu</button>
+    </div>
+
+    <script>
+        // Simple store implementation for testing
+        let storeState = {
+            isLanguageDropdownOpen: false,
+            isMobileMenuOpen: false
+        };
+        
+        function updateStatus() {
+            document.getElementById('store-state').textContent = JSON.stringify(storeState);
+            document.getElementById('dropdown-state').textContent = storeState.isLanguageDropdownOpen;
+            document.getElementById('mobile-state').textContent = storeState.isMobileMenuOpen;
+        }
+        
+        function testStore() {
+            console.log('Testing store...');
+            console.log('Current state:', storeState);
+            updateStatus();
+        }
+        
+        function toggleLanguageDropdown() {
+            console.log('Toggling language dropdown...');
+            storeState.isLanguageDropdownOpen = !storeState.isLanguageDropdownOpen;
+            console.log('New state:', storeState);
+            updateStatus();
+        }
+        
+        function toggleMobileMenu() {
+            console.log('Toggling mobile menu...');
+            storeState.isMobileMenuOpen = !storeState.isMobileMenuOpen;
+            console.log('New state:', storeState);
+            updateStatus();
+        }
+        
+        // Initialize
+        updateStatus();
+        console.log('Store test page loaded');
+    </script>
+</body>
+</html>

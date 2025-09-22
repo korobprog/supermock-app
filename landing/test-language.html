@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 8px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            background: #333;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Language Switcher Test</h1>
+    
+    <div class="test-section">
+        <h2>Current Status</h2>
+        <div class="status" id="status">
+            Loading...
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Language Switching</h2>
+        <button onclick="testLanguage('en')">Switch to English</button>
+        <button onclick="testLanguage('ru')">Switch to Russian</button>
+        <button onclick="testLanguage('es')">Switch to Spanish</button>
+        <button onclick="testLanguage('fr')">Switch to French</button>
+        <button onclick="testLanguage('de')">Switch to German</button>
+        <button onclick="testLanguage('zh')">Switch to Chinese</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Translation</h2>
+        <button onclick="testTranslation()">Test Translation</button>
+        <div id="translation-result"></div>
+    </div>
+
+    <script>
+        function updateStatus() {
+            const status = document.getElementById('status');
+            const currentLang = localStorage.getItem('language') || 'en';
+            status.innerHTML = `
+                <strong>Current Language:</strong> ${currentLang}<br>
+                <strong>LocalStorage:</strong> ${localStorage.getItem('language') || 'not set'}<br>
+                <strong>Timestamp:</strong> ${new Date().toLocaleTimeString()}
+            `;
+        }
+        
+        function testLanguage(lang) {
+            console.log('Testing language switch to:', lang);
+            localStorage.setItem('language', lang);
+            updateStatus();
+            
+            // Simulate the language change
+            setTimeout(() => {
+                console.log('Language changed to:', lang);
+                updateStatus();
+            }, 100);
+        }
+        
+        function testTranslation() {
+            const result = document.getElementById('translation-result');
+            const currentLang = localStorage.getItem('language') || 'en';
+            
+            const translations = {
+                en: 'Hello, World!',
+                ru: 'Привет, Мир!',
+                es: '¡Hola, Mundo!',
+                fr: 'Bonjour, le Monde!',
+                de: 'Hallo, Welt!',
+                zh: '你好，世界！'
+            };
+            
+            result.innerHTML = `
+                <div class="status">
+                    <strong>Language:</strong> ${currentLang}<br>
+                    <strong>Translation:</strong> ${translations[currentLang] || translations.en}
+                </div>
+            `;
+        }
+        
+        // Update status every second
+        setInterval(updateStatus, 1000);
+        updateStatus();
+    </script>
+</body>
+</html>

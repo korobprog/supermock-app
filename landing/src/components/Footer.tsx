@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { useTranslation } from "@/hooks/useTranslation";
-import yoomoneyLogo from "../assets/yoomoney.svg";
-import mastercardLogo from "../assets/mastercard.svg";
-import visaLogo from "../assets/visa-blue.svg";
-import payeerLogo from "../assets/payeer.svg";
+// Payment logos
+const yoomoneyLogo = "/yoomoney.svg";
+const mastercardLogo = "/mastercard.svg";
+const visaLogo = "/visa-blue.svg";
+const payeerLogo = "/payeer.svg";
 
 const Footer = () => {
   const { t } = useTranslation();

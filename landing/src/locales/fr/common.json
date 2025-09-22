@@ -1,12 +1,28 @@
 {
+  "common": {
+    "title": "Super Mock - Plateforme d'Entretiens IA",
+    "description": "Préparez-vous à votre entretien en 6 langues avec analyse IA et intervieweurs réels.",
+    "testSection": "Section de Test de Langue",
+    "testDescription": "Ceci est une section de test pour vérifier que l'internationalisation fonctionne correctement."
+  },
+  "seo": {
+    "title": "Super Mock - Plateforme IA de Préparation aux Entretiens en 6 Langues | Intervieweurs Réels",
+    "description": "Préparez-vous à votre entretien en 6 langues avec Super Mock. Analyse IA, intervieweurs réels, 10+ professions. Retour personnalisé et amélioration des compétences.",
+    "keywords": "entretien, entretien simulé, IA, intelligence artificielle, préparation emploi, carrière, anglais, russe, allemand, français, espagnol, chinois, programmation, marketing, ventes, RH",
+    "ogTitle": "Super Mock - Plateforme IA de Préparation aux Entretiens en 6 Langues",
+    "ogDescription": "Préparez-vous à votre entretien en 6 langues avec Super Mock. Analyse IA, intervieweurs réels, 10+ professions.",
+    "twitterTitle": "Super Mock - Plateforme IA de Préparation aux Entretiens en 6 Langues",
+    "twitterDescription": "Préparez-vous à votre entretien en 6 langues avec Super Mock. Analyse IA, intervieweurs réels, 10+ professions."
+  },
   "navigation": {
+    "home": "Accueil",
     "features": "Fonctionnalités",
     "learningProcess": "Processus",
     "professions": "Professions",
     "languages": "Langues",
     "pricing": "Tarifs",
-    "instructions": "📖 Aide",
-    "support": "💜 Support",
+    "instructions": "Aide",
+    "support": "Support",
     "about": "À propos",
     "login": "Se connecter"
   },
@@ -17,7 +33,7 @@
     "subtitle": "Super Mock — Plateforme IA pour les entretiens avec un appariement unique de candidats et d'intervieweurs",
     "startLearning": "🚀 Commencer l'apprentissage",
     "openApp": "💻 Ouvrir l'application",
-    "help": "📖 Aide"
+    "help": "Aide"
   },
   "stats": {
     "professions": "Professions<br />Techniques 💼",
@@ -242,23 +258,19 @@
       "title": "Gratuit",
       "price": "$1",
       "period": "USD par mois",
-      "features": [
-        "Entretiens simulés illimités",
-        "Période de validité : 1 mois",
-        "Fonctionnalités de base de la plateforme"
-      ],
+      "feature1": "Entretiens simulés illimités",
+      "feature2": "Période de validité : 1 mois",
+      "feature3": "Fonctionnalités de base de la plateforme",
       "select": "Choisir le forfait"
     },
     "basic": {
       "title": "Basique",
       "price": "$9.99",
       "period": "USD par mois",
-      "features": [
-        "Entretiens simulés",
-        "Assistant IA",
-        "Période de validité : 1 mois",
-        "Analytique avancée"
-      ],
+      "feature1": "Entretiens simulés",
+      "feature2": "Assistant IA",
+      "feature3": "Période de validité : 1 mois",
+      "feature4": "Analytique avancée",
       "select": "Choisir le forfait"
     },
     "pro": {
@@ -266,13 +278,12 @@
       "price": "$20",
       "period": "USD pour 3 mois",
       "popular": "Populaire",
-      "features": [
-        "Entretiens simulés",
-        "Assistant IA",
-        "Période de validité : 3 mois",
-        "Support prioritaire",
-        "Fonctionnalités exclusives"
-      ],
+      "feature1": "Toutes les fonctionnalités Basique",
+      "feature2": "Apprentissage dans les applications",
+      "feature3": "Répétition du cycle",
+      "feature4": "Support prioritaire",
+      "feature5": "Fonctionnalités exclusives",
+      "feature6": "Période de validité : 3 mois",
       "select": "Choisir le forfait"
     }
   },
@@ -571,6 +582,14 @@
       }
     }
   },
+  "notFound": {
+    "title": "Page non trouvée",
+    "description": "La page que vous recherchez n'existe pas ou a été déplacée.",
+    "goHome": "Aller à la page d'accueil",
+    "explore": "Explorer notre plateforme",
+    "help": "Besoin d'aide ? Contactez notre équipe de support.",
+    "contactSupport": "Contacter le support"
+  },
   "footer": {
     "description": "Plateforme IA pour la préparation aux entretiens techniques avec support pour 6 langues et retour personnalisé.",
     "product": "Produit",
@@ -580,9 +599,9 @@
     "professions": "Professions",
     "languages": "Langues",
     "pricing": "Tarifs",
-    "help": "📖 Aide",
+    "help": "Aide",
     "documentation": "Documentation",
-    "supportLink": "💜 Support",
+    "supportLink": "Support",
     "faq": "FAQ",
     "about": "À propos",
     "privacyPolicy": "Politique de Confidentialité",

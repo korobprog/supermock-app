@@ -307,6 +307,11 @@
       "title": "Free",
       "price": "$1",
       "period": "USD per month",
+      "features": [
+        "Unlimited mock interviews",
+        "Validity period: 1 month",
+        "Basic platform features"
+      ],
       "feature1": "Unlimited mock interviews",
       "feature2": "Validity period: 1 month",
       "feature3": "Basic platform features",
@@ -316,6 +321,12 @@
       "title": "Basic",
       "price": "$9.99",
       "period": "USD per month",
+      "features": [
+        "Mock interviews",
+        "AI assistant",
+        "Validity period: 1 month",
+        "Advanced analytics"
+      ],
       "feature1": "Mock interviews",
       "feature2": "AI assistant",
       "feature3": "Validity period: 1 month",
@@ -327,6 +338,14 @@
       "price": "$20",
       "period": "USD for 3 months",
       "popular": "Popular",
+      "features": [
+        "All Basic Features",
+        "Learning in Applications",
+        "Cycle Repetition",
+        "Priority Support",
+        "Exclusive features",
+        "Validity period: 3 months"
+      ],
       "feature1": "All Basic Features",
       "feature2": "Learning in Applications",
       "feature3": "Cycle Repetition",

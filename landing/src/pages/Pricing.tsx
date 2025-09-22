@@ -5,15 +5,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Footer from "@/components/Footer";
 import { ArrowRight, Check, X } from "lucide-react";
 import Logo from "@/components/Logo";
-import { useSafeTranslation } from "@/hooks/useSafeTranslation";
+import { useTranslation } from "react-i18next";
 
 const Pricing = () => {
-  const { t } = useSafeTranslation();
+  const { t, i18n } = useTranslation();
   
   // Helper function to safely get array from translation
   const getTranslationArray = (key: string): string[] => {
     try {
-      const result = t(key, { returnObjects: true });
+      // Use the raw i18n function directly for objects
+      const result = i18n.t(key, { returnObjects: true });
       return Array.isArray(result) ? result : [];
     } catch (error) {
       console.warn(`Failed to get translation array for key: ${key}`, error);

@@ -1,12 +1,28 @@
 {
+  "common": {
+    "title": "Super Mock - AI Interview Platform",
+    "description": "Prepare for your interview in 6 languages with AI-powered analysis and real interviewers.",
+    "testSection": "Language Test Section",
+    "testDescription": "This is a test section to verify that internationalization is working correctly."
+  },
+  "seo": {
+    "title": "Super Mock - AI Interview Preparation Platform in 6 Languages | Real Interviewers",
+    "description": "Prepare for your interview in 6 languages with Super Mock. AI-powered analysis, real interviewers, 10+ professions. Personalized feedback and skill improvement.",
+    "keywords": "interview, mock interview, AI, artificial intelligence, job preparation, career, English, Russian, German, French, Spanish, Chinese, programming, marketing, sales, HR",
+    "ogTitle": "Super Mock - AI Interview Preparation Platform in 6 Languages",
+    "ogDescription": "Prepare for your interview in 6 languages with Super Mock. AI-powered analysis, real interviewers, 10+ professions.",
+    "twitterTitle": "Super Mock - AI Interview Preparation Platform in 6 Languages",
+    "twitterDescription": "Prepare for your interview in 6 languages with Super Mock. AI-powered analysis, real interviewers, 10+ professions."
+  },
   "navigation": {
+    "home": "Home",
     "features": "Features",
     "learningProcess": "Process",
     "professions": "Professions",
     "languages": "Languages",
     "pricing": "Pricing",
-    "instructions": "📖 Help",
-    "support": "💜 Support",
+    "instructions": "Help",
+    "support": "Support",
     "about": "About",
     "login": "Login"
   },
@@ -17,7 +33,7 @@
     "subtitle": "Super Mock — AI platform for interviews with unique candidate and interviewer matching",
     "startLearning": "🚀 Start Learning",
     "openApp": "💻 Open App",
-    "help": "📖 Help"
+    "help": "Help"
   },
   "stats": {
     "professions": "Technical<br />Professions 💼",
@@ -29,29 +45,75 @@
     "title": "Platform",
     "titleHighlight": "Features",
     "subtitle": "Modern technologies for effective interview preparation",
+    "tryNow": "Try Now",
+    "viewPricing": "View Pricing",
+    "mainFeatures": {
+      "title": "Core Features",
+      "subtitle": "Everything you need to ace your next interview"
+    },
+    "additional": {
+      "title": "Why Choose SuperMock?",
+      "subtitle": "Built with modern technology and user experience in mind"
+    },
+    "cta": {
+      "title": "Ready to Start Your Journey?",
+      "subtitle": "Join thousands of professionals who have improved their interview skills with SuperMock",
+      "startNow": "Start Now",
+      "learnMore": "Learn More"
+    },
     "webrtc": {
       "title": "WebRTC Video Calls",
-      "description": "High-quality real-time communication"
+      "description": "High-quality real-time communication",
+      "details": "Real-time voice and video communication with AI interviewer"
     },
     "coding": {
       "title": "Real-time Programming",
-      "description": "Collaborative code writing"
+      "description": "Collaborative code writing",
+      "details": "Interactive coding challenges with real-time evaluation"
     },
     "chat": {
       "title": "Interviewer ↔ Candidate Chat",
-      "description": "Instant communication"
+      "description": "Instant communication",
+      "details": "AI-powered chat for questions and clarifications"
     },
     "ai": {
       "title": "AI Analysis",
-      "description": "Smart skill assessment"
+      "description": "Smart skill assessment",
+      "details": "Advanced AI analysis of your performance and skills"
     },
     "feedback": {
       "title": "Personalized Feedback",
-      "description": "Detailed recommendations"
+      "description": "Detailed recommendations",
+      "details": "Detailed feedback and improvement recommendations"
     },
     "learning": {
       "title": "Interactive Learning",
-      "description": "Process gamification"
+      "description": "Process gamification",
+      "details": "Gamified learning experience with progress tracking"
+    },
+    "performance": {
+      "title": "High Performance",
+      "description": "Optimized for speed and reliability"
+    },
+    "security": {
+      "title": "Secure",
+      "description": "Your data is protected with enterprise-grade security"
+    },
+    "multilingual": {
+      "title": "Multilingual",
+      "description": "Available in 6 languages worldwide"
+    },
+    "community": {
+      "title": "Community",
+      "description": "Join thousands of learners worldwide"
+    },
+    "personalized": {
+      "title": "Personalized",
+      "description": "AI adapts to your learning style and pace"
+    },
+    "smart": {
+      "title": "Smart Learning",
+      "description": "Intelligent recommendations and adaptive content"
     }
   },
   "languages": {
@@ -101,6 +163,9 @@
       "startLearning": "Start Learning"
     },
     "processSteps": {
+      "title": "Step-by-step",
+      "titleHighlight": "guide",
+      "subtitle": "Follow these simple steps to start practicing interviews",
       "step1": {
         "title": "Language Selection",
         "description": "Interviews in 6 languages",
@@ -235,6 +300,9 @@
       "description": "Therefore, prices are maximally affordable for everyone. After the full version release, tariffs will be higher, so now is the most profitable time to connect!"
     },
     "learnMore": "💰 Learn more about pricing",
+    "included": "Included",
+    "excluded": "Not included",
+    "proDiscount": "Pro features",
     "free": {
       "title": "Free",
       "price": "$1",
@@ -244,6 +312,9 @@
         "Validity period: 1 month",
         "Basic platform features"
       ],
+      "feature1": "Unlimited mock interviews",
+      "feature2": "Validity period: 1 month",
+      "feature3": "Basic platform features",
       "select": "Select Plan"
     },
     "basic": {
@@ -256,6 +327,10 @@
         "Validity period: 1 month",
         "Advanced analytics"
       ],
+      "feature1": "Mock interviews",
+      "feature2": "AI assistant",
+      "feature3": "Validity period: 1 month",
+      "feature4": "Advanced analytics",
       "select": "Select Plan"
     },
     "pro": {
@@ -264,20 +339,55 @@
       "period": "USD for 3 months",
       "popular": "Popular",
       "features": [
-        "Mock interviews",
-        "AI assistant",
-        "Validity period: 3 months",
-        "Priority support",
-        "Exclusive features"
+        "All Basic Features",
+        "Learning in Applications",
+        "Cycle Repetition",
+        "Priority Support",
+        "Exclusive features",
+        "Validity period: 3 months"
       ],
+      "feature1": "All Basic Features",
+      "feature2": "Learning in Applications",
+      "feature3": "Cycle Repetition",
+      "feature4": "Priority Support",
+      "feature5": "Exclusive features",
+      "feature6": "Validity period: 3 months",
       "select": "Select Plan"
     }
+  },
+  "pricingFaq": {
+    "howToChoose": {
+      "question": "How to choose the right plan?",
+      "answer": "Start with the Free plan to get familiar with the platform, then upgrade to Basic or Pro based on your needs."
+    },
+    "cancelSubscription": {
+      "question": "Can I cancel my subscription?",
+      "answer": "Yes, you can cancel your subscription at any time. Your access will remain active until the end of the current billing period."
+    },
+    "trialPeriod": {
+      "question": "Is there a trial period?",
+      "answer": "Yes, all plans start with a free trial period so you can explore the platform before committing."
+    },
+    "paymentMethods": {
+      "question": "What payment methods do you accept?",
+      "answer": "We accept all major credit cards, PayPal, and other secure payment methods."
+    }
+  },
+  "pricingCta": {
+    "title": "Ready to",
+    "titleHighlight": "start",
+    "titleSuffix": "learning?",
+    "subtitle": "Join thousands of developers who have already improved their skills with Super Mock",
+    "startLearning": "Start Learning",
+    "learningProcess": "Learning Process"
   },
   "social": {
     "title": "We are here when it's difficult",
     "subtitle": "SuperMock is not only about career and interviews. It's about people.",
     "description": "We know how hard it can be for those who find themselves in difficult life situations. Therefore:",
+    "donationsPrefix": "Donations:",
     "donations": "10% of all payments we direct to help those who especially need it.",
+    "accessibilityPrefix": "Accessibility:",
     "accessibility": "People with disabilities and low-income families can study on our platform for free.",
     "conclusion": "Because everyone deserves a chance for a future with hope and love ❤️"
   },
@@ -497,6 +607,7 @@
     },
     "howItWorks": {
       "title": "How to get support?",
+      "titleHighlight": "support",
       "subtitle": "We will review your situation and offer the optimal solution",
       "steps": {
         "step1": {
@@ -539,6 +650,14 @@
       }
     }
   },
+  "notFound": {
+    "title": "Page Not Found",
+    "description": "The page you are looking for does not exist or has been moved.",
+    "goHome": "Go to Homepage",
+    "explore": "Explore Our Platform",
+    "help": "Need help? Contact our support team.",
+    "contactSupport": "Contact Support"
+  },
   "footer": {
     "description": "AI platform for technical interview preparation with support for 6 languages and personalized feedback.",
     "product": "Product",
@@ -548,9 +667,9 @@
     "professions": "Professions",
     "languages": "Languages",
     "pricing": "Pricing",
-    "help": "📖 Help",
+    "help": "Help",
     "documentation": "Documentation",
-    "supportLink": "💜 Support",
+    "supportLink": "Support",
     "faq": "FAQ",
     "about": "About",
     "privacyPolicy": "Privacy Policy",

@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
-import './i18n.ts' // Инициализация интернационализации
+import './i18n/index.ts' // Инициализация интернационализации
 import { cleanupCorruptedStorage } from './lib/persistence'
 
 // Clean up corrupted localStorage data on app start

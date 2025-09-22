@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface UseSafeTranslationReturn {
@@ -11,10 +11,17 @@ interface UseSafeTranslationReturn {
 export const useSafeTranslation = (): UseSafeTranslationReturn => {
   const { t: i18nT, i18n } = useTranslation();
   const [error, setError] = useState<Error | null>(null);
+  const [currentLang, setCurrentLang] = useState(i18n.language);
 
   // Функция перевода с fallback
   const t = (key: string, options?: any): string => {
     try {
+      // Проверяем, инициализирован ли i18n
+      if (!i18n.isInitialized) {
+        console.warn('i18n not initialized yet, returning key:', key);
+        return key;
+      }
+
       const translation = i18nT(key, options);
       
       // Если перевод не найден, возвращаем ключ
@@ -23,7 +30,13 @@ export const useSafeTranslation = (): UseSafeTranslationReturn => {
         return key;
       }
       
-      return translation;
+      // Если перевод - объект, возвращаем строковое представление
+      if (typeof translation === 'object') {
+        console.warn(`Translation for key '${key}' returned an object, converting to string`);
+        return JSON.stringify(translation);
+      }
+      
+      return String(translation);
     } catch (err) {
       console.warn('Translation error:', err);
       setError(err instanceof Error ? err : new Error('Translation error'));
@@ -31,9 +44,23 @@ export const useSafeTranslation = (): UseSafeTranslationReturn => {
     }
   };
 
+  // Listen for language changes
+  useEffect(() => {
+    const handleLanguageChange = (lng: string) => {
+      console.log('useSafeTranslation: language changed to:', lng);
+      setCurrentLang(lng);
+    };
+
+    i18n.on('languageChanged', handleLanguageChange);
+    
+    return () => {
+      i18n.off('languageChanged', handleLanguageChange);
+    };
+  }, [i18n]);
+
   return {
     t,
-    locale: i18n.language || 'ru',
+    locale: currentLang || 'en',
     isLoading: !i18n.isInitialized,
     error
   };

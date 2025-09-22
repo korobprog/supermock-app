@@ -1,12 +1,28 @@
 {
+  "common": {
+    "title": "Super Mock - AI Interview Plattform",
+    "description": "Bereiten Sie sich auf Ihr Interview in 6 Sprachen mit KI-Analyse und echten Interviewern vor.",
+    "testSection": "Sprachtest-Bereich",
+    "testDescription": "Dies ist ein Testbereich zur Überprüfung, ob die Internationalisierung korrekt funktioniert."
+  },
+  "seo": {
+    "title": "Super Mock - KI-Interview-Vorbereitungsplattform in 6 Sprachen | Echte Interviewer",
+    "description": "Bereiten Sie sich auf Ihr Interview in 6 Sprachen mit Super Mock vor. KI-Analyse, echte Interviewer, 10+ Berufe. Personalisiertes Feedback und Kompetenzverbesserung.",
+    "keywords": "Interview, Vorstellungsgespräch, KI, künstliche Intelligenz, Jobvorbereitung, Karriere, Englisch, Russisch, Deutsch, Französisch, Spanisch, Chinesisch, Programmierung, Marketing, Verkauf, HR",
+    "ogTitle": "Super Mock - KI-Interview-Vorbereitungsplattform in 6 Sprachen",
+    "ogDescription": "Bereiten Sie sich auf Ihr Interview in 6 Sprachen mit Super Mock vor. KI-Analyse, echte Interviewer, 10+ Berufe.",
+    "twitterTitle": "Super Mock - KI-Interview-Vorbereitungsplattform in 6 Sprachen",
+    "twitterDescription": "Bereiten Sie sich auf Ihr Interview in 6 Sprachen mit Super Mock vor. KI-Analyse, echte Interviewer, 10+ Berufe."
+  },
   "navigation": {
+    "home": "Startseite",
     "features": "Funktionen",
     "learningProcess": "Prozess",
     "professions": "Berufe",
     "languages": "Sprachen",
     "pricing": "Preise",
-    "instructions": "📖 Hilfe",
-    "support": "💜 Support",
+    "instructions": "Hilfe",
+    "support": "Support",
     "about": "Über uns",
     "login": "Anmelden"
   },
@@ -17,7 +33,7 @@
     "subtitle": "Super Mock — KI-Plattform für Vorstellungsgespräche mit einzigartiger Kandidaten- und Interviewer-Zuordnung",
     "startLearning": "🚀 Lernen beginnen",
     "openApp": "💻 App öffnen",
-    "help": "📖 Hilfe"
+    "help": "Hilfe"
   },
   "stats": {
     "professions": "Technische<br />Berufe 💼",
@@ -242,23 +258,19 @@
       "title": "Kostenlos",
       "price": "$1",
       "period": "USD pro Monat",
-      "features": [
-        "Unbegrenzte Mock-Interviews",
-        "Gültigkeitsdauer: 1 Monat",
-        "Grundlegende Plattformfunktionen"
-      ],
+      "feature1": "Unbegrenzte Mock-Interviews",
+      "feature2": "Gültigkeitsdauer: 1 Monat",
+      "feature3": "Grundlegende Plattformfunktionen",
       "select": "Tarif wählen"
     },
     "basic": {
       "title": "Basic",
       "price": "$9.99",
       "period": "USD pro Monat",
-      "features": [
-        "Mock-Interviews",
-        "KI-Assistent",
-        "Gültigkeitsdauer: 1 Monat",
-        "Erweiterte Analysen"
-      ],
+      "feature1": "Mock-Interviews",
+      "feature2": "KI-Assistent",
+      "feature3": "Gültigkeitsdauer: 1 Monat",
+      "feature4": "Erweiterte Analysen",
       "select": "Tarif wählen"
     },
     "pro": {
@@ -266,13 +278,12 @@
       "price": "$20",
       "period": "USD für 3 Monate",
       "popular": "Beliebt",
-      "features": [
-        "Mock-Interviews",
-        "KI-Assistent",
-        "Gültigkeitsdauer: 3 Monate",
-        "Prioritäts-Support",
-        "Exklusive Funktionen"
-      ],
+      "feature1": "Alle Basic-Funktionen",
+      "feature2": "Lernen in Anwendungen",
+      "feature3": "Zyklus-Wiederholung",
+      "feature4": "Prioritäts-Support",
+      "feature5": "Exklusive Funktionen",
+      "feature6": "Gültigkeitsdauer: 3 Monate",
       "select": "Tarif wählen"
     }
   },
@@ -571,6 +582,14 @@
       }
     }
   },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "description": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
+    "goHome": "Zur Startseite gehen",
+    "explore": "Unsere Plattform erkunden",
+    "help": "Brauchen Sie Hilfe? Kontaktieren Sie unser Support-Team.",
+    "contactSupport": "Support kontaktieren"
+  },
   "footer": {
     "description": "KI-Plattform für die Vorbereitung auf technische Vorstellungsgespräche mit Unterstützung für 6 Sprachen und personalisierter Rückmeldung.",
     "product": "Produkt",
@@ -580,9 +599,9 @@
     "professions": "Berufe",
     "languages": "Sprachen",
     "pricing": "Preise",
-    "help": "📖 Hilfe",
+    "help": "Hilfe",
     "documentation": "Dokumentation",
-    "supportLink": "💜 Support",
+    "supportLink": "Support",
     "faq": "FAQ",
     "about": "Über uns",
     "privacyPolicy": "Datenschutzrichtlinie",

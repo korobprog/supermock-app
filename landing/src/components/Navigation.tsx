@@ -1,33 +1,33 @@
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
-import { Link, useLocation } from "react-router-dom";
+import LanguageSwitcherSimple from "@/components/LanguageSwitcherSimple";
+import Link from "next/link";
+import { useRouter } from "next/router";
 import { Menu, X } from "lucide-react";
 import { navigateToExternal, handleExternalClick } from "@/lib/utils";
-import { useSafeTranslation } from "@/hooks/useSafeTranslation";
+import { useTranslation } from 'react-i18next';
 import { useSafeUIStore } from "@/hooks/useSafeUIStore";
 
 const Navigation = () => {
-  const { t } = useSafeTranslation();
-  const location = useLocation();
+  const { t } = useTranslation();
+  const router = useRouter();
   const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useSafeUIStore();
 
   const isActive = (path: string) => {
     if (path === "/") {
-      return location.pathname === "/";
+      return router.pathname === "/";
     }
-    return location.pathname.startsWith(path);
+    return router.pathname.startsWith(path);
   };
 
   const menuItems = [
-    { path: "/features", label: t('navigation.features') },
-    { path: "/learning-process", label: t('navigation.learningProcess') },
-    { path: "/professions", label: t('navigation.professions') },
-    { path: "/languages", label: t('navigation.languages') },
-    { path: "/pricing", label: t('navigation.pricing') },
-    { path: "/support", label: t('navigation.support') },
-    { path: "/about", label: t('navigation.about') },
-
+    { path: "/features", label: t('navigation.features') || 'Features' },
+    { path: "/learning-process", label: t('navigation.learningProcess') || 'Process' },
+    { path: "/professions", label: t('navigation.professions') || 'Professions' },
+    { path: "/languages", label: t('navigation.languages') || 'Languages' },
+    { path: "/pricing", label: t('navigation.pricing') || 'Pricing' },
+    { path: "/support", label: t('navigation.support') || 'Support' },
+    { path: "/about", label: t('navigation.about') || 'About' },
   ];
 
   return (
@@ -37,11 +37,14 @@ const Navigation = () => {
           {/* Logo and Mobile Language Switcher */}
           <div className="flex items-center gap-4">
             <div onClick={closeMobileMenu}>
-              <Logo />
+              {/* <Logo /> */}
+              <div className="text-2xl font-bold gradient-primary bg-clip-text text-transparent">
+                Super Mock
+              </div>
             </div>
             {/* Mobile Language Switcher - visible only on mobile */}
             <div className="lg:hidden">
-              <LanguageSwitcher compact />
+              <LanguageSwitcherSimple />
             </div>
           </div>
 
@@ -50,7 +53,7 @@ const Navigation = () => {
             {menuItems.map((item) => (
               <Link
                 key={item.path}
-                to={item.path}
+                href={item.path || '/'}
                 className={`transition-colors ${
                   isActive(item.path)
                     ? 'text-primary'
@@ -64,9 +67,9 @@ const Navigation = () => {
 
           {/* Desktop Right Section */}
           <div className="hidden lg:flex items-center gap-4">
-            <LanguageSwitcher />
+            <LanguageSwitcherSimple />
             <Button variant="outline" onClick={(e) => handleExternalClick('https://app.supermock.ru', e)}>
-              {t('navigation.login')}
+              {t('navigation.login') || 'Login'}
             </Button>
           </div>
 
@@ -90,7 +93,7 @@ const Navigation = () => {
               {menuItems.map((item) => (
                 <Link
                   key={item.path}
-                  to={item.path}
+                  href={item.path || '/'}
                   onClick={closeMobileMenu}
                   className={`block py-2 transition-colors ${
                     isActive(item.path)
@@ -102,6 +105,9 @@ const Navigation = () => {
                 </Link>
               ))}
               <div className="pt-4 border-t border-border/50 space-y-4">
+                <div className="flex justify-center">
+                  <LanguageSwitcherSimple />
+                </div>
                 <Button onClick={(e) => handleExternalClick('https://app.supermock.ru', e)} variant="outline" className="w-full">
                   {t('navigation.login')}
                 </Button>

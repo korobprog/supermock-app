@@ -1,8 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export', // Enable static export for deployment
-  distDir: './dist', // Use dist directory for static export
-  trailingSlash: true, // Enable trailing slash for static export
+  // Remove output: 'export' for development
+  // output: 'export', // Enable static export for deployment
+  // distDir: './dist', // Use dist directory for static export
+  trailingSlash: false, // Disable trailing slash for development
   images: {
     unoptimized: true, // Disable image optimization for static export
   },

@@ -2,9 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Footer from "@/components/Footer";
+import Navigation from "@/components/Navigation";
 import ProfessionsSection from "@/components/ProfessionsSection";
+import LanguageTest from "@/components/LanguageTest";
+import I18nTest from "@/components/I18nTest";
 import { handleExternalClick } from "@/lib/utils";
-import { useTranslation } from "@/hooks/useTranslation";
+import { useTranslation } from "react-i18next";
 import { 
   Mic, 
   Code, 
@@ -17,7 +20,7 @@ import {
 // Hero image will be loaded from public folder
 
 const Index = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   
   const languages = [
     { code: "🇺🇸", name: "English" },
@@ -38,7 +41,10 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background">
+      <Navigation />
+      {/* <LanguageTest />
+      <I18nTest /> */}
       {/* Hero Section */}
       <section className="pt-24 pb-16 px-6">
         <div className="container mx-auto">
@@ -248,7 +254,7 @@ const Index = () => {
               <CardContent className="space-y-6">
                 <div className="space-y-3">
                   {(() => {
-                    const features = t('pricing.free.features', { returnObjects: true });
+                    const features = i18n.t('pricing.free.features', { returnObjects: true });
                     const featuresArray = Array.isArray(features) ? features : [];
                     return featuresArray.map((feature: string, index: number) => (
                       <div key={index} className="flex items-start gap-3">
@@ -276,7 +282,7 @@ const Index = () => {
               <CardContent className="space-y-6">
                 <div className="space-y-3">
                   {(() => {
-                    const features = t('pricing.basic.features', { returnObjects: true });
+                    const features = i18n.t('pricing.basic.features', { returnObjects: true });
                     const featuresArray = Array.isArray(features) ? features : [];
                     return featuresArray.map((feature: string, index: number) => (
                       <div key={index} className="flex items-start gap-3">
@@ -310,7 +316,7 @@ const Index = () => {
               <CardContent className="space-y-6">
                 <div className="space-y-3">
                   {(() => {
-                    const features = t('pricing.pro.features', { returnObjects: true });
+                    const features = i18n.t('pricing.pro.features', { returnObjects: true });
                     const featuresArray = Array.isArray(features) ? features : [];
                     return featuresArray.map((feature: string, index: number) => (
                       <div key={index} className="flex items-start gap-3">

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Switcher Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 8px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            background: #333;
+            border-radius: 4px;
+        }
+        .log {
+            background: #000;
+            color: #0f0;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Language Switcher Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Instructions</h2>
+        <p>1. Open the main application at <a href="http://localhost:3000" target="_blank">http://localhost:3000</a></p>
+        <p>2. Open browser developer tools (F12)</p>
+        <p>3. Go to Console tab</p>
+        <p>4. Click on the language switcher (globe icon with flag)</p>
+        <p>5. Check the console logs for debugging information</p>
+    </div>
+    
+    <div class="test-section">
+        <h2>Expected Behavior</h2>
+        <ul>
+            <li>Language switcher should be visible in the navigation bar</li>
+            <li>Clicking on it should open a dropdown with language options</li>
+            <li>Selecting a language should change the page content</li>
+            <li>Language preference should be saved in localStorage</li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h2>Debug Information</h2>
+        <div class="status" id="status">
+            <strong>Current Language:</strong> <span id="current-lang">Loading...</span><br>
+            <strong>LocalStorage:</strong> <span id="localstorage-lang">Loading...</span><br>
+            <strong>Timestamp:</strong> <span id="timestamp">Loading...</span>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Console Logs</h2>
+        <div class="log" id="console-log">Waiting for logs...</div>
+    </div>
+
+    <script>
+        function updateStatus() {
+            const currentLang = localStorage.getItem('language') || 'en';
+            document.getElementById('current-lang').textContent = currentLang;
+            document.getElementById('localstorage-lang').textContent = localStorage.getItem('language') || 'not set';
+            document.getElementById('timestamp').textContent = new Date().toLocaleTimeString();
+        }
+        
+        function addLog(message) {
+            const logElement = document.getElementById('console-log');
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.textContent += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        // Override console.log to capture logs
+        const originalLog = console.log;
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addLog(args.join(' '));
+        };
+        
+        // Override console.error to capture errors
+        const originalError = console.error;
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addLog('ERROR: ' + args.join(' '));
+        };
+        
+        // Update status every second
+        setInterval(updateStatus, 1000);
+        updateStatus();
+        
+        addLog('Test page loaded. Open http://localhost:3000 in another tab to test the language switcher.');
+    </script>
+</body>
+</html>
