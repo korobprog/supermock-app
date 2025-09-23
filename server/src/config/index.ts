@@ -1,1 +1,7 @@
-export { buildConfig, type AppConfig, type DailyCoSettings } from '../modules/config.js';
+export {
+  buildConfig,
+  type AppConfig,
+  type DailyCoSettings,
+  type AiConfig,
+  type AiProviderSettings
+} from '../modules/config.js';

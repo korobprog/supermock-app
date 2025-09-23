@@ -19,6 +19,7 @@ import { registerAvatarRoutes } from './routes/avatar.route.js';
 import { registerRealtimeSessionRoutes } from './routes/sessions.route.js';
 import { registerNotificationRoutes } from './routes/notifications.route.js';
 import { registerAnalyticsRoutes } from './routes/analytics.route.js';
+import { registerAiRoutes } from './routes/ai.route.js';
 import { registerRealtimeWebsocketRoutes } from './routes/realtime.ws.js';
 import { DailyCoService } from './modules/daily-co.js';
 import { startMatchingAutomation } from './modules/matching-automation.js';
@@ -74,6 +75,13 @@ async function bootstrap() {
   registerRealtimeSessionRoutes(app);
   registerNotificationRoutes(app);
   registerAnalyticsRoutes(app);
+  registerAiRoutes(app, {
+    httpClient: fetch,
+    serviceUrl: config.ai.serviceUrl,
+    requestTimeoutMs: config.ai.requestTimeoutMs,
+    defaultProvider: config.ai.defaultProvider,
+    serviceToken: config.ai.serviceToken ?? undefined
+  });
   registerRealtimeWebsocketRoutes(app);
 
   try {
