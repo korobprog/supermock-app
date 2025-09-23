@@ -26,6 +26,18 @@ describe('Rate limiting for critical routes', () => {
       apiKey: '',
       domain: ''
     },
+  ai: {
+      serviceUrl: null,
+      defaultProvider: null,
+      requestTimeoutMs: 5000,
+      serviceToken: null,
+      providers: {
+        openrouter: null,
+        openai: null,
+        anthropic: null,
+        groq: null
+      }
+    },
     rateLimit: {
       global: {
         max: 100,

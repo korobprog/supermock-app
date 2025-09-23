@@ -7,6 +7,9 @@ const DEFAULT_JWT_REFRESH_TTL = process.env.JWT_REFRESH_TTL ?? '7d';
 const DEFAULT_BCRYPT_SALT_ROUNDS = process.env.BCRYPT_SALT_ROUNDS ? Number(process.env.BCRYPT_SALT_ROUNDS) : 12;
 const DEFAULT_RATE_LIMIT_MAX = process.env.RATE_LIMIT_MAX ? Number(process.env.RATE_LIMIT_MAX) : 100;
 const DEFAULT_RATE_LIMIT_WINDOW = process.env.RATE_LIMIT_WINDOW ?? '1 minute';
+const DEFAULT_AI_REQUEST_TIMEOUT_MS = process.env.AI_REQUEST_TIMEOUT_MS
+  ? Number(process.env.AI_REQUEST_TIMEOUT_MS)
+  : 15000;
 
 type RateLimitSettings = {
   max: number;
@@ -31,6 +34,21 @@ export type DailyCoSettings = {
   domain: string;
 };
 
+export type AiProviderSettings = {
+  openrouter: string | null;
+  openai: string | null;
+  anthropic: string | null;
+  groq: string | null;
+};
+
+export type AiConfig = {
+  serviceUrl: string | null;
+  defaultProvider: string | null;
+  requestTimeoutMs: number;
+  serviceToken: string | null;
+  providers: AiProviderSettings;
+};
+
 export type AppConfig = {
   port: number;
   host: string;
@@ -39,6 +57,7 @@ export type AppConfig = {
   jwt: JwtConfig;
   password: PasswordConfig;
   dailyCo: DailyCoSettings;
+  ai: AiConfig;
   rateLimit: {
     global: RateLimitSettings;
     critical: RateLimitSettings;
@@ -56,13 +75,40 @@ export function buildConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     throw new Error('JWT_SECRET must be provided when NODE_ENV is not "development".');
   }
 
-  const dailyCoApiKey = env.DAILY_CO_API_KEY ?? '';
-  const dailyCoDomain = env.DAILY_CO_DOMAIN ?? '';
+  const normalize = (value: string | undefined | null) => {
+    if (typeof value !== 'string') {
+      return '';
+    }
+
+    const trimmed = value.trim();
+    return trimmed;
+  };
+
+  const dailyCoApiKey = normalize(env.DAILY_CO_API_KEY);
+  const dailyCoDomain = normalize(env.DAILY_CO_DOMAIN);
   const dailyCoEnabled = Boolean(dailyCoApiKey && dailyCoDomain);
   const parseMax = (value: string | undefined, fallback: number) => {
     const parsed = Number(value);
     return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
   };
+
+  const parsePositiveInt = (value: string | undefined, fallback: number) => {
+    if (!value) {
+      return fallback;
+    }
+
+    const parsed = Number.parseInt(value, 10);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      return fallback;
+    }
+
+    return parsed;
+  };
+
+  const aiServiceUrl = normalize(env.AI_SERVICE_URL);
+  const aiServiceToken = normalize(env.AI_SERVICE_TOKEN);
+  const defaultAiProvider = normalize(env.DEFAULT_AI_PROVIDER);
+  const aiRequestTimeoutMs = parsePositiveInt(env.AI_REQUEST_TIMEOUT_MS, DEFAULT_AI_REQUEST_TIMEOUT_MS);
 
   return {
     port: env.SERVER_PORT ? Number(env.SERVER_PORT) : DEFAULT_PORT,
@@ -82,6 +128,18 @@ export function buildConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       enabled: dailyCoEnabled,
       apiKey: dailyCoApiKey,
       domain: dailyCoDomain
+    },
+    ai: {
+      serviceUrl: aiServiceUrl || null,
+      defaultProvider: defaultAiProvider || null,
+      requestTimeoutMs: aiRequestTimeoutMs,
+      serviceToken: aiServiceToken || null,
+      providers: {
+        openrouter: normalize(env.OPENROUTER_API_KEY) || null,
+        openai: normalize(env.OPENAI_API_KEY) || null,
+        anthropic: normalize(env.ANTHROPIC_API_KEY) || null,
+        groq: normalize(env.GROQ_API_KEY) || null
+      }
     },
     rateLimit: {
       global: {

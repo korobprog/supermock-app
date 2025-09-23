@@ -10,6 +10,18 @@ describe('buildConfig', () => {
     expect(config.corsOrigins).toEqual(['http://localhost:3000', 'http://localhost:3001']);
     expect(config.logLevel).toBe('info');
     expect(config.jwt.secret).toBe('supermock-dev-secret');
+    expect(config.ai).toEqual({
+      serviceUrl: null,
+      defaultProvider: null,
+      requestTimeoutMs: 15000,
+      serviceToken: null,
+      providers: {
+        openrouter: null,
+        openai: null,
+        anthropic: null,
+        groq: null
+      }
+    });
     expect(config.rateLimit).toEqual({
       global: {
         max: 100,
@@ -45,5 +57,33 @@ describe('buildConfig', () => {
     });
 
     expect(config.jwt.secret).toBe('top-secret');
+  });
+
+  it('extracts AI configuration from environment variables', () => {
+    const config = buildConfig({
+      NODE_ENV: 'production',
+      JWT_SECRET: 'prod-secret',
+      AI_SERVICE_URL: ' https://ai.example.com ',
+      AI_SERVICE_TOKEN: ' bearer-token ',
+      DEFAULT_AI_PROVIDER: 'anthropic',
+      AI_REQUEST_TIMEOUT_MS: '22000',
+      OPENROUTER_API_KEY: 'router-key',
+      OPENAI_API_KEY: 'openai-key',
+      ANTHROPIC_API_KEY: 'anthropic-key',
+      GROQ_API_KEY: 'groq-key'
+    });
+
+    expect(config.ai).toEqual({
+      serviceUrl: 'https://ai.example.com',
+      defaultProvider: 'anthropic',
+      requestTimeoutMs: 22000,
+      serviceToken: 'bearer-token',
+      providers: {
+        openrouter: 'router-key',
+        openai: 'openai-key',
+        anthropic: 'anthropic-key',
+        groq: 'groq-key'
+      }
+    });
   });
 });

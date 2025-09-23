@@ -164,7 +164,13 @@ vi.mock('../../src/modules/prisma.js', () => {
 
         return cloneRefreshToken(record);
       },
-      findUnique: async ({ where, include }: { where: { tokenHash: string }; include?: { user?: boolean } }) => {
+      findUnique: async ({
+        where,
+        include
+      }: {
+        where: { tokenHash: string };
+        include?: { user?: boolean; User?: boolean };
+      }) => {
         const id = state.refreshTokensByHash.get(where.tokenHash);
 
         if (!id) {
@@ -177,10 +183,15 @@ vi.mock('../../src/modules/prisma.js', () => {
           return null;
         }
 
-        const record = cloneRefreshToken(token) as RefreshTokenRecord & { user?: UserRecord | null };
+        const record = cloneRefreshToken(token) as RefreshTokenRecord & {
+          user?: UserRecord | null;
+          User?: UserRecord | null;
+        };
 
-        if (include?.user) {
-          record.user = cloneUser(state.usersById.get(token.userId) ?? null);
+        if (include?.user || include?.User) {
+          const relatedUser = cloneUser(state.usersById.get(token.userId) ?? null);
+          record.user = relatedUser;
+          record.User = relatedUser;
         }
 
         return record;
@@ -236,7 +247,13 @@ vi.mock('../../src/modules/prisma.js', () => {
 
         return cloneEmailToken(record);
       },
-      findUnique: async ({ where, include }: { where: { tokenHash: string }; include?: { user?: boolean } }) => {
+      findUnique: async ({
+        where,
+        include
+      }: {
+        where: { tokenHash: string };
+        include?: { user?: boolean; User?: boolean };
+      }) => {
         const id = state.emailTokensByHash.get(where.tokenHash);
 
         if (!id) {
@@ -249,10 +266,15 @@ vi.mock('../../src/modules/prisma.js', () => {
           return null;
         }
 
-        const record = cloneEmailToken(token) as EmailVerificationTokenRecord & { user?: UserRecord | null };
+        const record = cloneEmailToken(token) as EmailVerificationTokenRecord & {
+          user?: UserRecord | null;
+          User?: UserRecord | null;
+        };
 
-        if (include?.user) {
-          record.user = cloneUser(state.usersById.get(token.userId) ?? null);
+        if (include?.user || include?.User) {
+          const relatedUser = cloneUser(state.usersById.get(token.userId) ?? null);
+          record.user = relatedUser;
+          record.User = relatedUser;
         }
 
         return record;
@@ -307,7 +329,13 @@ vi.mock('../../src/modules/prisma.js', () => {
 
         return clonePasswordToken(record);
       },
-      findUnique: async ({ where, include }: { where: { tokenHash: string }; include?: { user?: boolean } }) => {
+      findUnique: async ({
+        where,
+        include
+      }: {
+        where: { tokenHash: string };
+        include?: { user?: boolean; User?: boolean };
+      }) => {
         const id = state.passwordTokensByHash.get(where.tokenHash);
 
         if (!id) {
@@ -320,10 +348,15 @@ vi.mock('../../src/modules/prisma.js', () => {
           return null;
         }
 
-        const record = clonePasswordToken(token) as PasswordResetTokenRecord & { user?: UserRecord | null };
+        const record = clonePasswordToken(token) as PasswordResetTokenRecord & {
+          user?: UserRecord | null;
+          User?: UserRecord | null;
+        };
 
-        if (include?.user) {
-          record.user = cloneUser(state.usersById.get(token.userId) ?? null);
+        if (include?.user || include?.User) {
+          const relatedUser = cloneUser(state.usersById.get(token.userId) ?? null);
+          record.user = relatedUser;
+          record.User = relatedUser;
         }
 
         return record;
@@ -405,6 +438,18 @@ const buildTestConfig = (): AppConfig => ({
     enabled: false,
     apiKey: '',
     domain: ''
+  },
+  ai: {
+    serviceUrl: null,
+    defaultProvider: null,
+    requestTimeoutMs: 5000,
+    serviceToken: null,
+    providers: {
+      openrouter: null,
+      openai: null,
+      anthropic: null,
+      groq: null
+    }
   },
   rateLimit: {
     global: {
